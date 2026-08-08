@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { VENDORS, getVendor, getCategory, vendorsByCategory } from "@/lib/data";
+import { getCategory } from "@/lib/data";
+import { getAllVendors, getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
 import { VendorCard } from "@/components/VendorCard";
 
-export function generateStaticParams() {
-  return VENDORS.map((v) => ({ slug: v.slug }));
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const vendors = await getAllVendors();
+  return vendors.map((v) => ({ slug: v.slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
-}): Metadata {
-  const vendor = getVendor(params.slug);
+}): Promise<Metadata> {
+  const vendor = await getVendorBySlug(params.slug);
   if (!vendor) return { title: "Not found — OOHsource" };
   return {
     title: `${vendor.name} — ${vendor.subcategory} | OOHsource`,
@@ -21,12 +25,16 @@ export function generateMetadata({
   };
 }
 
-export default function VendorPage({ params }: { params: { slug: string } }) {
-  const vendor = getVendor(params.slug);
+export default async function VendorPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const vendor = await getVendorBySlug(params.slug);
   if (!vendor) notFound();
 
   const category = getCategory(vendor.categorySlug);
-  const related = vendorsByCategory(vendor.categorySlug)
+  const related = (await getVendorsByCategory(vendor.categorySlug))
     .filter((v) => v.slug !== vendor.slug)
     .slice(0, 2);
 

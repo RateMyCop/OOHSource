@@ -1,0 +1,121 @@
+import { Vendor, CategorySlug } from "./types";
+import { CATEGORIES } from "./data";
+
+const TOKEN = process.env.AIRTABLE_TOKEN;
+const BASE_ID = process.env.AIRTABLE_BASE_ID;
+const TABLE = process.env.AIRTABLE_TABLE_NAME || "Vendors";
+
+export function airtableConfigured(): boolean {
+  return Boolean(TOKEN && BASE_ID);
+}
+
+// Map the human category name (stored in Airtable) back to our slug.
+const NAME_TO_SLUG: Record<string, CategorySlug> = CATEGORIES.reduce(
+  (acc, c) => {
+    acc[c.name.toLowerCase()] = c.slug;
+    return acc;
+  },
+  {} as Record<string, CategorySlug>
+);
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Airtable multi-select fields come back as arrays; text fields as strings.
+function toArray(v: unknown): string[] {
+  if (Array.isArray(v)) return v.map((x) => String(x));
+  if (typeof v === "string")
+    return v
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+  return [];
+}
+
+function mapRecord(fields: Record<string, unknown>): Vendor | null {
+  const name = (fields.Name ?? fields.name) as string | undefined;
+  if (!name) return null;
+
+  const categoryName = String(fields.Category ?? "");
+  const categorySlug =
+    NAME_TO_SLUG[categoryName.toLowerCase()] ??
+    (slugify(categoryName) as CategorySlug);
+
+  const slugField = fields.Slug ? String(fields.Slug).trim() : "";
+  const slug = slugField || slugify(String(name));
+
+  const tierRaw = String(fields.Tier ?? "Free");
+  const tier = (["Free", "Premium", "Featured"].includes(tierRaw)
+    ? tierRaw
+    : "Free") as Vendor["tier"];
+
+  return {
+    slug,
+    name: String(name),
+    categorySlug,
+    subcategory: String(fields.Subcategory ?? ""),
+    formats: toArray(fields.Formats),
+    location: String(fields.Location ?? ""),
+    coverage: String(fields.Coverage ?? ""),
+    website: String(fields.Website ?? ""),
+    description: String(fields.Description ?? ""),
+    specialties: toArray(fields.Specialties),
+    tier,
+    verified: Boolean(fields.Verified),
+  };
+}
+
+interface AirtableRecord {
+  fields?: Record<string, unknown>;
+}
+
+export async function fetchAirtableVendors(): Promise<Vendor[]> {
+  const base = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    TABLE
+  )}`;
+  const out: Vendor[] = [];
+  let offset: string | undefined;
+
+  do {
+    const url = new URL(base);
+    url.searchParams.set("pageSize", "100");
+    if (offset) url.searchParams.set("offset", offset);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Airtable responded ${res.status}: ${await res.text()}`);
+    }
+
+    const data = (await res.json()) as {
+      records?: AirtableRecord[];
+      offset?: string;
+    };
+
+    for (const rec of data.records ?? []) {
+      const f = rec.fields ?? {};
+      // Optional approval gate: if a "Published" checkbox exists and is false, hide it.
+      if (
+        Object.prototype.hasOwnProperty.call(f, "Published") &&
+        !f.Published
+      ) {
+        continue;
+      }
+      const v = mapRecord(f);
+      if (v) out.push(v);
+    }
+
+    offset = data.offset;
+  } while (offset);
+
+  return out;
+}

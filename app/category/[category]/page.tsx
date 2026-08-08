@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CATEGORIES, getCategory, vendorsByCategory, sortByTier } from "@/lib/data";
+import { CATEGORIES, getCategory, sortByTier } from "@/lib/data";
+import { getVendorsByCategory } from "@/lib/vendors";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
+
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }));
@@ -22,7 +25,7 @@ export function generateMetadata({
   };
 }
 
-export default function CategoryPage({
+export default async function CategoryPage({
   params,
 }: {
   params: { category: string };
@@ -30,7 +33,7 @@ export default function CategoryPage({
   const category = getCategory(params.category as CategorySlug);
   if (!category) notFound();
 
-  const vendors = sortByTier(vendorsByCategory(category.slug));
+  const vendors = sortByTier(await getVendorsByCategory(category.slug));
 
   return (
     <section className="wrap">

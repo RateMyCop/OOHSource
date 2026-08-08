@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { CATEGORIES, VENDORS } from "@/lib/data";
+import { CATEGORIES } from "@/lib/data";
+import { getAllVendors } from "@/lib/vendors";
 import { DirectoryClient } from "./DirectoryClient";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Directory — OOHsource",
@@ -8,7 +11,9 @@ export const metadata: Metadata = {
     "Search the global out-of-home directory by category, format, and market. Media owners, agencies, printers, installers, and OOH technology.",
 };
 
-export default function DirectoryPage() {
+export default async function DirectoryPage() {
+  const vendors = await getAllVendors();
+
   return (
     <>
       <section className="wrap page-head">
@@ -24,7 +29,7 @@ export default function DirectoryPage() {
         </p>
       </section>
       <div className="wrap">
-        <DirectoryClient vendors={VENDORS} categories={CATEGORIES} />
+        <DirectoryClient vendors={vendors} categories={CATEGORIES} />
       </div>
     </>
   );

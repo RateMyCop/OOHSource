@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
 
 export default function HomePage() {
+  // Personalize the hero search from the visitor's approximate city (Vercel edge
+  // geolocation, derived from IP — no permission prompt, no cookie). Falls back
+  // gracefully in dev / when unavailable.
+  const rawCity = headers().get("x-vercel-ip-city");
+  const city = rawCity ? decodeURIComponent(rawCity.replace(/\+/g, " ")) : "";
+  const searchCity = city || "your area";
+
   return (
     <>
       {/* HERO */}
@@ -41,12 +49,12 @@ export default function HomePage() {
                   <circle cx="11" cy="11" r="7" />
                   <path d="m20 20-3.2-3.2" />
                 </svg>
-                <span>Large-format printers in Berlin…</span>
+                <span>Large-format printers in {searchCity}…</span>
               </div>
               <div className="chips">
                 <span className="chip on">Printing &amp; Production</span>
                 <span className="chip">Billboards</span>
-                <span className="chip on">Berlin</span>
+                {city && <span className="chip on">{city}</span>}
                 <span className="chip">Verified only</span>
               </div>
               <div className="search-result">

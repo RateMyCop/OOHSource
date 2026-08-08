@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCategory } from "@/lib/data";
 import { getAllVendors, getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
 import { VendorCard } from "@/components/VendorCard";
+import { ReportIssue } from "@/components/ReportIssue";
 
 export const revalidate = 60;
 
@@ -160,6 +161,9 @@ export default async function VendorPage({
             <Link className="btn btn--ghost" href="/list-your-company">
               Claim this listing
             </Link>
+            <div style={{ textAlign: "center", marginTop: 4 }}>
+              <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
+            </div>
           </div>
         </aside>
       </div>

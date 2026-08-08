@@ -346,6 +346,37 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }
 .checkline input { accent-color: var(--accent); margin-top: 3px; }
 
+/* ===================== REPORT / MODAL ===================== */
+.report-trigger {
+  background: none; border: 0; cursor: pointer; padding: 4px 0;
+  font-family: var(--font-mono), monospace; font-size: 0.72rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3);
+  text-decoration: underline; text-underline-offset: 3px; transition: color 0.15s;
+}
+.report-trigger:hover { color: var(--accent-strong); }
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: color-mix(in srgb, #000 55%, transparent);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: fade 0.16s ease;
+}
+.modal-card {
+  background: var(--paper-raise); border: 1px solid var(--line-strong);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  width: 100%; max-width: 460px; padding: 28px; max-height: 90vh; overflow-y: auto;
+  animation: rise 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.modal-card h3 { font-size: 1.3rem; margin-bottom: 6px; }
+.modal-sub { color: var(--ink-2); font-size: 0.95rem; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+.report-error {
+  margin-bottom: 16px; padding: 11px 13px; border: 1px solid var(--accent-strong);
+  border-radius: var(--radius); color: var(--accent-strong);
+  font-family: var(--font-display), sans-serif; font-size: 0.9rem;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
 /* ===================== MOTION ===================== */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

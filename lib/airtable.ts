@@ -123,14 +123,16 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
   return out;
 }
 
-// Create a single record in the Vendors table. Uses typecast so string values
-// can be written to single/multi-select fields (Airtable creates options as needed).
+// Create a single record. Defaults to the Vendors table; pass a tableName to
+// write elsewhere (e.g. "Reports"). Uses typecast so string values can be
+// written to single/multi-select fields (Airtable creates options as needed).
 export async function createAirtableRecord(
-  fields: Record<string, unknown>
+  fields: Record<string, unknown>,
+  tableName: string = TABLE
 ): Promise<void> {
   if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
   const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
-    TABLE
+    tableName
   )}`;
   const res = await fetch(url, {
     method: "POST",

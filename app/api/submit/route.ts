@@ -81,10 +81,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("[oohsource] submission failed:", e);
     return NextResponse.json(
-      {
-        error: "Something went wrong saving your listing. Please try again.",
-        detail: String(e).slice(0, 500), // TEMP: remove after debugging
-      },
+      { error: "Something went wrong saving your listing. Please try again." },
       { status: 500 }
     );
   }

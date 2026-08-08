@@ -57,7 +57,12 @@ export async function POST(req: Request) {
   const categorySlug = String(body.category ?? "").trim();
   const formats = Array.isArray(body.formats)
     ? body.formats.map((f) => String(f))
-    : [];
+    : typeof body.formats === "string"
+      ? body.formats
+          .split(",")
+          .map((f) => f.trim())
+          .filter(Boolean)
+      : [];
 
   const fields: Record<string, unknown> = {
     Name: name,

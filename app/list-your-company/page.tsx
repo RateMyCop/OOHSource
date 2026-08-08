@@ -4,16 +4,53 @@ import { useState } from "react";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
 
-export default function ListYourCompanyPage() {
-  const [submitted, setSubmitted] = useState(false);
+type Status = "idle" | "submitting" | "done" | "error";
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+export default function ListYourCompanyPage() {
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Phase 2: POST this to an API route / Airtable / database.
-    // For now we confirm the submission on the client.
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+
+    const payload = {
+      name: fd.get("name"),
+      website: fd.get("website"),
+      category: fd.get("category"),
+      subcategory: fd.get("subcategory"),
+      formats: fd.getAll("formats"),
+      location: fd.get("location"),
+      coverage: fd.get("coverage"),
+      description: fd.get("description"),
+      email: fd.get("email"),
+      company_url: fd.get("company_url"), // honeypot
+    };
+
+    setStatus("submitting");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Submission failed. Please try again.");
+      }
+      setStatus("done");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
+      setStatus("error");
+    }
   }
+
+  const submitting = status === "submitting";
 
   return (
     <section className="wrap page-head" style={{ paddingBottom: 80 }}>
@@ -29,16 +66,26 @@ export default function ListYourCompanyPage() {
       </p>
 
       <div className="form-wrap">
-        <div className={`form-ok${submitted ? " show" : ""}`} role="status">
+        <div className={`form-ok${status === "done" ? " show" : ""}`} role="status">
           ✓ Thanks — your listing has been submitted for review. We&rsquo;ll verify
           the details and publish it shortly.
         </div>
 
-        {!submitted && (
+        {status !== "done" && (
           <form onSubmit={handleSubmit}>
+            {/* honeypot — hidden from humans */}
+            <input
+              type="text"
+              name="company_url"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1 }}
+            />
+
             <div className="field">
               <label htmlFor="name">Company name *</label>
-              <input id="name" name="name" type="text" required />
+              <input id="name" name="name" type="text" required disabled={submitting} />
             </div>
 
             <div className="field">
@@ -49,12 +96,13 @@ export default function ListYourCompanyPage() {
                 type="url"
                 placeholder="https://"
                 required
+                disabled={submitting}
               />
             </div>
 
             <div className="field">
               <label htmlFor="category">Category *</label>
-              <select id="category" name="category" required defaultValue="">
+              <select id="category" name="category" required defaultValue="" disabled={submitting}>
                 <option value="" disabled>
                   Select a category…
                 </option>
@@ -73,6 +121,7 @@ export default function ListYourCompanyPage() {
                 name="subcategory"
                 type="text"
                 placeholder="e.g. Large-format printer"
+                disabled={submitting}
               />
             </div>
 
@@ -81,7 +130,7 @@ export default function ListYourCompanyPage() {
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px" }}>
                 {FORMATS.map((f) => (
                   <label key={f} className="filter-opt">
-                    <input type="checkbox" name="formats" value={f} />
+                    <input type="checkbox" name="formats" value={f} disabled={submitting} />
                     {f}
                   </label>
                 ))}
@@ -95,12 +144,13 @@ export default function ListYourCompanyPage() {
                 name="location"
                 type="text"
                 placeholder="e.g. London, UK"
+                disabled={submitting}
               />
             </div>
 
             <div className="field">
               <label htmlFor="coverage">Coverage</label>
-              <select id="coverage" name="coverage" defaultValue="Regional">
+              <select id="coverage" name="coverage" defaultValue="Regional" disabled={submitting}>
                 <option>Worldwide</option>
                 <option>National</option>
                 <option>Regional</option>
@@ -113,27 +163,45 @@ export default function ListYourCompanyPage() {
                 id="description"
                 name="description"
                 placeholder="One or two sentences on what your company does."
+                disabled={submitting}
               />
             </div>
 
             <div className="field">
               <label htmlFor="email">Your email *</label>
-              <input id="email" name="email" type="email" required />
+              <input id="email" name="email" type="email" required disabled={submitting} />
               <span className="hint">
                 Used only to verify the listing — never published.
               </span>
             </div>
 
             <label className="checkline" style={{ margin: "6px 0 22px" }}>
-              <input type="checkbox" required />
+              <input type="checkbox" required disabled={submitting} />
               <span>
                 I confirm the details are accurate and I&rsquo;m authorised to list
                 this company.
               </span>
             </label>
 
-            <button className="btn btn--primary" type="submit">
-              Submit listing
+            {status === "error" && (
+              <div
+                role="alert"
+                style={{
+                  marginBottom: 18,
+                  padding: "12px 14px",
+                  border: "1px solid var(--accent-strong)",
+                  borderRadius: "var(--radius)",
+                  color: "var(--accent-strong)",
+                  fontFamily: "var(--font-display), sans-serif",
+                  fontSize: "0.92rem",
+                }}
+              >
+                {errorMsg}
+              </div>
+            )}
+
+            <button className="btn btn--primary" type="submit" disabled={submitting}>
+              {submitting ? "Submitting…" : "Submit listing"}
             </button>
           </form>
         )}

@@ -103,11 +103,11 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
 
     for (const rec of data.records ?? []) {
       const f = rec.fields ?? {};
-      // Optional approval gate: if a "Published" checkbox exists and is false, hide it.
-      if (
-        Object.prototype.hasOwnProperty.call(f, "Published") &&
-        !f.Published
-      ) {
+      // Moderation gate: hide any record whose Status is set to something other
+      // than "Published". New submissions land as "Pending Review" (hidden);
+      // existing rows with no Status stay visible.
+      const status = String(f.Status ?? "").trim().toLowerCase();
+      if (status && status !== "published") {
         continue;
       }
       const v = mapRecord(f);
@@ -118,4 +118,29 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
   } while (offset);
 
   return out;
+}
+
+// Create a single record in the Vendors table. Uses typecast so string values
+// can be written to single/multi-select fields (Airtable creates options as needed).
+export async function createAirtableRecord(
+  fields: Record<string, unknown>
+): Promise<void> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    TABLE
+  )}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ records: [{ fields }], typecast: true }),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Airtable create failed ${res.status}: ${await res.text()}`
+    );
+  }
 }

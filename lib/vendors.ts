@@ -33,3 +33,10 @@ export async function getVendorsByCategory(
   const all = await getAllVendors();
   return all.filter((v) => v.categorySlug === categorySlug);
 }
+
+export async function getVendorsInCategories(
+  categorySlugs: CategorySlug[]
+): Promise<Vendor[]> {
+  const all = await getAllVendors();
+  return all.filter((v) => categorySlugs.includes(v.categorySlug));
+}

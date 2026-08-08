@@ -20,8 +20,8 @@ export function Footer() {
             <div className="foot-col">
               <span className="h">Directory</span>
               <Link href="/directory">Browse all</Link>
-              <Link href="/#categories">Categories</Link>
-              <Link href="/directory">Search vendors</Link>
+              <Link href="/agencies">Agencies</Link>
+              <Link href="/vendors">Vendors</Link>
             </div>
             <div className="foot-col">
               <span className="h">Get listed</span>

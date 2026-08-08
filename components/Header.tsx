@@ -14,11 +14,11 @@ export function Header() {
           <Link className="navlink" href="/directory">
             Directory
           </Link>
-          <Link className="navlink" href="/#categories">
-            Categories
+          <Link className="navlink" href="/agencies">
+            Agencies
           </Link>
-          <Link className="navlink" href="/list-your-company">
-            For vendors
+          <Link className="navlink" href="/vendors">
+            Vendors
           </Link>
           <ThemeToggle />
           <Link className="btn btn--primary btn--sm" href="/list-your-company">

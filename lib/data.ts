@@ -72,6 +72,23 @@ export function getCategory(slug: CategorySlug): Category | undefined {
   return CATEGORIES.find((c) => c.slug === slug);
 }
 
+// The two-sided-marketplace split, surfaced as the /agencies and /vendors hubs.
+export const AGENCY_CATEGORY_SLUGS: CategorySlug[] = ["agencies-buyers"];
+export const VENDOR_CATEGORY_SLUGS: CategorySlug[] = [
+  "media-owners-operators",
+  "printing-production",
+  "installation-fabrication",
+  "technology-data",
+  "creative-design",
+];
+
+export function agencyCategories(): Category[] {
+  return CATEGORIES.filter((c) => AGENCY_CATEGORY_SLUGS.includes(c.slug));
+}
+export function vendorCategories(): Category[] {
+  return CATEGORIES.filter((c) => VENDOR_CATEGORY_SLUGS.includes(c.slug));
+}
+
 // Seed listings. `verified` reflects whether data has been confirmed from a
 // primary source — most start false and become true after manual review.
 export const VENDORS: Vendor[] = [

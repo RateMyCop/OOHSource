@@ -115,7 +115,6 @@ export default function HomePage() {
           <div className="ruled cols-3">
             {CATEGORIES.map((c) => (
               <Link key={c.slug} className="cat" href={`/category/${c.slug}`}>
-                <span className="cat-idx">{c.index}</span>
                 <h3>{c.name}</h3>
                 <ul>
                   {c.subcategories.map((s) => (
@@ -204,12 +203,10 @@ export default function HomePage() {
           </div>
           <div className="ruled cols-3">
             <div className="step">
-              <span className="sn">01</span>
               <h3>Claim your listing</h3>
               <p>Find your company or add it in minutes. Listing is free, always.</p>
             </div>
             <div className="step">
-              <span className="sn">02</span>
               <h3>Get discovered</h3>
               <p>
                 Buyers filter by role, format, and market — and land on you, with
@@ -217,7 +214,6 @@ export default function HomePage() {
               </p>
             </div>
             <div className="step">
-              <span className="sn">03</span>
               <h3>Stand out</h3>
               <p>
                 Upgrade to a premium placement to top your category when you&rsquo;re

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Archivo, Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const display = Archivo({
   subsets: ["latin"],
@@ -48,6 +51,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
       </body>
+      {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
     </html>
   );
 }

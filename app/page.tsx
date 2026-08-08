@@ -36,7 +36,7 @@ export default function HomePage() {
             <p className="hero-fine">Free to list · Worldwide · Every OOH format</p>
           </div>
 
-          <div aria-hidden="true">
+          <div className="hero-visual">
             <div className="searchcard">
               <div className="searchcard-top">
                 <span className="dot" />
@@ -44,20 +44,41 @@ export default function HomePage() {
                 <span className="dot" />
                 <span className="cap">oohsource.com / search</span>
               </div>
-              <div className="searchfield">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <form className="searchfield" action="/directory">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
                   <path d="m20 20-3.2-3.2" />
                 </svg>
-                <span>Large-format printers in {searchCity}…</span>
-              </div>
+                <input
+                  type="text"
+                  name="q"
+                  className="searchfield-input"
+                  placeholder={`Large-format printers in ${searchCity}…`}
+                  aria-label="Search the directory"
+                />
+                <button type="submit" className="searchfield-go" aria-label="Search">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </button>
+              </form>
               <div className="chips">
-                <span className="chip on">Printing &amp; Production</span>
-                <span className="chip">Billboards</span>
-                {city && <span className="chip on">{city}</span>}
-                <span className="chip">Verified only</span>
+                <Link className="chip on" href="/category/printing-production">
+                  Printing &amp; Production
+                </Link>
+                <Link className="chip" href="/directory?q=billboards">
+                  Billboards
+                </Link>
+                {city && (
+                  <Link className="chip on" href={`/directory?q=${encodeURIComponent(city)}`}>
+                    {city}
+                  </Link>
+                )}
+                <Link className="chip" href="/directory">
+                  Verified only
+                </Link>
               </div>
-              <div className="search-result">
+              <Link className="search-result" href="/directory/circle-graphics">
                 <div>
                   <div className="co">Circle Graphics</div>
                   <div className="meta">Large-format printer · National</div>
@@ -66,8 +87,8 @@ export default function HomePage() {
                   <span className="v" />
                   Verified
                 </span>
-              </div>
-              <div className="search-result">
+              </Link>
+              <Link className="search-result" href="/directory/britten">
                 <div>
                   <div className="co">Britten</div>
                   <div className="meta">Grand format · Bulletins · Wraps</div>
@@ -76,7 +97,7 @@ export default function HomePage() {
                   <span className="v" />
                   Verified
                 </span>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

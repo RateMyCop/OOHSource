@@ -11,8 +11,13 @@ export const metadata: Metadata = {
     "Search the global out-of-home directory by category, format, and market. Media owners, agencies, printers, installers, and OOH technology.",
 };
 
-export default async function DirectoryPage() {
+export default async function DirectoryPage({
+  searchParams,
+}: {
+  searchParams: { q?: string };
+}) {
   const vendors = await getAllVendors();
+  const initialQuery = typeof searchParams.q === "string" ? searchParams.q : "";
 
   return (
     <>
@@ -29,7 +34,11 @@ export default async function DirectoryPage() {
         </p>
       </section>
       <div className="wrap">
-        <DirectoryClient vendors={vendors} categories={CATEGORIES} />
+        <DirectoryClient
+          vendors={vendors}
+          categories={CATEGORIES}
+          initialQuery={initialQuery}
+        />
       </div>
     </>
   );

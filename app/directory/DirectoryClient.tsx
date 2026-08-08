@@ -9,11 +9,13 @@ const TIER_RANK: Record<string, number> = { Featured: 0, Premium: 1, Free: 2 };
 export function DirectoryClient({
   vendors,
   categories,
+  initialQuery = "",
 }: {
   vendors: Vendor[];
   categories: Category[];
+  initialQuery?: string;
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [cats, setCats] = useState<Set<string>>(new Set());
   const [formats, setFormats] = useState<Set<string>>(new Set());
   const [verifiedOnly, setVerifiedOnly] = useState(false);

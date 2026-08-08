@@ -27,6 +27,7 @@ export interface Vendor {
   website: string;
   phone?: string; // optional, shown publicly
   address?: string; // optional full address, shown publicly
+  marketsServed?: string[]; // states/metros a multi-location company serves
   description: string;
   specialties: string[];
   tier: Tier;

@@ -92,6 +92,19 @@ export default async function VendorPage({
             </div>
           </div>
 
+          {vendor.marketsServed && vendor.marketsServed.length > 0 && (
+            <div className="detail-section">
+              <h2>Markets served</h2>
+              <div className="spec-list">
+                {vendor.marketsServed.map((m) => (
+                  <span key={m} className="tag">
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {related.length > 0 && (
             <div className="detail-section">
               <h2>More in {category?.name}</h2>

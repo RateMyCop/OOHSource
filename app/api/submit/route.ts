@@ -79,9 +79,11 @@ export async function POST(req: Request) {
   const phone = String(body.phone ?? "").trim();
   const address = String(body.address ?? "").trim();
   const contactName = String(body.contactName ?? "").trim();
+  const marketsServed = String(body.marketsServed ?? "").trim();
   if (phone) fields.Phone = phone;
   if (address) fields.Address = address;
   if (contactName) fields["Contact Name"] = contactName; // internal only, never displayed
+  if (marketsServed) fields["Markets Served"] = marketsServed;
 
   try {
     await createAirtableRecord(fields);

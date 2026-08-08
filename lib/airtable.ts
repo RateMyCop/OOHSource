@@ -66,6 +66,7 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     website: String(fields.Website ?? ""),
     phone: String(fields.Phone ?? ""),
     address: String(fields.Address ?? ""),
+    marketsServed: toArray(fields["Markets Served"]),
     description: String(fields.Description ?? ""),
     specialties: toArray(fields.Specialties),
     tier,

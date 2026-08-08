@@ -25,6 +25,7 @@ export default function ListYourCompanyPage() {
       address: fd.get("address"),
       phone: fd.get("phone"),
       coverage: fd.get("coverage"),
+      marketsServed: fd.get("marketsServed"),
       description: fd.get("description"),
       contactName: fd.get("contactName"),
       email: fd.get("email"),
@@ -183,6 +184,21 @@ export default function ListYourCompanyPage() {
                 <option>National</option>
                 <option>Regional</option>
               </select>
+            </div>
+
+            <div className="field">
+              <label htmlFor="marketsServed">Markets served</label>
+              <input
+                id="marketsServed"
+                name="marketsServed"
+                type="text"
+                placeholder="e.g. TX, CA, FL, IL"
+                disabled={submitting}
+              />
+              <span className="hint">
+                Optional — comma-separated states or metros for multi-location
+                companies.
+              </span>
             </div>
 
             <div className="field">

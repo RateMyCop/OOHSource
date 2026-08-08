@@ -50,7 +50,9 @@ export function DirectoryClient({
             " " +
             v.location +
             " " +
-            v.specialties.join(" ")
+            v.specialties.join(" ") +
+            " " +
+            (v.marketsServed ?? []).join(" ")
           ).toLowerCase();
           if (!hay.includes(q)) return false;
         }

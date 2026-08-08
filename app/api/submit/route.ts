@@ -75,6 +75,14 @@ export async function POST(req: Request) {
   const coverage = String(body.coverage ?? "").trim();
   if (coverage) fields.Coverage = coverage;
 
+  // Optional fields — only write when provided (avoids empty-value noise).
+  const phone = String(body.phone ?? "").trim();
+  const address = String(body.address ?? "").trim();
+  const contactName = String(body.contactName ?? "").trim();
+  if (phone) fields.Phone = phone;
+  if (address) fields.Address = address;
+  if (contactName) fields["Contact Name"] = contactName; // internal only, never displayed
+
   try {
     await createAirtableRecord(fields);
     return NextResponse.json({ ok: true });

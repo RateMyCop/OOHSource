@@ -22,8 +22,11 @@ export default function ListYourCompanyPage() {
       subcategory: fd.get("subcategory"),
       formats: fd.getAll("formats"),
       location: fd.get("location"),
+      address: fd.get("address"),
+      phone: fd.get("phone"),
       coverage: fd.get("coverage"),
       description: fd.get("description"),
+      contactName: fd.get("contactName"),
       email: fd.get("email"),
       company_url: fd.get("company_url"), // honeypot
     };
@@ -149,6 +152,31 @@ export default function ListYourCompanyPage() {
             </div>
 
             <div className="field">
+              <label htmlFor="address">Full address</label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                placeholder="Street, city, state, ZIP (optional)"
+                disabled={submitting}
+              />
+              <span className="hint">
+                Optional — helpful for local printers, installers, and sign shops.
+              </span>
+            </div>
+
+            <div className="field">
+              <label htmlFor="phone">Phone</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="Optional"
+                disabled={submitting}
+              />
+            </div>
+
+            <div className="field">
               <label htmlFor="coverage">Coverage</label>
               <select id="coverage" name="coverage" defaultValue="Regional" disabled={submitting}>
                 <option>Worldwide</option>
@@ -165,6 +193,20 @@ export default function ListYourCompanyPage() {
                 placeholder="One or two sentences on what your company does."
                 disabled={submitting}
               />
+            </div>
+
+            <div className="field">
+              <label htmlFor="contactName">Contact name</label>
+              <input
+                id="contactName"
+                name="contactName"
+                type="text"
+                placeholder="Optional"
+                disabled={submitting}
+              />
+              <span className="hint">
+                Internal only — used to verify the listing, never published.
+              </span>
             </div>
 
             <div className="field">

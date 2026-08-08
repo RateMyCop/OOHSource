@@ -25,6 +25,8 @@ export interface Vendor {
   location: string; // "City, Country"
   coverage: string; // "Worldwide" | "National (USA)" | "Regional"
   website: string;
+  phone?: string; // optional, shown publicly
+  address?: string; // optional full address, shown publicly
   description: string;
   specialties: string[];
   tier: Tier;

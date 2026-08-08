@@ -118,10 +118,24 @@ export default async function VendorPage({
               <span className="k">Location</span>
               <span className="val">{vendor.location}</span>
             </div>
+            {vendor.address && (
+              <div className="aside-row">
+                <span className="k">Address</span>
+                <span className="val">{vendor.address}</span>
+              </div>
+            )}
             <div className="aside-row">
               <span className="k">Coverage</span>
               <span className="val">{vendor.coverage}</span>
             </div>
+            {vendor.phone && (
+              <div className="aside-row">
+                <span className="k">Phone</span>
+                <a className="val" href={`tel:${vendor.phone}`}>
+                  {vendor.phone}
+                </a>
+              </div>
+            )}
             <a
               className="btn btn--primary"
               href={vendor.website}

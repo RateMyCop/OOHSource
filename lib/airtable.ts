@@ -140,7 +140,7 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
 export async function createAirtableRecord(
   fields: Record<string, unknown>,
   tableName: string = TABLE
-): Promise<void> {
+): Promise<string> {
   if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
   const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
     tableName
@@ -158,5 +158,49 @@ export async function createAirtableRecord(
     throw new Error(
       `Airtable create failed ${res.status}: ${await res.text()}`
     );
+  }
+  const data = (await res.json()) as { records?: { id?: string }[] };
+  return data.records?.[0]?.id ?? "";
+}
+
+// Find a Vendors record ID by its Verify Token. Returns null if none match.
+export async function findRecordIdByToken(token: string): Promise<string | null> {
+  if (!TOKEN || !BASE_ID) return null;
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`
+  );
+  url.searchParams.set("filterByFormula", `{Verify Token}='${token}'`);
+  url.searchParams.set("maxRecords", "1");
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable query failed ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as { records?: { id?: string }[] };
+  return data.records?.[0]?.id ?? null;
+}
+
+// Update fields on a Vendors record by ID.
+export async function updateAirtableRecord(
+  recordId: string,
+  fields: Record<string, unknown>
+): Promise<void> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    TABLE
+  )}/${recordId}`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ fields, typecast: true }),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable update failed ${res.status}: ${await res.text()}`);
   }
 }

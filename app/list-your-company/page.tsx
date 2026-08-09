@@ -9,6 +9,7 @@ type Status = "idle" | "submitting" | "done" | "error";
 export default function ListYourCompanyPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [verifyPending, setVerifyPending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,6 +45,8 @@ export default function ListYourCompanyPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Submission failed. Please try again.");
       }
+      const data = await res.json().catch(() => ({}));
+      setVerifyPending(Boolean(data.verify));
       setStatus("done");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -71,8 +74,9 @@ export default function ListYourCompanyPage() {
 
       <div className="form-wrap">
         <div className={`form-ok${status === "done" ? " show" : ""}`} role="status">
-          ✓ Thanks — your listing has been submitted for review. We&rsquo;ll verify
-          the details and publish it shortly.
+          {verifyPending
+            ? "✓ Almost there — check your email and click the confirmation link to send your listing for review."
+            : "✓ Thanks — your listing has been submitted for review. We'll verify the details and publish it shortly."}
         </div>
 
         {status !== "done" && (

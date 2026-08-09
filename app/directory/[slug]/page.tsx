@@ -12,6 +12,25 @@ import { Reviews } from "@/components/Reviews";
 
 export const revalidate = 60;
 
+// Split a long single-block description into a few readable paragraphs.
+// Respects existing line breaks; otherwise groups sentences into ~3 paragraphs.
+function toParagraphs(text: string): string[] {
+  const t = (text || "").trim();
+  if (!t) return [];
+  if (/\n/.test(t)) {
+    const parts = t.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 1) return parts;
+  }
+  const sentences = t.match(/[^.!?]+[.!?]+(?:\s|$)/g)?.map((s) => s.trim()) ?? [t];
+  if (sentences.length <= 3) return [t];
+  const per = Math.ceil(sentences.length / 3);
+  const paras: string[] = [];
+  for (let i = 0; i < sentences.length; i += per) {
+    paras.push(sentences.slice(i, i + per).join(" "));
+  }
+  return paras;
+}
+
 export async function generateStaticParams() {
   const vendors = await getAllVendors();
   return vendors.map((v) => ({ slug: v.slug }));
@@ -76,7 +95,11 @@ export default async function VendorPage({
             <VendorLogo name={vendor.name} website={vendor.website} logo={vendor.logo} size={64} />
             <h1>{vendor.name}</h1>
           </div>
-          <p className="detail-about">{vendor.description}</p>
+          <div className="detail-about">
+            {toParagraphs(vendor.description).map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
 
           <div className="detail-section">
             <h2>Formats</h2>

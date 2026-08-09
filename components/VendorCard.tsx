@@ -2,6 +2,14 @@ import Link from "next/link";
 import { Vendor } from "@/lib/types";
 import { VendorLogo } from "./VendorLogo";
 
+// Card previews show only a short teaser; the full description lives on the
+// vendor detail page.
+function truncateWords(text: string, max: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= max) return text.trim();
+  return words.slice(0, max).join(" ").replace(/[.,;:]$/, "") + "…";
+}
+
 export function VendorCard({ vendor }: { vendor: Vendor }) {
   return (
     <Link href={`/directory/${vendor.slug}`} className={`vcard tier-${vendor.tier}`}>
@@ -29,7 +37,7 @@ export function VendorCard({ vendor }: { vendor: Vendor }) {
         </div>
       </div>
 
-      <p>{vendor.description}</p>
+      <p>{truncateWords(vendor.description, 50)}</p>
 
       <div className="tag-row">
         {vendor.formats.map((f) => (

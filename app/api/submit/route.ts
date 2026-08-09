@@ -95,6 +95,15 @@ export async function POST(req: Request) {
   if (contactName) fields["Contact Name"] = contactName; // internal only, never displayed
   if (marketsServed) fields["Markets Served"] = marketsServed;
 
+  const x = String(body.x ?? "").trim();
+  const facebook = String(body.facebook ?? "").trim();
+  const instagram = String(body.instagram ?? "").trim();
+  const youtube = String(body.youtube ?? "").trim();
+  if (x) fields.X = x;
+  if (facebook) fields.Facebook = facebook;
+  if (instagram) fields.Instagram = instagram;
+  if (youtube) fields.YouTube = youtube;
+
   try {
     // Email double opt-in: when sending is configured, create the record as
     // "Unverified" with a token and email a confirmation link. Any failure in

@@ -28,6 +28,10 @@ export default function ListYourCompanyPage() {
       coverage: fd.get("coverage"),
       marketsServed: fd.get("marketsServed"),
       description: fd.get("description"),
+      x: fd.get("x"),
+      facebook: fd.get("facebook"),
+      instagram: fd.get("instagram"),
+      youtube: fd.get("youtube"),
       contactName: fd.get("contactName"),
       email: fd.get("email"),
       company_url: fd.get("company_url"), // honeypot
@@ -213,6 +217,16 @@ export default function ListYourCompanyPage() {
                 placeholder="One or two sentences on what your company does."
                 disabled={submitting}
               />
+            </div>
+
+            <div className="field">
+              <label>Social links (optional)</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <input name="x" type="url" placeholder="X / Twitter URL" disabled={submitting} />
+                <input name="facebook" type="url" placeholder="Facebook URL" disabled={submitting} />
+                <input name="instagram" type="url" placeholder="Instagram URL" disabled={submitting} />
+                <input name="youtube" type="url" placeholder="YouTube URL" disabled={submitting} />
+              </div>
             </div>
 
             <div className="field">

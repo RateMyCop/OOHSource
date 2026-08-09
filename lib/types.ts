@@ -26,6 +26,10 @@ export interface Vendor {
   coverage: string; // "Worldwide" | "National (USA)" | "Regional"
   website: string;
   logo?: string; // optional explicit logo URL (else derived from the website)
+  x?: string; // social links (optional)
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
   phone?: string; // optional, shown publicly
   address?: string; // optional full address, shown publicly
   marketsServed?: string[]; // states/metros a multi-location company serves

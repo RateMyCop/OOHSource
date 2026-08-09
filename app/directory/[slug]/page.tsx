@@ -7,6 +7,7 @@ import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
 import { ClaimListing } from "@/components/ClaimListing";
+import { SocialLinks } from "@/components/SocialLinks";
 
 export const revalidate = 60;
 
@@ -164,6 +165,7 @@ export default async function VendorPage({
               Visit website →
             </a>
             <ClaimListing vendorName={vendor.name} vendorSlug={vendor.slug} />
+            <SocialLinks vendor={vendor} />
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>

@@ -21,7 +21,13 @@ function toParagraphs(text: string): string[] {
     const parts = t.split(/\n+/).map((s) => s.trim()).filter(Boolean);
     if (parts.length > 1) return parts;
   }
-  const sentences = t.match(/[^.!?]+[.!?]+(?:\s|$)/g)?.map((s) => s.trim()) ?? [t];
+  // Split on sentence boundaries: whitespace preceded by . ! ? and followed by
+  // a capital letter or quote. Uses split (never drops text) and the capital
+  // lookahead keeps abbreviations like "U.S. media" intact.
+  const sentences = t
+    .split(/(?<=[.!?])\s+(?=[A-Z"'])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (sentences.length <= 3) return [t];
   const per = Math.ceil(sentences.length / 3);
   const paras: string[] = [];

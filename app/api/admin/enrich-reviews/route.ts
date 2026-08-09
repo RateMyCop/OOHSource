@@ -148,7 +148,9 @@ async function googlePlace(
       };
     }
 
-    // No domain match — fall back to the top result, accept only on name match.
+    // No domain match. Name matching alone is unreliable for B2B names (a
+    // vendor called "Firefly" matches an airport of the same name), so only
+    // accept a name match when the caller explicitly opts in with ?relax=1.
     const top = cands[0];
     const nm = top.name ? nameMatch(vendorName, top.name) : false;
     return {
@@ -156,8 +158,12 @@ async function googlePlace(
       count: top.count,
       name: top.name,
       website: top.website,
-      accepted: nm || relax,
-      reason: nm ? "name match" : relax ? "relaxed (top result)" : "no domain/name match",
+      accepted: relax && nm,
+      reason: nm
+        ? relax
+          ? "name match (relaxed)"
+          : "name match (not accepted; use relax=1)"
+        : "no domain match",
     };
   } catch (e) {
     return { error: `google fetch failed: ${(e as Error).message}` };

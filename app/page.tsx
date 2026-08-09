@@ -80,7 +80,7 @@ export default function HomePage() {
               </div>
               <Link className="search-result" href="/directory/circle-graphics">
                 <div>
-                  <div className="co">Circle Graphics</div>
+                  <div className="co">Circle Graphics<span className="pill-new">Just added</span></div>
                   <div className="meta">Large-format printer · National</div>
                 </div>
                 <span className="verified">
@@ -90,7 +90,7 @@ export default function HomePage() {
               </Link>
               <Link className="search-result" href="/directory/britten">
                 <div>
-                  <div className="co">Britten</div>
+                  <div className="co">Britten<span className="pill-new">Just added</span></div>
                   <div className="meta">Grand format · Bulletins · Wraps</div>
                 </div>
                 <span className="verified">

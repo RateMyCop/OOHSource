@@ -6,18 +6,10 @@ export const dynamic = "force-dynamic";
 // Secured bulk-update endpoint. Matches incoming records to Vendors by Slug and
 // patches the given fields. Auth via the ADMIN_KEY env var (x-admin-key header).
 export async function POST(req: Request) {
-  const key = req.headers.get("x-admin-key") || "";
-  if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
-    return NextResponse.json(
-      {
-        error: "Unauthorized",
-        // TEMP diagnostics (no secret values exposed):
-        adminKeyConfigured: Boolean(process.env.ADMIN_KEY),
-        configuredLen: (process.env.ADMIN_KEY || "").length,
-        receivedLen: key.length,
-      },
-      { status: 401 }
-    );
+  const key = (req.headers.get("x-admin-key") || "").trim();
+  const configured = (process.env.ADMIN_KEY || "").trim();
+  if (!configured || key !== configured) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   let body: { records?: { slug?: string; fields?: Record<string, unknown> }[] };

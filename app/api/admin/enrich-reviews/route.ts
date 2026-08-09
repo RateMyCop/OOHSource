@@ -211,8 +211,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
-  const gKey = (process.env.GOOGLE_PLACES_API_KEY || "").trim();
-  const yKey = (process.env.YELP_API_KEY || "").trim();
+  // Take the first whitespace-delimited token so a key accidentally pasted
+  // multiple times (or with trailing newlines) still yields one clean value.
+  const firstToken = (v: string) => (v || "").split(/\s+/).filter(Boolean)[0] || "";
+  const gKey = firstToken(process.env.GOOGLE_PLACES_API_KEY || "");
+  const yKey = firstToken(process.env.YELP_API_KEY || "");
 
   const { searchParams } = new URL(req.url);
   const dry = searchParams.get("dry") === "1";

@@ -272,7 +272,7 @@ a.search-result:hover { background: var(--paper-2); border-color: var(--accent);
 /* ===================== FOOTER ===================== */
 footer.site { border-top: 1px solid var(--line); background: var(--paper-2); padding: 48px 0 40px; }
 .foot { display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; align-items: flex-start; }
-.foot .tag { color: var(--ink-3); font-size: 0.95rem; max-width: 32ch; margin-top: 12px; }
+.foot-tag { color: var(--ink-3); font-size: 0.95rem; max-width: 32ch; margin-top: 12px; }
 .foot-links { display: flex; gap: 40px; flex-wrap: wrap; }
 .foot-col { display: flex; flex-direction: column; gap: 10px; }
 .foot-col .h { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }

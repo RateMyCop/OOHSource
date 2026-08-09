@@ -11,7 +11,7 @@ export function Footer() {
               <span className="ooh">OOH</span>
               <span className="src">source</span>
             </Link>
-            <p className="tag">
+            <p className="foot-tag">
               The neutral, vetted directory of the world&rsquo;s out-of-home
               advertising industry.
             </p>

@@ -339,7 +339,7 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .social-icon { display: inline-flex; transition: transform 0.15s ease, opacity 0.15s ease; }
 .social-icon:hover { transform: translateY(-2px); opacity: 0.82; }
 
-.reviews { margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.reviews { display: flex; flex-direction: column; gap: 8px; }
 .reviews-head { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
 .review-row { display: flex; align-items: center; gap: 8px; font-size: 0.92rem; }
 .review-src { color: var(--ink-2); flex: 1; }
@@ -361,13 +361,14 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .detail-section { border-top: 1px solid var(--line); padding: 24px 0; }
 .detail-section h2 { font-size: 1.15rem; margin-bottom: 14px; }
 .spec-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.aside-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 86px; }
+.aside-stack { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
+.aside-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .aside-row { display: flex; flex-direction: column; gap: 3px; }
 .aside-row .k { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .aside-row .val { font-size: 1rem; color: var(--ink); }
 .aside-card .btn { width: 100%; justify-content: center; }
 /* Drop the info panel down so it aligns with the title, not the badges. */
-@media (min-width: 821px) { .aside-card { margin-top: 46px; } }
+@media (min-width: 821px) { .aside-stack { margin-top: 46px; } }
 
 /* ===================== FORM ===================== */
 .form-wrap { max-width: 640px; }

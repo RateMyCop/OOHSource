@@ -159,6 +159,7 @@ export default async function VendorPage({
         </div>
 
         <aside>
+          <div className="aside-stack">
           <div className="aside-card">
             <div className="aside-row">
               <span className="k">Category</span>
@@ -199,6 +200,8 @@ export default async function VendorPage({
               </div>
             )}
             <SocialLinks vendor={vendor} />
+          </div>
+          <div className="aside-card">
             <Reviews vendor={vendor} />
             <a
               className="btn btn--primary"
@@ -212,6 +215,7 @@ export default async function VendorPage({
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>
+          </div>
           </div>
         </aside>
       </div>

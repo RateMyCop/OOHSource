@@ -7,7 +7,7 @@ import { VendorCard } from "@/components/VendorCard";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "OOH Agencies & Media Buyers | OOHsource",
+  title: "OOH Agencies & Media Buyers",
   description:
     "The specialists who plan and buy out-of-home on behalf of brands — OOH agencies, media planning & buying, and programmatic DOOH partners.",
 };

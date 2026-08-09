@@ -19,9 +19,9 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const vendor = await getVendorBySlug(params.slug);
-  if (!vendor) return { title: "Not found — OOHsource" };
+  if (!vendor) return { title: "Not found" };
   return {
-    title: `${vendor.name} — ${vendor.subcategory} | OOHsource`,
+    title: `${vendor.name} — ${vendor.subcategory}`,
     description: vendor.description,
   };
 }

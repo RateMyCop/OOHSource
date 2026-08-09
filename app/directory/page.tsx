@@ -6,7 +6,7 @@ import { DirectoryClient } from "./DirectoryClient";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Directory — OOHsource",
+  title: "Directory",
   description:
     "Search the global out-of-home directory by category, format, and market. Media owners, agencies, printers, installers, and OOH technology.",
 };

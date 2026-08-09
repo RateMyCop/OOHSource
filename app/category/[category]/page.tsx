@@ -18,9 +18,9 @@ export function generateMetadata({
   params: { category: string };
 }): Metadata {
   const category = getCategory(params.category as CategorySlug);
-  if (!category) return { title: "Not found — OOHsource" };
+  if (!category) return { title: "Not found" };
   return {
-    title: `${category.name} — OOHsource Directory`,
+    title: category.name,
     description: `Browse ${category.name.toLowerCase()} in the global out-of-home directory. ${category.blurb}`,
   };
 }

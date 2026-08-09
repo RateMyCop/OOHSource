@@ -27,9 +27,39 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OOHsource — The Global Out-of-Home Directory",
+  metadataBase: new URL("https://oohsource.com"),
+  title: {
+    default: "OOHsource — The Global Out-of-Home Directory",
+    template: "%s | OOHsource",
+  },
   description:
     "The neutral, vetted directory of the world's out-of-home advertising industry — media owners, agencies, printers, installers, and the tech behind them.",
+  keywords: [
+    "out-of-home advertising",
+    "OOH directory",
+    "billboard companies",
+    "DOOH networks",
+    "large-format printers",
+    "OOH media owners",
+    "outdoor advertising vendors",
+    "transit advertising",
+  ],
+  applicationName: "OOHsource",
+  openGraph: {
+    type: "website",
+    siteName: "OOHsource",
+    url: "https://oohsource.com",
+    title: "OOHsource — The Global Out-of-Home Directory",
+    description:
+      "The neutral, vetted directory of the world's out-of-home advertising industry.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OOHsource — The Global Out-of-Home Directory",
+    description:
+      "The neutral, vetted directory of the world's out-of-home advertising industry.",
+  },
+  robots: { index: true, follow: true },
 };
 
 const themeInit = `(function(){try{var t=localStorage.getItem('oohs-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;

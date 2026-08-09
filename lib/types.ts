@@ -30,6 +30,8 @@ export interface Vendor {
   facebook?: string;
   instagram?: string;
   youtube?: string;
+  linkedin?: string;
+  contactEmail?: string; // public contact email, shown on the listing
   phone?: string; // optional, shown publicly
   address?: string; // optional full address, shown publicly
   marketsServed?: string[]; // states/metros a multi-location company serves

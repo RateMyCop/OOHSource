@@ -156,6 +156,15 @@ export default async function VendorPage({
                 </a>
               </div>
             )}
+            {vendor.contactEmail && (
+              <div className="aside-row">
+                <span className="k">Email</span>
+                <a className="val" href={`mailto:${vendor.contactEmail}`}>
+                  {vendor.contactEmail}
+                </a>
+              </div>
+            )}
+            <SocialLinks vendor={vendor} />
             <a
               className="btn btn--primary"
               href={vendor.website}
@@ -165,7 +174,6 @@ export default async function VendorPage({
               Visit website →
             </a>
             <ClaimListing vendorName={vendor.name} vendorSlug={vendor.slug} />
-            <SocialLinks vendor={vendor} />
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>

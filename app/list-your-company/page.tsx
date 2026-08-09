@@ -28,7 +28,9 @@ export default function ListYourCompanyPage() {
       coverage: fd.get("coverage"),
       marketsServed: fd.get("marketsServed"),
       description: fd.get("description"),
+      contactEmail: fd.get("contactEmail"),
       x: fd.get("x"),
+      linkedin: fd.get("linkedin"),
       facebook: fd.get("facebook"),
       instagram: fd.get("instagram"),
       youtube: fd.get("youtube"),
@@ -220,9 +222,25 @@ export default function ListYourCompanyPage() {
             </div>
 
             <div className="field">
+              <label htmlFor="contactEmail">Public contact email</label>
+              <input
+                id="contactEmail"
+                name="contactEmail"
+                type="email"
+                placeholder="Optional — shown on your listing"
+                disabled={submitting}
+              />
+              <span className="hint">
+                Shown publicly so buyers can reach you. (Different from your login
+                email below.)
+              </span>
+            </div>
+
+            <div className="field">
               <label>Social links (optional)</label>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <input name="x" type="url" placeholder="X / Twitter URL" disabled={submitting} />
+                <input name="linkedin" type="url" placeholder="LinkedIn URL" disabled={submitting} />
                 <input name="facebook" type="url" placeholder="Facebook URL" disabled={submitting} />
                 <input name="instagram" type="url" placeholder="Instagram URL" disabled={submitting} />
                 <input name="youtube" type="url" placeholder="YouTube URL" disabled={submitting} />

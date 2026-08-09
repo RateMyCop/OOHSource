@@ -79,6 +79,8 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     facebook: String(fields.Facebook ?? ""),
     instagram: String(fields.Instagram ?? ""),
     youtube: String(fields.YouTube ?? ""),
+    linkedin: String(fields.LinkedIn ?? ""),
+    contactEmail: String(fields["Contact Email"] ?? ""),
     phone: String(fields.Phone ?? ""),
     address: String(fields.Address ?? ""),
     marketsServed: toArray(fields["Markets Served"]),

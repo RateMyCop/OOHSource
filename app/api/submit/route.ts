@@ -95,11 +95,16 @@ export async function POST(req: Request) {
   if (contactName) fields["Contact Name"] = contactName; // internal only, never displayed
   if (marketsServed) fields["Markets Served"] = marketsServed;
 
+  const contactEmail = String(body.contactEmail ?? "").trim();
+  if (contactEmail) fields["Contact Email"] = contactEmail;
+
   const x = String(body.x ?? "").trim();
+  const linkedin = String(body.linkedin ?? "").trim();
   const facebook = String(body.facebook ?? "").trim();
   const instagram = String(body.instagram ?? "").trim();
   const youtube = String(body.youtube ?? "").trim();
   if (x) fields.X = x;
+  if (linkedin) fields.LinkedIn = linkedin;
   if (facebook) fields.Facebook = facebook;
   if (instagram) fields.Instagram = instagram;
   if (youtube) fields.YouTube = youtube;

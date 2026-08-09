@@ -10,6 +10,8 @@ import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/lists";
 import { FeatureButton } from "@/components/FeatureButton";
 
 export const revalidate = 60;
@@ -70,8 +72,68 @@ export default async function VendorPage({
     .filter((v) => v.slug !== vendor.slug)
     .slice(0, 2);
 
+  const sameAs = [
+    vendor.linkedin,
+    vendor.x,
+    vendor.facebook,
+    vendor.instagram,
+    vendor.youtube,
+  ].filter(Boolean);
+
+  const orgLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: vendor.name,
+    url: vendor.website || `${SITE_URL}/directory/${vendor.slug}`,
+    description: vendor.description,
+    ...(vendor.logo ? { logo: vendor.logo } : {}),
+    ...(vendor.heroImage ? { image: vendor.heroImage } : {}),
+    ...(vendor.contactEmail ? { email: vendor.contactEmail } : {}),
+    ...(vendor.phone ? { telephone: vendor.phone } : {}),
+    ...(vendor.address
+      ? { address: { "@type": "PostalAddress", streetAddress: vendor.address } }
+      : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    ...(vendor.googleRating && vendor.googleReviews
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: vendor.googleRating,
+            reviewCount: vendor.googleReviews,
+            bestRating: 5,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Directory", item: `${SITE_URL}/directory` },
+      ...(category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: category.name,
+              item: `${SITE_URL}/category/${category.slug}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: category ? 4 : 3,
+        name: vendor.name,
+      },
+    ],
+  };
+
   return (
     <section className="wrap">
+      <JsonLd data={orgLd} />
+      <JsonLd data={breadcrumbLd} />
       <div className="page-head" style={{ paddingBottom: 0 }}>
         <div className="crumb">
           <Link href="/">Home</Link>

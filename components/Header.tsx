@@ -14,6 +14,9 @@ export function Header() {
           <Link className="navlink" href="/directory">
             Directory
           </Link>
+          <Link className="navlink" href="/best">
+            Best of
+          </Link>
           <Link className="navlink" href="/agencies">
             Agencies
           </Link>

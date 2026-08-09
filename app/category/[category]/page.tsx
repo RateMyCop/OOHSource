@@ -5,6 +5,7 @@ import { CATEGORIES, getCategory, sortByTier } from "@/lib/data";
 import { getVendorsByCategory } from "@/lib/vendors";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
+import { listForCategory } from "@/lib/lists";
 
 export const revalidate = 60;
 
@@ -34,6 +35,7 @@ export default async function CategoryPage({
   if (!category) notFound();
 
   const vendors = sortByTier(await getVendorsByCategory(category.slug));
+  const list = listForCategory(category.slug);
 
   return (
     <section className="wrap">
@@ -55,6 +57,11 @@ export default async function CategoryPage({
             </span>
           ))}
         </div>
+        {list && (
+          <Link href={`/best/${list.slug}`} className="cat-toplink">
+            🏆 {list.title} →
+          </Link>
+        )}
       </div>
 
       <div style={{ paddingBottom: 80 }}>

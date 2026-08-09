@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LISTS } from "@/lib/lists";
 
 export function Footer() {
   return (
@@ -30,10 +31,19 @@ export function Footer() {
               <Link href="/pricing">Featured placement</Link>
             </div>
             <div className="foot-col">
+              <span className="h">Rankings</span>
+              <Link href="/best">Best of OOH</Link>
+              {LISTS.slice(0, 3).map((l) => (
+                <Link key={l.slug} href={`/best/${l.slug}`}>
+                  {l.title.replace(/^Top 10 /, "")}
+                </Link>
+              ))}
+            </div>
+            <div className="foot-col">
               <span className="h">Company</span>
+              <Link href="/pricing">Pricing</Link>
               <Link href="/directory">Browse directory</Link>
-              <Link href="/">About</Link>
-              <Link href="/">Contact</Link>
+              <Link href="/list-your-company">List your company</Link>
             </div>
           </div>
         </div>

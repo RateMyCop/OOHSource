@@ -171,6 +171,37 @@ export async function fetchVendorIdMap(): Promise<Record<string, string>> {
   return map;
 }
 
+// Batch create records (Airtable allows 10 per POST request).
+export async function createAirtableRecords(
+  recordsFields: Record<string, unknown>[],
+  tableName: string = TABLE
+): Promise<number> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    tableName
+  )}`;
+  let created = 0;
+  for (let i = 0; i < recordsFields.length; i += 10) {
+    const chunk = recordsFields.slice(i, i + 10).map((fields) => ({ fields }));
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ records: chunk, typecast: true }),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Airtable batch create failed ${res.status}: ${await res.text()}`
+      );
+    }
+    created += chunk.length;
+  }
+  return created;
+}
+
 // Batch update records (Airtable allows 10 per PATCH request).
 export async function updateAirtableRecords(
   records: { id: string; fields: Record<string, unknown> }[],

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { fetchVendorIdMap, updateAirtableRecords } from "@/lib/airtable";
+import {
+  fetchVendorIdMap,
+  updateAirtableRecords,
+  createAirtableRecords,
+} from "@/lib/airtable";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +16,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { records?: { slug?: string; fields?: Record<string, unknown> }[] };
+  let body: {
+    records?: { slug?: string; fields?: Record<string, unknown> }[];
+    create?: boolean;
+  };
   try {
     body = await req.json();
   } catch {
@@ -24,9 +31,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No records provided" }, { status: 400 });
   }
 
+  // When ?create=1 (or body.create), records whose slug isn't found are created
+  // instead of skipped. Otherwise it's update-only.
+  const allowCreate =
+    new URL(req.url).searchParams.get("create") === "1" || body.create === true;
+
   try {
     const idMap = await fetchVendorIdMap();
     const updates: { id: string; fields: Record<string, unknown> }[] = [];
+    const creates: Record<string, unknown>[] = [];
     const missing: string[] = [];
 
     for (const rec of incoming) {
@@ -34,14 +47,22 @@ export async function POST(req: Request) {
       const fields = rec.fields ?? {};
       if (!slug || Object.keys(fields).length === 0) continue;
       const id = idMap[slug];
-      if (id) updates.push({ id, fields });
-      else missing.push(slug);
+      if (id) {
+        updates.push({ id, fields });
+      } else if (allowCreate) {
+        creates.push({ ...fields, Slug: slug });
+      } else {
+        missing.push(slug);
+      }
     }
 
     await updateAirtableRecords(updates);
+    const created = creates.length ? await createAirtableRecords(creates) : 0;
+
     return NextResponse.json({
       ok: true,
       updated: updates.length,
+      created,
       missing,
     });
   } catch (e) {

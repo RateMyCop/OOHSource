@@ -5,6 +5,7 @@ import { getCategory } from "@/lib/data";
 import { getAllVendors, getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
 import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
+import { VendorLogo } from "@/components/VendorLogo";
 
 export const revalidate = 60;
 
@@ -68,7 +69,10 @@ export default async function VendorPage({
             )}
           </div>
 
-          <h1>{vendor.name}</h1>
+          <div className="detail-title-row">
+            <VendorLogo name={vendor.name} website={vendor.website} logo={vendor.logo} size={64} />
+            <h1>{vendor.name}</h1>
+          </div>
           <p className="lead">{vendor.description}</p>
 
           <div className="detail-section">

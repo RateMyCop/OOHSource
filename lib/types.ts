@@ -25,6 +25,7 @@ export interface Vendor {
   location: string; // "City, Country"
   coverage: string; // "Worldwide" | "National (USA)" | "Regional"
   website: string;
+  logo?: string; // optional explicit logo URL (else derived from the website)
   phone?: string; // optional, shown publicly
   address?: string; // optional full address, shown publicly
   marketsServed?: string[]; // states/metros a multi-location company serves

@@ -50,6 +50,16 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
   const slugField = fields.Slug ? String(fields.Slug).trim() : "";
   const slug = slugField || slugify(String(name));
 
+  // Logo: accept a URL string, or an Airtable attachment array ([{ url }]).
+  let logo = "";
+  const logoField = fields.Logo;
+  if (typeof logoField === "string") {
+    logo = logoField.trim();
+  } else if (Array.isArray(logoField) && logoField.length > 0) {
+    const first = logoField[0] as { url?: unknown };
+    if (typeof first?.url === "string") logo = first.url;
+  }
+
   const tierRaw = String(fields.Tier ?? "Free");
   const tier = (["Free", "Premium", "Featured"].includes(tierRaw)
     ? tierRaw
@@ -64,6 +74,7 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     location: String(fields.Location ?? ""),
     coverage: String(fields.Coverage ?? ""),
     website: String(fields.Website ?? ""),
+    logo,
     phone: String(fields.Phone ?? ""),
     address: String(fields.Address ?? ""),
     marketsServed: toArray(fields["Markets Served"]),

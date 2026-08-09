@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { Vendor } from "@/lib/types";
+import { VendorLogo } from "./VendorLogo";
 
 export function VendorCard({ vendor }: { vendor: Vendor }) {
   return (
     <Link href={`/directory/${vendor.slug}`} className={`vcard tier-${vendor.tier}`}>
       <div className="vcard-top">
-        <div>
-          <h3>{vendor.name}</h3>
-          <div className="vsub">{vendor.subcategory}</div>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <VendorLogo name={vendor.name} website={vendor.website} logo={vendor.logo} size={40} />
+          <div>
+            <h3>{vendor.name}</h3>
+            <div className="vsub">{vendor.subcategory}</div>
+          </div>
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {vendor.tier === "Featured" && (

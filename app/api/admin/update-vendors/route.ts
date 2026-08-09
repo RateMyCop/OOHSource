@@ -8,7 +8,16 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const key = req.headers.get("x-admin-key") || "";
   if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        // TEMP diagnostics (no secret values exposed):
+        adminKeyConfigured: Boolean(process.env.ADMIN_KEY),
+        configuredLen: (process.env.ADMIN_KEY || "").length,
+        receivedLen: key.length,
+      },
+      { status: 401 }
+    );
   }
 
   let body: { records?: { slug?: string; fields?: Record<string, unknown> }[] };

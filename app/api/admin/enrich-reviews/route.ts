@@ -299,9 +299,27 @@ export async function GET(req: NextRequest) {
   }
 
   let updated = 0;
+  let writeError: string | undefined;
   if (!dry && updates.length > 0) {
-    await updateAirtableRecords(updates);
-    updated = updates.length;
+    try {
+      await updateAirtableRecords(updates);
+      updated = updates.length;
+    } catch (e) {
+      writeError = (e as Error).message;
+    }
+  }
+
+  if (writeError) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Airtable write failed — make sure the columns 'Google Rating', 'Google Reviews', 'Yelp Rating', 'Yelp Reviews' exist as Number fields in the Vendors table.",
+        detail: writeError,
+        matched: updates.length,
+      },
+      { status: 422 }
+    );
   }
 
   return NextResponse.json({

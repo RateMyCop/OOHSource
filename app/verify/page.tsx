@@ -12,22 +12,33 @@ export const metadata: Metadata = {
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: { token?: string; type?: string };
 }) {
   const token = typeof searchParams.token === "string" ? searchParams.token : "";
+  const isClaim = searchParams.type === "claim";
   let state: "ok" | "invalid" | "error" = "invalid";
 
   if (token) {
     try {
-      const id = await findRecordIdByToken(token);
-      if (id) {
-        await updateAirtableRecord(id, {
-          Status: "Pending Review",
-          "Verify Token": "",
-        });
-        state = "ok";
+      if (isClaim) {
+        const id = await findRecordIdByToken(token, "Claims");
+        if (id) {
+          await updateAirtableRecord(
+            id,
+            { Status: "Email confirmed", "Verify Token": "" },
+            "Claims"
+          );
+          state = "ok";
+        }
       } else {
-        state = "invalid";
+        const id = await findRecordIdByToken(token);
+        if (id) {
+          await updateAirtableRecord(id, {
+            Status: "Pending Review",
+            "Verify Token": "",
+          });
+          state = "ok";
+        }
       }
     } catch (e) {
       console.error("[oohsource] verify failed:", e);
@@ -36,11 +47,17 @@ export default async function VerifyPage({
   }
 
   const content = {
-    ok: {
-      label: "Confirmed",
-      heading: "Email confirmed.",
-      body: "Your listing is now in our review queue — we'll verify the details and publish it shortly. Thanks for adding to the directory.",
-    },
+    ok: isClaim
+      ? {
+          label: "Claim confirmed",
+          heading: "Claim confirmed.",
+          body: "Thanks — we've received your claim and will review it. If your email matches the company domain, you'll be approved quickly.",
+        }
+      : {
+          label: "Confirmed",
+          heading: "Email confirmed.",
+          body: "Your listing is now in our review queue — we'll verify the details and publish it shortly. Thanks for adding to the directory.",
+        },
     invalid: {
       label: "Link expired",
       heading: "This link is invalid or already used.",

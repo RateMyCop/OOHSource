@@ -6,6 +6,7 @@ import { getAllVendors, getVendorBySlug, getVendorsByCategory } from "@/lib/vend
 import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
+import { ClaimListing } from "@/components/ClaimListing";
 
 export const revalidate = 60;
 
@@ -162,9 +163,7 @@ export default async function VendorPage({
             >
               Visit website →
             </a>
-            <Link className="btn btn--ghost" href="/list-your-company">
-              Claim this listing
-            </Link>
+            <ClaimListing vendorName={vendor.name} vendorSlug={vendor.slug} />
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>

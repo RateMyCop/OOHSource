@@ -163,11 +163,14 @@ export async function createAirtableRecord(
   return data.records?.[0]?.id ?? "";
 }
 
-// Find a Vendors record ID by its Verify Token. Returns null if none match.
-export async function findRecordIdByToken(token: string): Promise<string | null> {
+// Find a record ID by its Verify Token in the given table. Returns null if none.
+export async function findRecordIdByToken(
+  token: string,
+  tableName: string = TABLE
+): Promise<string | null> {
   if (!TOKEN || !BASE_ID) return null;
   const url = new URL(
-    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(tableName)}`
   );
   url.searchParams.set("filterByFormula", `{Verify Token}='${token}'`);
   url.searchParams.set("maxRecords", "1");
@@ -182,14 +185,15 @@ export async function findRecordIdByToken(token: string): Promise<string | null>
   return data.records?.[0]?.id ?? null;
 }
 
-// Update fields on a Vendors record by ID.
+// Update fields on a record by ID in the given table.
 export async function updateAirtableRecord(
   recordId: string,
-  fields: Record<string, unknown>
+  fields: Record<string, unknown>,
+  tableName: string = TABLE
 ): Promise<void> {
   if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
   const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
-    TABLE
+    tableName
   )}/${recordId}`;
   const res = await fetch(url, {
     method: "PATCH",

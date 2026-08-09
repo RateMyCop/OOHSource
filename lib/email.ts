@@ -62,3 +62,21 @@ export async function sendVerificationEmail(
     <p style="font-size: 13px; color: #71767E; line-height: 1.55;">If you didn&rsquo;t submit this, you can safely ignore this email.</p>`);
   await sendEmail(to, "Confirm your OOHsource listing", html);
 }
+
+export async function sendClaimVerificationEmail(
+  to: string,
+  companyName: string,
+  token: string
+): Promise<void> {
+  const url = `${SITE_URL}/verify?type=claim&token=${encodeURIComponent(token)}`;
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.55;">You requested to claim the listing for <strong>${escapeHtml(
+      companyName
+    )}</strong> on OOHsource.</p>
+    <p style="font-size: 16px; line-height: 1.55;">Confirm your email to send your claim for review:</p>
+    <p style="margin: 26px 0;">
+      <a href="${url}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Confirm your claim &rarr;</a>
+    </p>
+    <p style="font-size: 13px; color: #71767E; line-height: 1.55;">If you didn&rsquo;t request this, you can safely ignore this email.</p>`);
+  await sendEmail(to, "Confirm your OOHsource listing claim", html);
+}

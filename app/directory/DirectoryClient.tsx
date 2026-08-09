@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Category, Vendor, FORMATS } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 
-const TIER_RANK: Record<string, number> = { Featured: 0, Premium: 1, Free: 2 };
+const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
 
 export function DirectoryClient({
   vendors,

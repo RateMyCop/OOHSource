@@ -66,10 +66,10 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     if (typeof first?.url === "string") logo = first.url;
   }
 
+  // Only two tiers now: Featured (paid) and Free. Any legacy value (e.g.
+  // "Premium") collapses to Free.
   const tierRaw = String(fields.Tier ?? "Free");
-  const tier = (["Free", "Premium", "Featured"].includes(tierRaw)
-    ? tierRaw
-    : "Free") as Vendor["tier"];
+  const tier = (tierRaw === "Featured" ? "Featured" : "Free") as Vendor["tier"];
 
   return {
     slug,

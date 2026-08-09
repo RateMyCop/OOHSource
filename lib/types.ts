@@ -6,7 +6,7 @@ export type CategorySlug =
   | "technology-data"
   | "creative-design";
 
-export type Tier = "Free" | "Premium" | "Featured";
+export type Tier = "Free" | "Featured";
 
 export interface Category {
   slug: CategorySlug;

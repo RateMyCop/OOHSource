@@ -25,9 +25,6 @@ export function VendorCard({ vendor }: { vendor: Vendor }) {
           {vendor.tier === "Featured" && (
             <span className="badge badge--featured">Featured</span>
           )}
-          {vendor.tier === "Premium" && (
-            <span className="badge badge--premium">Premium</span>
-          )}
           {vendor.verified && (
             <span className="badge badge--verified">
               <span className="v" />

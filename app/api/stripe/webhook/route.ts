@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 async function setTier(
   slug: string,
-  tier: "Free" | "Premium" | "Featured",
+  tier: "Free" | "Featured",
   verified?: boolean
 ) {
   const idMap = await fetchVendorIdMap();

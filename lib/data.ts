@@ -149,7 +149,7 @@ export const VENDORS: Vendor[] = [
     description:
       "Independent out-of-home media agency specialising in planning, buying, and data-led OOH.",
     specialties: ["Planning & buying", "Programmatic", "Data"],
-    tier: "Premium",
+    tier: "Free",
     verified: false,
   },
   {
@@ -269,7 +269,7 @@ export const VENDORS: Vendor[] = [
     description:
       "Smart-city media and technology company running transit and street-level digital networks.",
     specialties: ["Transit media", "Programmatic DOOH", "Smart city"],
-    tier: "Premium",
+    tier: "Free",
     verified: false,
   },
   {
@@ -328,7 +328,7 @@ export function vendorsByCategory(slug: CategorySlug): Vendor[] {
 }
 
 // Sort so paid tiers surface first (the pay-to-play mechanic).
-const TIER_RANK: Record<string, number> = { Featured: 0, Premium: 1, Free: 2 };
+const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
 export function sortByTier(list: Vendor[]): Vendor[] {
   return [...list].sort(
     (a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || a.name.localeCompare(b.name)

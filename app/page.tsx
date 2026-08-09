@@ -245,8 +245,8 @@ export default function HomePage() {
             <div className="step">
               <h3>Stand out</h3>
               <p>
-                Upgrade to a premium placement to top your category when you&rsquo;re
-                ready to grow.
+                Go Featured to top your category and get spotlighted when
+                you&rsquo;re ready to grow.
               </p>
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function HomePage() {
               <ul className="plist">
                 <li>Free forever — no card required</li>
                 <li>Verified badge on approval</li>
-                <li>Premium placement when you want it</li>
+                <li>Featured placement when you want it</li>
               </ul>
               <Link className="btn btn--primary" href="/list-your-company">
                 Add my company

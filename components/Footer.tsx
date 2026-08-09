@@ -27,7 +27,7 @@ export function Footer() {
               <span className="h">Get listed</span>
               <Link href="/list-your-company">Add a company</Link>
               <Link href="/list-your-company">Claim a listing</Link>
-              <Link href="/list-your-company">Premium placement</Link>
+              <Link href="/pricing">Featured placement</Link>
             </div>
             <div className="foot-col">
               <span className="h">Company</span>

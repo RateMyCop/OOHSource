@@ -10,6 +10,7 @@ import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
+import { FeatureButton } from "@/components/FeatureButton";
 
 export const revalidate = 60;
 
@@ -211,6 +212,9 @@ export default async function VendorPage({
             >
               Visit website →
             </a>
+            {vendor.tier !== "Featured" && (
+              <FeatureButton slug={vendor.slug} />
+            )}
             <ClaimListing vendorName={vendor.name} vendorSlug={vendor.slug} />
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />

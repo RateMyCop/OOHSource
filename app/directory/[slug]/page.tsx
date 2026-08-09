@@ -9,6 +9,7 @@ import { VendorLogo } from "@/components/VendorLogo";
 import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
+import { HeroImage } from "@/components/HeroImage";
 
 export const revalidate = 60;
 
@@ -82,6 +83,9 @@ export default async function VendorPage({
 
       <div className="detail">
         <div>
+          {vendor.heroImage && (
+            <HeroImage src={vendor.heroImage} alt={vendor.name} />
+          )}
           <div className="detail-badges">
             {vendor.tier === "Featured" && (
               <span className="badge badge--featured">Featured</span>

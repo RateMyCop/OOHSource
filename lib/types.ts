@@ -26,6 +26,7 @@ export interface Vendor {
   coverage: string; // "Worldwide" | "National (USA)" | "Regional"
   website: string;
   logo?: string; // optional explicit logo URL (else derived from the website)
+  heroImage?: string; // banner image (og:image) shown atop the detail page
   x?: string; // social links (optional)
   facebook?: string;
   instagram?: string;

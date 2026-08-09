@@ -81,6 +81,7 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     coverage: String(fields.Coverage ?? ""),
     website: String(fields.Website ?? ""),
     logo,
+    heroImage: String(fields["Hero Image"] ?? ""),
     x: String(fields.X ?? ""),
     facebook: String(fields.Facebook ?? ""),
     instagram: String(fields.Instagram ?? ""),

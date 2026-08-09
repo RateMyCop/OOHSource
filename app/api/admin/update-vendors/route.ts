@@ -1,11 +1,33 @@
 import { NextResponse } from "next/server";
 import {
+  fetchAirtableVendors,
   fetchVendorIdMap,
   updateAirtableRecords,
   createAirtableRecords,
 } from "@/lib/airtable";
 
 export const dynamic = "force-dynamic";
+
+// GET returns a lightweight vendor list (slug, name, website, current hero) so
+// tooling can scrape/enrich. Auth via the same ADMIN_KEY header.
+export async function GET(req: Request) {
+  const key = (req.headers.get("x-admin-key") || "").trim();
+  const configured = (process.env.ADMIN_KEY || "").trim();
+  if (!configured || key !== configured) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const vendors = await fetchAirtableVendors();
+  return NextResponse.json({
+    ok: true,
+    count: vendors.length,
+    vendors: vendors.map((v) => ({
+      slug: v.slug,
+      name: v.name,
+      website: v.website,
+      heroImage: v.heroImage || "",
+    })),
+  });
+}
 
 // Secured bulk-update endpoint. Matches incoming records to Vendors by Slug and
 // patches the given fields. Auth via the ADMIN_KEY env var (x-admin-key header).

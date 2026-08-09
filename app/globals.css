@@ -361,6 +361,8 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .aside-row .k { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .aside-row .val { font-size: 1rem; color: var(--ink); }
 .aside-card .btn { width: 100%; justify-content: center; }
+/* Drop the info panel down so it aligns with the title, not the badges. */
+@media (min-width: 821px) { .aside-card { margin-top: 46px; } }
 
 /* ===================== FORM ===================== */
 .form-wrap { max-width: 640px; }

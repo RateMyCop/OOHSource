@@ -26,7 +26,7 @@ import {
 //   ?relax=1          -> accept name-only matches even without a domain match
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function domainOf(url: string): string {
   if (!url) return "";
@@ -218,6 +218,7 @@ export async function GET(req: NextRequest) {
   const dry = searchParams.get("dry") === "1";
   const relax = searchParams.get("relax") === "1";
   const limit = Number(searchParams.get("limit") || "0");
+  const offset = Number(searchParams.get("offset") || "0");
   const minReviews = Number(searchParams.get("minReviews") || "3");
   const onlySlug = (searchParams.get("slug") || "").trim();
   const sourceParam = (searchParams.get("source") || "").trim().toLowerCase();
@@ -237,7 +238,10 @@ export async function GET(req: NextRequest) {
 
   let vendors = await fetchAirtableVendors();
   if (onlySlug) vendors = vendors.filter((v) => v.slug === onlySlug);
-  if (limit > 0) vendors = vendors.slice(0, limit);
+  if (offset > 0 || limit > 0) {
+    const end = limit > 0 ? offset + limit : undefined;
+    vendors = vendors.slice(offset, end);
+  }
 
   const idMap = await fetchVendorIdMap();
 

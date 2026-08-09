@@ -8,6 +8,7 @@ import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
 import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
+import { Reviews } from "@/components/Reviews";
 
 export const revalidate = 60;
 
@@ -165,6 +166,7 @@ export default async function VendorPage({
               </div>
             )}
             <SocialLinks vendor={vendor} />
+            <Reviews vendor={vendor} />
             <a
               className="btn btn--primary"
               href={vendor.website}

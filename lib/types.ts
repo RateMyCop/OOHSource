@@ -32,6 +32,12 @@ export interface Vendor {
   youtube?: string;
   linkedin?: string;
   contactEmail?: string; // public contact email, shown on the listing
+  googleRating?: number; // reviews (optional)
+  googleReviews?: number;
+  yelpRating?: number;
+  yelpReviews?: number;
+  facebookRating?: number;
+  facebookReviews?: number;
   phone?: string; // optional, shown publicly
   address?: string; // optional full address, shown publicly
   marketsServed?: string[]; // states/metros a multi-location company serves

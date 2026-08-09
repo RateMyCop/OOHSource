@@ -28,6 +28,12 @@ function slugify(s: string): string {
 }
 
 // Airtable multi-select fields come back as arrays; text fields as strings.
+function numOrUndef(v: unknown): number | undefined {
+  if (v === null || v === undefined || v === "") return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 function toArray(v: unknown): string[] {
   if (Array.isArray(v)) return v.map((x) => String(x));
   if (typeof v === "string")
@@ -81,6 +87,12 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     youtube: String(fields.YouTube ?? ""),
     linkedin: String(fields.LinkedIn ?? ""),
     contactEmail: String(fields["Contact Email"] ?? ""),
+    googleRating: numOrUndef(fields["Google Rating"]),
+    googleReviews: numOrUndef(fields["Google Reviews"]),
+    yelpRating: numOrUndef(fields["Yelp Rating"]),
+    yelpReviews: numOrUndef(fields["Yelp Reviews"]),
+    facebookRating: numOrUndef(fields["Facebook Rating"]),
+    facebookReviews: numOrUndef(fields["Facebook Reviews"]),
     phone: String(fields.Phone ?? ""),
     address: String(fields.Address ?? ""),
     marketsServed: toArray(fields["Markets Served"]),

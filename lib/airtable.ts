@@ -138,6 +138,67 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
   return out;
 }
 
+// Fetch a map of Slug -> record id for all Vendors (only the Slug field).
+export async function fetchVendorIdMap(): Promise<Record<string, string>> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const base = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    TABLE
+  )}`;
+  const map: Record<string, string> = {};
+  let offset: string | undefined;
+  do {
+    const url = new URL(base);
+    url.searchParams.set("pageSize", "100");
+    url.searchParams.set("fields[]", "Slug");
+    if (offset) url.searchParams.set("offset", offset);
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(`Airtable list failed ${res.status}: ${await res.text()}`);
+    }
+    const data = (await res.json()) as {
+      records?: { id: string; fields?: { Slug?: string } }[];
+      offset?: string;
+    };
+    for (const r of data.records ?? []) {
+      const slug = r.fields?.Slug ? String(r.fields.Slug).trim() : "";
+      if (slug && r.id) map[slug] = r.id;
+    }
+    offset = data.offset;
+  } while (offset);
+  return map;
+}
+
+// Batch update records (Airtable allows 10 per PATCH request).
+export async function updateAirtableRecords(
+  records: { id: string; fields: Record<string, unknown> }[],
+  tableName: string = TABLE
+): Promise<void> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    tableName
+  )}`;
+  for (let i = 0; i < records.length; i += 10) {
+    const chunk = records.slice(i, i + 10);
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ records: chunk, typecast: true }),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Airtable batch update failed ${res.status}: ${await res.text()}`
+      );
+    }
+  }
+}
+
 // Create a single record. Defaults to the Vendors table; pass a tableName to
 // write elsewhere (e.g. "Reports"). Uses typecast so string values can be
 // written to single/multi-select fields (Airtable creates options as needed).

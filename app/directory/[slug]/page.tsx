@@ -75,7 +75,7 @@ export default async function VendorPage({
             <VendorLogo name={vendor.name} website={vendor.website} logo={vendor.logo} size={64} />
             <h1>{vendor.name}</h1>
           </div>
-          <p className="lead">{vendor.description}</p>
+          <p className="detail-about">{vendor.description}</p>
 
           <div className="detail-section">
             <h2>Formats</h2>

@@ -335,6 +335,7 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .plan-price { display: flex; align-items: baseline; gap: 8px; }
 .plan-price .amt { font-family: var(--font-display), sans-serif; font-weight: 800; font-size: 2.6rem; letter-spacing: -0.03em; color: var(--ink); }
 .plan-price .per { color: var(--ink-3); font-size: 0.95rem; }
+.plan-promo { display: block; font-size: 0.82rem; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); padding: 8px 12px; line-height: 1.45; margin-top: -2px; }
 .plan-sub { color: var(--ink-2); font-size: 1rem; margin-top: -4px; }
 .plan-cta { width: 100%; justify-content: center; }
 .plan-fine { font-size: 0.82rem; color: var(--ink-3); line-height: 1.5; }

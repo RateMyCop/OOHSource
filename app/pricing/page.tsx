@@ -69,6 +69,10 @@ export default function PricingPage() {
             <span className="amt">$50</span>
             <span className="per">/ year</span>
           </div>
+          <p className="plan-promo">
+            ⏳ Limited-time launch offer — <strong>$50/yr</strong> available for the
+            next 30 days only.
+          </p>
           <p className="plan-sub">Top placement and priority everywhere.</p>
           <Link className="btn btn--primary plan-cta" href="/directory">
             Get Featured →
@@ -115,7 +119,7 @@ export default function PricingPage() {
       <div className="pricing-faq">
         <div className="faq-item">
           <h3>How does Featured billing work?</h3>
-          <p>Featured is a $50/year subscription. It auto-renews yearly and you can cancel anytime — your listing stays Featured until the period ends.</p>
+          <p>The $50/year launch price is a limited-time offer available for the next 30 days. Featured is an annual subscription that auto-renews, and you can cancel anytime — your listing stays Featured until the period ends.</p>
         </div>
         <div className="faq-item">
           <h3>What does Featured change?</h3>

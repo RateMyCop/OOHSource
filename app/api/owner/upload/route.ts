@@ -9,14 +9,13 @@ export const dynamic = "force-dynamic";
 // directly to Vercel Blob; this route only authorizes and mints a scoped token,
 // so it stays fast and never streams the file through our function.
 export async function POST(req: Request) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "Image uploads aren't enabled yet. You can still add images by URL." },
-      { status: 503 }
-    );
+  let body: HandleUploadBody;
+  try {
+    body = (await req.json()) as HandleUploadBody;
+  } catch {
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const body = (await req.json()) as HandleUploadBody;
   try {
     const json = await handleUpload({
       body,
@@ -36,6 +35,7 @@ export async function POST(req: Request) {
           throw new Error("You don't have access to this listing.");
         }
         return {
+          access: "public",
           allowedContentTypes: [
             "image/jpeg",
             "image/png",
@@ -55,9 +55,17 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(json);
   } catch (e) {
+    // Auth failures (owner check) surface their message; anything mentioning a
+    // token/store means Blob isn't wired up yet — nudge toward the URL fallback.
+    const msg = (e as Error).message || "Upload failed.";
+    const notConfigured = /token|blob_read_write|no store|store not found/i.test(msg);
     return NextResponse.json(
-      { error: (e as Error).message || "Upload failed." },
-      { status: 400 }
+      {
+        error: notConfigured
+          ? "Image uploads aren't enabled yet. You can still add images by URL."
+          : msg,
+      },
+      { status: notConfigured ? 503 : 400 }
     );
   }
 }

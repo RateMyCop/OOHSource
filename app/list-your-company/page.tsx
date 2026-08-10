@@ -104,6 +104,8 @@ export default function ListYourCompanyPage() {
               style={{ position: "absolute", left: "-9999px", width: 1, height: 1 }}
             />
 
+            <h2 className="form-section">The basics</h2>
+
             <div className="field">
               <label htmlFor="name">Company name *</label>
               <input id="name" name="name" type="text" required disabled={submitting} />
@@ -163,6 +165,10 @@ export default function ListYourCompanyPage() {
                 </span>
               )}
             </div>
+
+            <h2 className="form-section">
+              About your company <span className="opt">— optional, but recommended</span>
+            </h2>
 
             <div className="field">
               <label>Formats you work in</label>
@@ -227,7 +233,7 @@ export default function ListYourCompanyPage() {
                 id="marketsServed"
                 name="marketsServed"
                 type="text"
-                placeholder="e.g. TX, CA, FL, IL"
+                placeholder="e.g. TX, CA, FL — or London, Berlin, Dubai"
                 disabled={submitting}
               />
               <span className="hint">
@@ -241,7 +247,8 @@ export default function ListYourCompanyPage() {
               <textarea
                 id="description"
                 name="description"
-                placeholder="One or two sentences on what your company does."
+                rows={4}
+                placeholder="A couple of sentences on what your company does, who you serve, and where."
                 disabled={submitting}
               />
             </div>
@@ -261,16 +268,18 @@ export default function ListYourCompanyPage() {
               </span>
             </div>
 
-            <div className="field">
-              <label>Social links (optional)</label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <details className="more-socials">
+              <summary>Add social links</summary>
+              <div className="social-inputs">
                 <input name="x" type="url" placeholder="X / Twitter URL" disabled={submitting} />
                 <input name="linkedin" type="url" placeholder="LinkedIn URL" disabled={submitting} />
                 <input name="facebook" type="url" placeholder="Facebook URL" disabled={submitting} />
                 <input name="instagram" type="url" placeholder="Instagram URL" disabled={submitting} />
                 <input name="youtube" type="url" placeholder="YouTube URL" disabled={submitting} />
               </div>
-            </div>
+            </details>
+
+            <h2 className="form-section">Verify &amp; submit</h2>
 
             <div className="field">
               <label htmlFor="contactName">Contact name</label>

@@ -444,6 +444,16 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 }
 .field textarea { min-height: 110px; resize: vertical; font-family: var(--font-body), serif; }
 .field .hint { display: block; margin-top: 6px; font-family: var(--font-body), serif; font-size: 0.85rem; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+/* Form section headers + collapsible socials on the list form. */
+.form-section { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin: 34px 0 16px; padding-top: 22px; border-top: 1px solid var(--line); }
+.form-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.form-section .opt { text-transform: none; letter-spacing: 0; opacity: 0.65; }
+.more-socials { margin-bottom: 18px; }
+.more-socials > summary { cursor: pointer; font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.92rem; color: var(--accent-strong); list-style: none; padding: 4px 0; width: fit-content; }
+.more-socials > summary::-webkit-details-marker { display: none; }
+.more-socials > summary::before { content: "+ "; }
+.more-socials[open] > summary::before { content: "– "; }
+.more-socials .social-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .form-ok { display: none; padding: 22px; border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent); font-family: var(--font-display), sans-serif; font-weight: 600; }
 .form-ok.show { display: block; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }

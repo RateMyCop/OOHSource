@@ -443,7 +443,7 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
   background: var(--paper-raise); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 0.8em 1em; width: 100%;
 }
 .field textarea { min-height: 110px; resize: vertical; font-family: var(--font-body), serif; }
-.field .hint { font-family: var(--font-body), serif; font-size: 0.85rem; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+.field .hint { display: block; margin-top: 6px; font-family: var(--font-body), serif; font-size: 0.85rem; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
 .form-ok { display: none; padding: 22px; border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent); font-family: var(--font-display), sans-serif; font-weight: 600; }
 .form-ok.show { display: block; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }

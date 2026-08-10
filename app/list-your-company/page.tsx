@@ -10,6 +10,13 @@ export default function ListYourCompanyPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [verifyPending, setVerifyPending] = useState(false);
+  const [category, setCategory] = useState("");
+
+  const selectedCat = CATEGORIES.find((c) => c.slug === category);
+  const roleSuggestions = selectedCat?.subcategories ?? [];
+  const rolePlaceholder = roleSuggestions[0]
+    ? `e.g. ${roleSuggestions[0]}`
+    : "e.g. Large-format printer";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -116,7 +123,14 @@ export default function ListYourCompanyPage() {
 
             <div className="field">
               <label htmlFor="category">Category *</label>
-              <select id="category" name="category" required defaultValue="" disabled={submitting}>
+              <select
+                id="category"
+                name="category"
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                disabled={submitting}
+              >
                 <option value="" disabled>
                   Select a category…
                 </option>
@@ -134,9 +148,20 @@ export default function ListYourCompanyPage() {
                 id="subcategory"
                 name="subcategory"
                 type="text"
-                placeholder="e.g. Large-format printer"
+                list="role-suggestions"
+                placeholder={rolePlaceholder}
                 disabled={submitting}
               />
+              <datalist id="role-suggestions">
+                {roleSuggestions.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              {selectedCat && (
+                <span className="hint">
+                  Common roles: {roleSuggestions.join(" · ")}
+                </span>
+              )}
             </div>
 
             <div className="field">

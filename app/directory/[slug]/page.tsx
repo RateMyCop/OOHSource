@@ -14,6 +14,7 @@ import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
 import { FeatureButton } from "@/components/FeatureButton";
+import { TrackView, TrackedLink } from "@/components/Track";
 
 export const revalidate = 60;
 
@@ -135,6 +136,7 @@ export default async function VendorPage({
     <section className="wrap">
       <JsonLd data={orgLd} />
       <JsonLd data={breadcrumbLd} />
+      <TrackView slug={vendor.slug} />
       <div className="page-head" style={{ paddingBottom: 0 }}>
         <div className="crumb">
           <Link href="/">Home</Link>
@@ -262,23 +264,30 @@ export default async function VendorPage({
             {vendor.contactEmail && (
               <div className="aside-row">
                 <span className="k">Email</span>
-                <a className="val" href={`mailto:${vendor.contactEmail}`}>
+                <TrackedLink
+                  slug={vendor.slug}
+                  event="email"
+                  href={`mailto:${vendor.contactEmail}`}
+                  className="val"
+                >
                   {vendor.contactEmail}
-                </a>
+                </TrackedLink>
               </div>
             )}
             <SocialLinks vendor={vendor} />
           </div>
           <div className="aside-card">
             <Reviews vendor={vendor} />
-            <a
-              className="btn btn--primary"
+            <TrackedLink
+              slug={vendor.slug}
+              event="website"
               href={vendor.website}
               target="_blank"
               rel="noopener noreferrer nofollow"
+              className="btn btn--primary"
             >
               Visit website →
-            </a>
+            </TrackedLink>
             {vendor.tier !== "Featured" && (
               <FeatureButton slug={vendor.slug} />
             )}

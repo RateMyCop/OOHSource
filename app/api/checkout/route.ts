@@ -4,21 +4,6 @@ import { getVendorBySlug } from "@/lib/vendors";
 
 export const dynamic = "force-dynamic";
 
-// Diagnostic: reports whether the server can see the Stripe env vars (never the
-// values). Safe — only booleans + lengths.
-export async function GET() {
-  const sk = process.env.STRIPE_SECRET_KEY || "";
-  const wh = process.env.STRIPE_WEBHOOK_SECRET || "";
-  return NextResponse.json({
-    stripeClientReady: Boolean(stripe),
-    secretKeyPresent: Boolean(sk),
-    secretKeyLen: sk.length,
-    secretKeyPrefix: sk.slice(0, 7),
-    webhookSecretPresent: Boolean(wh),
-    webhookSecretLen: wh.length,
-  });
-}
-
 // Creates a Stripe Checkout session to Feature a specific vendor listing.
 // Body: { slug }. Returns { url } to redirect the buyer to.
 export async function POST(req: Request) {
@@ -73,7 +58,7 @@ export async function POST(req: Request) {
       subscription_data: { metadata: { slug, vendorName: vendor.name } },
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      success_url: `${origin}/directory/${slug}?featured=1`,
+      success_url: `${origin}/api/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?canceled=1`,
     });
 

@@ -245,6 +245,34 @@ export async function updateAirtableRecords(
   }
 }
 
+// Batch delete records by id (Airtable allows 10 per DELETE request).
+export async function deleteAirtableRecords(
+  ids: string[],
+  tableName: string = TABLE
+): Promise<number> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  let deleted = 0;
+  for (let i = 0; i < ids.length; i += 10) {
+    const chunk = ids.slice(i, i + 10);
+    const url = new URL(
+      `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(tableName)}`
+    );
+    for (const id of chunk) url.searchParams.append("records[]", id);
+    const res = await fetch(url.toString(), {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Airtable batch delete failed ${res.status}: ${await res.text()}`
+      );
+    }
+    deleted += chunk.length;
+  }
+  return deleted;
+}
+
 // Create a single record. Defaults to the Vendors table; pass a tableName to
 // write elsewhere (e.g. "Reports"). Uses typecast so string values can be
 // written to single/multi-select fields (Airtable creates options as needed).

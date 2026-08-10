@@ -4,6 +4,7 @@ import {
   fetchVendorIdMap,
   updateAirtableRecords,
   createAirtableRecords,
+  deleteAirtableRecords,
 } from "@/lib/airtable";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,40 @@ export async function GET(req: Request) {
       heroImage: v.heroImage || "",
     })),
   });
+}
+
+// Secured delete endpoint. Body: { slugs: [...] }. Removes those Vendor rows.
+export async function DELETE(req: Request) {
+  const key = (req.headers.get("x-admin-key") || "").trim();
+  const configured = (process.env.ADMIN_KEY || "").trim();
+  if (!configured || key !== configured) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  let body: { slugs?: string[] };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const slugs = (Array.isArray(body.slugs) ? body.slugs : [])
+    .map((s) => String(s).trim())
+    .filter(Boolean);
+  if (slugs.length === 0) {
+    return NextResponse.json({ error: "No slugs provided" }, { status: 400 });
+  }
+  try {
+    const idMap = await fetchVendorIdMap();
+    const ids: string[] = [];
+    const notFound: string[] = [];
+    for (const slug of slugs) {
+      if (idMap[slug]) ids.push(idMap[slug]);
+      else notFound.push(slug);
+    }
+    const deleted = ids.length ? await deleteAirtableRecords(ids) : 0;
+    return NextResponse.json({ ok: true, deleted, notFound });
+  } catch (e) {
+    return NextResponse.json({ error: String(e).slice(0, 300) }, { status: 500 });
+  }
 }
 
 // Secured bulk-update endpoint. Matches incoming records to Vendors by Slug and

@@ -103,11 +103,14 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="dash-card-foot">
+                  <Link className="btn btn--primary btn--sm" href={`/dashboard/${slug}`}>
+                    Edit listing
+                  </Link>
                   <Link className="btn btn--ghost btn--sm" href={`/directory/${slug}`}>
-                    View listing
+                    View
                   </Link>
                   {vendor!.tier !== "Featured" && (
-                    <Link className="btn btn--primary btn--sm" href="/pricing">
+                    <Link className="btn btn--ghost btn--sm" href="/pricing">
                       Get Featured →
                     </Link>
                   )}

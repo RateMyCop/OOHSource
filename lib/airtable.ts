@@ -208,6 +208,29 @@ export async function fetchVendorIdMap(): Promise<Record<string, string>> {
   return map;
 }
 
+// Find a single Vendor record id by its Slug (targeted, unlike fetchVendorIdMap
+// which pulls every row). Returns null if not found.
+export async function findVendorRecordIdBySlug(
+  slug: string
+): Promise<string | null> {
+  if (!TOKEN || !BASE_ID) return null;
+  const safe = slug.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`
+  );
+  url.searchParams.set("filterByFormula", `{Slug}='${safe}'`);
+  url.searchParams.set("maxRecords", "1");
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable slug lookup failed ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as { records?: { id?: string }[] };
+  return data.records?.[0]?.id ?? null;
+}
+
 // Batch create records (Airtable allows 10 per POST request).
 export async function createAirtableRecords(
   recordsFields: Record<string, unknown>[],

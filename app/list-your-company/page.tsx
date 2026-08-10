@@ -6,6 +6,22 @@ import { FORMATS } from "@/lib/types";
 
 type Status = "idle" | "submitting" | "done" | "error";
 
+// Turn "National" + a location into a consistent label like "National (USA)"
+// / "National (UK)" / "National (India)", matching the directory's data.
+const US_STATES = new Set(
+  "AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split(" ")
+);
+function nationalLabel(location: string): string {
+  const parts = location.split(",").map((s) => s.trim()).filter(Boolean);
+  const last = parts[parts.length - 1] || "";
+  const u = last.toUpperCase();
+  if (["USA", "US", "U.S.", "U.S.A.", "UNITED STATES", "AMERICA"].includes(u) || US_STATES.has(u))
+    return "National (USA)";
+  if (["UK", "U.K.", "UNITED KINGDOM", "GREAT BRITAIN", "GB", "ENGLAND", "SCOTLAND", "WALES"].includes(u))
+    return "National (UK)";
+  return last ? `National (${last})` : "National";
+}
+
 export default function ListYourCompanyPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -23,6 +39,12 @@ export default function ListYourCompanyPage() {
     const form = e.currentTarget;
     const fd = new FormData(form);
 
+    const rawCoverage = String(fd.get("coverage") || "");
+    const coverage =
+      rawCoverage === "National"
+        ? nationalLabel(String(fd.get("location") || ""))
+        : rawCoverage;
+
     const payload = {
       name: fd.get("name"),
       website: fd.get("website"),
@@ -32,7 +54,7 @@ export default function ListYourCompanyPage() {
       location: fd.get("location"),
       address: fd.get("address"),
       phone: fd.get("phone"),
-      coverage: fd.get("coverage"),
+      coverage,
       marketsServed: fd.get("marketsServed"),
       description: fd.get("description"),
       contactEmail: fd.get("contactEmail"),
@@ -225,6 +247,9 @@ export default function ListYourCompanyPage() {
                 <option>National</option>
                 <option>Regional</option>
               </select>
+              <span className="hint">
+                &ldquo;National&rdquo; is tagged with the country from your location above.
+              </span>
             </div>
 
             <div className="field">

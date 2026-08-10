@@ -299,11 +299,13 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .filter-opt { display: flex; align-items: center; gap: 9px; font-size: 0.94rem; color: var(--ink-2); cursor: pointer; padding: 3px 0; user-select: none; }
 .filter-opt input { accent-color: var(--accent); width: 15px; height: 15px; }
 .filter-opt:hover { color: var(--ink); }
-/* Checkbox option grid on forms — align neatly and stop the .field label
-   (mono/uppercase) rule from styling the option text. */
-.check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; margin-top: 8px; }
-.field .filter-opt { font-family: var(--font-display), sans-serif; font-size: 0.92rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-2); }
-.field .filter-opt input { flex: none; }
+/* Format checkbox options on the list form. Uses its own class so the
+   .field label (mono/uppercase) rule can't style the option text, and keeps
+   each checkbox glued to its label. */
+.fmt-grid { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 10px; }
+.field .fmt-opt { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display), sans-serif; font-size: 0.95rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-2); cursor: pointer; user-select: none; white-space: nowrap; margin: 0; }
+.field .fmt-opt input { flex: none; width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+.field .fmt-opt:hover { color: var(--ink); }
 .filter-reset { font-family: var(--font-mono), monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--accent-strong); background: none; border: 0; cursor: pointer; text-align: left; padding: 0; }
 
 .results-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }

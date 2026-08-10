@@ -141,11 +141,11 @@ export default function ListYourCompanyPage() {
 
             <div className="field">
               <label>Formats you work in</label>
-              <div className="check-grid">
+              <div className="fmt-grid">
                 {FORMATS.map((f) => (
-                  <label key={f} className="filter-opt">
+                  <label key={f} className="fmt-opt">
                     <input type="checkbox" name="formats" value={f} disabled={submitting} />
-                    {f}
+                    <span>{f}</span>
                   </label>
                 ))}
               </div>

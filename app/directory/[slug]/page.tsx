@@ -10,6 +10,7 @@ import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
+import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
 import { FeatureButton } from "@/components/FeatureButton";
@@ -170,6 +171,13 @@ export default async function VendorPage({
               <p key={i}>{p}</p>
             ))}
           </div>
+
+          {vendor.gallery && vendor.gallery.length > 0 && (
+            <div className="detail-section">
+              <h2>Portfolio</h2>
+              <Gallery images={vendor.gallery} name={vendor.name} />
+            </div>
+          )}
 
           <div className="detail-section">
             <h2>Formats</h2>

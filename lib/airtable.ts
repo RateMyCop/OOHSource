@@ -34,6 +34,26 @@ function numOrUndef(v: unknown): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
+// Gallery accepts an Airtable attachment array ([{ url }]) or a delimited
+// text field (URLs separated by newlines or commas).
+function galleryFrom(field: unknown): string[] {
+  if (Array.isArray(field)) {
+    return field
+      .map((x) =>
+        typeof x === "string"
+          ? x
+          : typeof (x as { url?: unknown })?.url === "string"
+          ? (x as { url: string }).url
+          : ""
+      )
+      .filter(Boolean);
+  }
+  return String(field ?? "")
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter((u) => /^https?:\/\//i.test(u));
+}
+
 function toArray(v: unknown): string[] {
   if (Array.isArray(v)) return v.map((x) => String(x));
   if (typeof v === "string")
@@ -82,6 +102,7 @@ function mapRecord(fields: Record<string, unknown>): Vendor | null {
     website: String(fields.Website ?? ""),
     logo,
     heroImage: String(fields["Hero Image"] ?? ""),
+    gallery: galleryFrom(fields.Gallery),
     x: String(fields.X ?? ""),
     facebook: String(fields.Facebook ?? ""),
     instagram: String(fields.Instagram ?? ""),

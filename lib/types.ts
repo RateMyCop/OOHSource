@@ -27,6 +27,7 @@ export interface Vendor {
   website: string;
   logo?: string; // optional explicit logo URL (else derived from the website)
   heroImage?: string; // banner image (og:image) shown atop the detail page
+  gallery?: string[]; // portfolio image URLs shown in a gallery on the profile
   x?: string; // social links (optional)
   facebook?: string;
   instagram?: string;

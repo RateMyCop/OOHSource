@@ -98,6 +98,14 @@ export async function POST(req: Request) {
   const contactEmail = String(body.contactEmail ?? "").trim();
   if (contactEmail) fields["Contact Email"] = contactEmail;
 
+  // Portfolio image URLs — normalize to one per line, keep only http(s) links.
+  const gallery = String(body.gallery ?? "")
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter((u) => /^https?:\/\//i.test(u))
+    .slice(0, 12);
+  if (gallery.length) fields.Gallery = gallery.join("\n");
+
   const x = String(body.x ?? "").trim();
   const linkedin = String(body.linkedin ?? "").trim();
   const facebook = String(body.facebook ?? "").trim();

@@ -57,6 +57,7 @@ export default function ListYourCompanyPage() {
       coverage,
       marketsServed: fd.get("marketsServed"),
       description: fd.get("description"),
+      gallery: fd.get("gallery"),
       contactEmail: fd.get("contactEmail"),
       x: fd.get("x"),
       linkedin: fd.get("linkedin"),
@@ -276,6 +277,20 @@ export default function ListYourCompanyPage() {
                 placeholder="A couple of sentences on what your company does, who you serve, and where."
                 disabled={submitting}
               />
+            </div>
+
+            <div className="field">
+              <label htmlFor="gallery">Portfolio images</label>
+              <textarea
+                id="gallery"
+                name="gallery"
+                rows={3}
+                placeholder="Paste image URLs, one per line — photos of your billboards, installs, screens, or work."
+                disabled={submitting}
+              />
+              <span className="hint">
+                Optional — shown as a gallery on your listing. One image URL per line.
+              </span>
             </div>
 
             <div className="field">

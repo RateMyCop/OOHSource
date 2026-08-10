@@ -26,6 +26,9 @@ export function Header() {
           <Link className="navlink" href="/pricing">
             Pricing
           </Link>
+          <Link className="navlink" href="/login">
+            Sign in
+          </Link>
           <ThemeToggle />
           <Link className="btn btn--primary btn--sm" href="/list-your-company">
             List your company

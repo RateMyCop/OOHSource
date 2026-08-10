@@ -4,6 +4,7 @@ import { CATEGORIES } from "./data";
 const TOKEN = process.env.AIRTABLE_TOKEN;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const TABLE = process.env.AIRTABLE_TABLE_NAME || "Vendors";
+const CLAIMS_TABLE = process.env.AIRTABLE_CLAIMS_TABLE || "Claims";
 
 export function airtableConfigured(): boolean {
   return Boolean(TOKEN && BASE_ID);
@@ -321,6 +322,47 @@ export async function createAirtableRecord(
   }
   const data = (await res.json()) as { records?: { id?: string }[] };
   return data.records?.[0]?.id ?? "";
+}
+
+export type ClaimRow = {
+  slug: string;
+  company: string;
+  status: string;
+  domainMatch: boolean;
+};
+
+// All claims filed by a given email (case-insensitive). Used to decide which
+// listings a signed-in owner may manage.
+export async function fetchClaimsByEmail(email: string): Promise<ClaimRow[]> {
+  if (!TOKEN || !BASE_ID) return [];
+  const safe = email.toLowerCase().replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(CLAIMS_TABLE)}`
+  );
+  url.searchParams.set("filterByFormula", `LOWER({Claimant Email})='${safe}'`);
+  url.searchParams.set("maxRecords", "50");
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable claims query failed ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as {
+    records?: { fields?: Record<string, unknown> }[];
+  };
+  return (data.records ?? [])
+    .map((r) => {
+      const f = r.fields ?? {};
+      return {
+        slug: String(f["Vendor Slug"] ?? "").trim(),
+        company: String(f.Company ?? "").trim(),
+        status: String(f.Status ?? "").trim(),
+        domainMatch:
+          String(f["Domain Match"] ?? "").trim().toLowerCase() === "yes",
+      };
+    })
+    .filter((c) => c.slug);
 }
 
 // Find a record ID by its Verify Token in the given table. Returns null if none.

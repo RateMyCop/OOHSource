@@ -63,6 +63,17 @@ export async function sendVerificationEmail(
   await sendEmail(to, "Confirm your OOHsource listing", html);
 }
 
+export async function sendLoginEmail(to: string, token: string): Promise<void> {
+  const url = `${SITE_URL}/api/auth/callback?token=${encodeURIComponent(token)}`;
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.55;">Here&rsquo;s your secure sign-in link for the OOHsource owner dashboard:</p>
+    <p style="margin: 26px 0;">
+      <a href="${url}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Sign in to your dashboard &rarr;</a>
+    </p>
+    <p style="font-size: 13px; color: #71767E; line-height: 1.55;">This link works once and expires in 20 minutes. If you didn&rsquo;t request it, you can safely ignore this email.</p>`);
+  await sendEmail(to, "Your OOHsource sign-in link", html);
+}
+
 export async function sendClaimVerificationEmail(
   to: string,
   companyName: string,

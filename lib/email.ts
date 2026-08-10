@@ -64,7 +64,9 @@ export async function sendVerificationEmail(
 }
 
 export async function sendLoginEmail(to: string, token: string): Promise<void> {
-  const url = `${SITE_URL}/api/auth/callback?token=${encodeURIComponent(token)}`;
+  // Link lands on a confirm page (not a side-effecting endpoint) so email
+  // security scanners that pre-fetch links don't consume the one-time token.
+  const url = `${SITE_URL}/login/verify?token=${encodeURIComponent(token)}`;
   const html = wrap(`
     <p style="font-size: 16px; line-height: 1.55;">Here&rsquo;s your secure sign-in link for the OOHsource owner dashboard:</p>
     <p style="margin: 26px 0;">

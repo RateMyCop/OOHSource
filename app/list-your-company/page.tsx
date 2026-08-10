@@ -141,7 +141,7 @@ export default function ListYourCompanyPage() {
 
             <div className="field">
               <label>Formats you work in</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px" }}>
+              <div className="check-grid">
                 {FORMATS.map((f) => (
                   <label key={f} className="filter-opt">
                     <input type="checkbox" name="formats" value={f} disabled={submitting} />

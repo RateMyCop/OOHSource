@@ -78,6 +78,12 @@ export default function HomePage() {
                   Verified only
                 </Link>
               </div>
+            </div>
+
+            <div className="searchcard searchcard--results">
+              <div className="searchcard-top">
+                <span className="cap">Just added</span>
+              </div>
               <Link className="search-result" href="/directory/circle-graphics">
                 <div>
                   <div className="co">Circle Graphics<span className="pill-new">Just added</span></div>

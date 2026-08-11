@@ -191,6 +191,8 @@ a.search-result:hover { background: var(--paper-2); border-color: var(--accent);
 .pill-new { display: inline-block; margin-left: 8px; font-family: var(--font-mono), monospace; font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 2px 7px; vertical-align: middle; font-weight: 600; }
 .search-result .co { font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.95rem; }
 .search-result .meta { font-family: var(--font-mono), monospace; font-size: 0.68rem; color: var(--ink-3); letter-spacing: 0.04em; }
+.hero-visual { display: flex; flex-direction: column; gap: 14px; }
+.searchcard--results .search-result:first-of-type { margin-top: 14px; }
 .verified { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono), monospace; font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); }
 .verified .v { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
 

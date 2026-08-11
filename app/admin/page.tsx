@@ -34,11 +34,14 @@ export default async function AdminPage() {
   ]);
 
   const featured = vendors.filter((v) => v.tier === "Featured").length;
-  const pending = claims.filter((c) => !APPROVED.has(c.status.toLowerCase()));
-  // Latest verified accounts: claims that are now authorized, newest first.
-  const verified = claims
-    .filter((c) => APPROVED.has(c.status.toLowerCase()) || (c.status.toLowerCase() === "email confirmed" && c.domainMatch))
-    .slice(0, 12);
+  // A claim is authorized (owner can manage the listing) when it's admin-
+  // Approved/Verified, or email-confirmed with a matching domain.
+  const isAuthorized = (c: (typeof claims)[number]) =>
+    APPROVED.has(c.status.toLowerCase()) ||
+    (c.status.toLowerCase() === "email confirmed" && c.domainMatch);
+  // Only surface claims that genuinely need a manual decision.
+  const pending = claims.filter((c) => !isAuthorized(c));
+  const verified = claims.filter(isAuthorized).slice(0, 12);
   const fmt = (iso: string) => (iso ? iso.replace("T", " ").slice(0, 16) : "—");
   const n = (x: number) => x.toLocaleString();
 

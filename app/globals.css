@@ -564,6 +564,16 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .an-chart { display: block; overflow: visible; }
 .an-xlabel { fill: var(--ink-3); font-family: var(--font-mono), monospace; font-size: 11px; }
 
+/* Admin dashboard tables */
+.adm-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.adm-table th { text-align: left; font-family: var(--font-mono), monospace; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 11px 14px; border-bottom: 1px solid var(--line); font-weight: 500; }
+.adm-table td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table td form { margin: 0; }
+.adm-yes { color: var(--teal); font-weight: 600; }
+.adm-no { color: var(--ink-3); }
+
 /* ===================== MOTION ===================== */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

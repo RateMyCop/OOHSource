@@ -17,6 +17,18 @@ export function authConfigured(): boolean {
   return Boolean(SECRET);
 }
 
+// Admin allowlist for the /admin dashboard.
+const ADMIN_EMAILS = new Set(
+  (process.env.ADMIN_EMAILS || "ginosesto@gmail.com,gino@dashtwo.com")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+export function isAdmin(email: string | null): boolean {
+  return email ? ADMIN_EMAILS.has(email.toLowerCase()) : false;
+}
+
 type Payload = { e: string; exp: number; jti?: string; t: "login" | "session" };
 
 function sign(data: string): string {

@@ -61,6 +61,49 @@ export async function getStats(slug: string, days: number): Promise<Stats> {
   return { dates, totals, series };
 }
 
+// Directory-wide activity for the admin dashboard: total views/clicks and the
+// top listings by views. Reads per-vendor counters in chunked mgets.
+export async function getAdminActivity(
+  slugs: string[],
+  limit = 20
+): Promise<{
+  totals: Record<Ev, number>;
+  top: { slug: string; view: number; website: number; email: number }[];
+}> {
+  const empty = { totals: { view: 0, website: 0, email: 0 }, top: [] };
+  const r = kv();
+  if (!r || !slugs.length) return empty;
+
+  const view: Record<string, number> = {};
+  const web: Record<string, number> = {};
+  const eml: Record<string, number> = {};
+  for (let i = 0; i < slugs.length; i += 100) {
+    const c = slugs.slice(i, i + 100);
+    const [v, w, e] = await Promise.all([
+      r.mget<(number | null)[]>(...c.map((s) => `t:${s}:view`)),
+      r.mget<(number | null)[]>(...c.map((s) => `t:${s}:website`)),
+      r.mget<(number | null)[]>(...c.map((s) => `t:${s}:email`)),
+    ]);
+    c.forEach((s, j) => {
+      view[s] = Number(v[j] ?? 0);
+      web[s] = Number(w[j] ?? 0);
+      eml[s] = Number(e[j] ?? 0);
+    });
+  }
+  const totals = { view: 0, website: 0, email: 0 };
+  for (const s of slugs) {
+    totals.view += view[s] || 0;
+    totals.website += web[s] || 0;
+    totals.email += eml[s] || 0;
+  }
+  const top = slugs
+    .filter((s) => (view[s] || 0) > 0)
+    .sort((a, b) => view[b] - view[a])
+    .slice(0, limit)
+    .map((s) => ({ slug: s, view: view[s], website: web[s], email: eml[s] }));
+  return { totals, top };
+}
+
 // Atomically mark a one-time token id as used. Returns true the first time,
 // false on replay. Without KV it can't dedupe, so it allows (fails open).
 export async function consumeOnce(jti: string, ttlSec: number): Promise<boolean> {

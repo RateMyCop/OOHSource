@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSessionEmail } from "@/lib/auth";
+import { getSessionEmail, isAdmin } from "@/lib/auth";
 import { ownedSlugsForEmail } from "@/lib/owner";
 import { getVendorBySlug } from "@/lib/vendors";
 import { getStats } from "@/lib/stats";
@@ -41,11 +41,18 @@ export default async function DashboardPage() {
             Signed in as {email}
           </p>
         </div>
-        <form action="/api/auth/logout" method="post">
-          <button className="btn btn--ghost btn--sm" type="submit">
-            Sign out
-          </button>
-        </form>
+        <div style={{ display: "flex", gap: 10 }}>
+          {isAdmin(email) && (
+            <Link className="btn btn--ghost btn--sm" href="/admin">
+              Admin
+            </Link>
+          )}
+          <form action="/api/auth/logout" method="post">
+            <button className="btn btn--ghost btn--sm" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
       </div>
 
       {live.length === 0 ? (

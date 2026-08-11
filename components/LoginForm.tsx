@@ -2,50 +2,115 @@
 
 import { useState } from "react";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type Step = "email" | "code";
 
-export function LoginForm({ initialError = false }: { initialError?: boolean }) {
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMsg, setErrorMsg] = useState(
-    initialError ? "That sign-in link was invalid or already used. Enter your email for a fresh one." : ""
-  );
+export function LoginForm() {
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function requestCode(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const email = String(new FormData(e.currentTarget).get("email") || "").trim();
-    if (!email) return;
-    setStatus("sending");
+    const em = String(new FormData(e.currentTarget).get("email") || "").trim();
+    if (!em) return;
+    setBusy(true);
     setErrorMsg("");
     try {
       const res = await fetch("/api/auth/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: em }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Something went wrong. Please try again.");
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Something went wrong. Please try again.");
       }
-      setStatus("sent");
+      setEmail(em);
+      setStep("code");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
-      setStatus("error");
+    } finally {
+      setBusy(false);
     }
   }
 
-  if (status === "sent") {
+  async function verifyCode(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const code = String(new FormData(e.currentTarget).get("code") || "").trim();
+    setBusy(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Incorrect code.");
+      }
+      // Full navigation so the server picks up the new session cookie.
+      window.location.href = "/dashboard";
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
+      setBusy(false);
+    }
+  }
+
+  if (step === "code") {
     return (
-      <div className="form-ok show" role="status">
-        ✓ If that email is on a confirmed listing, we&rsquo;ve sent a sign-in
-        link. Check your inbox — it works once and expires in 20 minutes.
-      </div>
+      <form onSubmit={verifyCode} className="form-wrap" style={{ maxWidth: 440 }}>
+        <div className="form-ok show" role="status" style={{ marginBottom: 20 }}>
+          ✓ If <strong>{email}</strong> is on a confirmed listing, we&rsquo;ve
+          emailed a 6-digit code. Enter it below.
+        </div>
+        <div className="field">
+          <label htmlFor="code">6-digit code</label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="\d{6}"
+            maxLength={6}
+            placeholder="••••••"
+            required
+            autoFocus
+            disabled={busy}
+            style={{ letterSpacing: "0.4em", fontFamily: "var(--font-mono), monospace" }}
+          />
+          <span className="hint">The code expires in 10 minutes.</span>
+        </div>
+
+        {errorMsg && (
+          <div className="feature-err" role="alert" style={{ textAlign: "left", marginBottom: 14 }}>
+            {errorMsg}
+          </div>
+        )}
+
+        <button className="btn btn--primary" type="submit" disabled={busy}>
+          {busy ? "Verifying…" : "Sign in"}
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          style={{ marginLeft: 10 }}
+          disabled={busy}
+          onClick={() => {
+            setStep("email");
+            setErrorMsg("");
+          }}
+        >
+          Use a different email
+        </button>
+      </form>
     );
   }
 
-  const sending = status === "sending";
-
   return (
-    <form onSubmit={handleSubmit} className="form-wrap" style={{ maxWidth: 440 }}>
+    <form onSubmit={requestCode} className="form-wrap" style={{ maxWidth: 440 }}>
       <div className="field">
         <label htmlFor="email">Work email</label>
         <input
@@ -55,11 +120,11 @@ export function LoginForm({ initialError = false }: { initialError?: boolean }) 
           required
           autoComplete="email"
           placeholder="you@yourcompany.com"
-          disabled={sending}
+          disabled={busy}
         />
         <span className="hint">
-          Use the email you claimed your listing with — we&rsquo;ll send a
-          one-time sign-in link.
+          Use the email you claimed your listing with — we&rsquo;ll email you a
+          6-digit sign-in code.
         </span>
       </div>
 
@@ -69,8 +134,8 @@ export function LoginForm({ initialError = false }: { initialError?: boolean }) 
         </div>
       )}
 
-      <button className="btn btn--primary" type="submit" disabled={sending}>
-        {sending ? "Sending…" : "Send sign-in link"}
+      <button className="btn btn--primary" type="submit" disabled={busy}>
+        {busy ? "Sending…" : "Email me a code"}
       </button>
     </form>
   );

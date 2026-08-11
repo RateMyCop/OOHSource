@@ -63,6 +63,14 @@ export async function sendVerificationEmail(
   await sendEmail(to, "Confirm your OOHsource listing", html);
 }
 
+export async function sendLoginCode(to: string, code: string): Promise<void> {
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.55;">Your OOHsource sign-in code:</p>
+    <p style="font-size: 34px; font-weight: 800; letter-spacing: 8px; margin: 22px 0; color: #17191E;">${escapeHtml(code)}</p>
+    <p style="font-size: 13px; color: #71767E; line-height: 1.55;">Enter this code on the sign-in page. It expires in 10 minutes. If you didn&rsquo;t request it, you can safely ignore this email.</p>`);
+  await sendEmail(to, `${code} is your OOHsource sign-in code`, html);
+}
+
 export async function sendLoginEmail(to: string, token: string): Promise<void> {
   // Link lands on a confirm page (not a side-effecting endpoint) so email
   // security scanners that pre-fetch links don't consume the one-time token.

@@ -1,12 +1,14 @@
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { authConfigured, makeLoginToken } from "@/lib/auth";
-import { emailConfigured, sendLoginEmail } from "@/lib/email";
+import { authConfigured } from "@/lib/auth";
+import { kv } from "@/lib/kv";
+import { emailConfigured, sendLoginCode } from "@/lib/email";
 import { ownedSlugsForEmail } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
 
-// Request a magic sign-in link. To avoid revealing which emails own listings,
-// the response is always a generic success — a link is only actually sent when
+// Request a 6-digit sign-in code. To avoid revealing which emails own listings,
+// the response is always a generic success — a code is only actually sent when
 // the email has at least one authorized claim.
 export async function POST(req: Request) {
   let body: { email?: unknown };
@@ -26,10 +28,17 @@ export async function POST(req: Request) {
   try {
     const owned = await ownedSlugsForEmail(email);
     if (owned.length > 0) {
-      await sendLoginEmail(email, makeLoginToken(email));
+      const r = kv();
+      if (r) {
+        const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+        // Store the code for 10 minutes and reset the attempt counter.
+        await r.set(`ac:${email}`, code, { ex: 600 });
+        await r.del(`acn:${email}`);
+        await sendLoginCode(email, code);
+      }
     }
   } catch (e) {
-    console.error("[auth] request failed:", e);
+    console.error("[auth] code request failed:", e);
   }
   return generic;
 }

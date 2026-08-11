@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { error?: string };
-}) {
+export default function LoginPage() {
   if (getSessionEmail()) redirect("/dashboard");
 
   return (
@@ -27,9 +23,9 @@ export default function LoginPage({
       <h1>Owner sign in.</h1>
       <p className="lede" style={{ marginBottom: 30 }}>
         Manage your listing and see how many buyers are viewing and contacting
-        you. Sign-in is by secure email link — no password needed.
+        you. We&rsquo;ll email you a 6-digit code — no password needed.
       </p>
-      <LoginForm initialError={searchParams.error === "1"} />
+      <LoginForm />
       <p className="hint" style={{ marginTop: 24 }}>
         Haven&rsquo;t claimed your listing yet? Find your company in the{" "}
         <a href="/directory">directory</a> and click &ldquo;Claim this

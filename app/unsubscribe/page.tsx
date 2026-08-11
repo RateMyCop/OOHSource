@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { readUnsubToken } from "@/lib/outreach";
+import { AutoUnsubscribe } from "@/components/AutoUnsubscribe";
 
 export const dynamic = "force-dynamic";
 
@@ -38,22 +39,20 @@ export default function UnsubscribePage({
   // been unsubscribed yet; that only happens when the button below is clicked.
   const email = t ? readUnsubToken(t) : null;
   if (t && email) {
+    // Real browsers auto-complete the opt-out on load (see AutoUnsubscribe);
+    // no-JS clients get the manual button. Scanners run neither, so they can't
+    // opt anyone out.
     return (
       <section className="wrap page-head" style={{ paddingBottom: 100 }}>
-        <span className="eyebrow">
-          <span className="label label--accent">Unsubscribe</span>
-        </span>
-        <h1>Unsubscribe from OOHsource emails?</h1>
-        <p className="lede" style={{ marginBottom: 26 }}>
-          Confirm to stop outreach emails to <strong>{email}</strong>. Your
-          listing stays live.
-        </p>
-        <form action="/api/unsubscribe" method="post">
-          <input type="hidden" name="t" value={t} />
-          <button className="btn btn--primary" type="submit">
-            Unsubscribe
-          </button>
-        </form>
+        <AutoUnsubscribe token={t} email={email} />
+        <noscript>
+          <form action="/api/unsubscribe" method="post" style={{ marginTop: 20 }}>
+            <input type="hidden" name="t" value={t} />
+            <button className="btn btn--primary" type="submit">
+              Unsubscribe
+            </button>
+          </form>
+        </noscript>
       </section>
     );
   }

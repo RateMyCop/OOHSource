@@ -78,7 +78,7 @@ export async function sendOutreachEmail(
     <p style="margin: 26px 0;">
       <a href="${listingUrl}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Claim your listing &rarr;</a>
     </p>
-    <p style="font-size: 15px; line-height: 1.6;">Best,<br />Gino Sesto<br /><span style="color:#71767E;">Founder, OOHsource</span></p>
+    <p style="font-size: 15px; line-height: 1.6;">Best,<br />The OOHsource team</p>
     <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. Reply &ldquo;remove&rdquo; and we&rsquo;ll take the listing down or stop contacting you.</p>`);
   await sendEmailFrom(
     OUTREACH_FROM,

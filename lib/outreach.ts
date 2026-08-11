@@ -77,22 +77,30 @@ async function listIndexed(
   if (!r) return [];
   const emails = (await r.smembers(index)) as string[];
   if (!emails.length) return [];
-  const vals = (await r.mget<(string | null)[]>(...emails.map((e) => `${prefix}:${e}`))) || [];
+  const vals = (await r.mget<unknown[]>(...emails.map((e) => `${prefix}:${e}`))) || [];
   return emails
     .map((email, i) => {
       const raw = vals[i];
       let at: string | null = null;
       let reason: string | undefined;
-      if (raw && raw.startsWith("{")) {
-        try {
-          const o = JSON.parse(raw);
-          at = o.at ?? null;
-          reason = o.reason;
-        } catch {
-          /* ignore */
+      // Upstash auto-deserializes JSON values, so a JSON-stringified record
+      // comes back as an object; a plain timestamp comes back as a string.
+      if (raw && typeof raw === "object") {
+        const o = raw as { at?: string; reason?: string };
+        at = o.at ?? null;
+        reason = o.reason;
+      } else if (typeof raw === "string") {
+        if (raw.startsWith("{")) {
+          try {
+            const o = JSON.parse(raw);
+            at = o.at ?? null;
+            reason = o.reason;
+          } catch {
+            /* ignore */
+          }
+        } else {
+          at = raw;
         }
-      } else {
-        at = raw ?? null;
       }
       return { email, at, reason };
     })

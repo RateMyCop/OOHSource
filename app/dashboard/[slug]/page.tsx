@@ -6,6 +6,7 @@ import { ownedSlugsForEmail } from "@/lib/owner";
 import { getVendorBySlug } from "@/lib/vendors";
 import { getStats } from "@/lib/stats";
 import { ListingEditor } from "@/components/ListingEditor";
+import { Analytics } from "@/components/Analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,6 @@ export const metadata: Metadata = {
   title: "Manage listing",
   robots: { index: false, follow: false },
 };
-
-const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
 export default async function ManageListingPage({
   params,
@@ -29,7 +28,7 @@ export default async function ManageListingPage({
 
   const vendor = await getVendorBySlug(params.slug);
   if (!vendor) notFound();
-  const stats = await getStats(params.slug, 30);
+  const stats = await getStats(params.slug, 90);
 
   return (
     <section className="wrap page-head" style={{ paddingBottom: 90 }}>
@@ -51,25 +50,11 @@ export default async function ManageListingPage({
         </Link>
       </div>
 
-      <div className="stat-tiles" style={{ maxWidth: 520, marginTop: 24 }}>
-        <div className="stat-tile">
-          <span className="stat-num">{sum(stats.series.view)}</span>
-          <span className="stat-label">Views · 30d</span>
-          <span className="stat-sub">{stats.totals.view} all-time</span>
-        </div>
-        <div className="stat-tile">
-          <span className="stat-num">{sum(stats.series.website)}</span>
-          <span className="stat-label">Website clicks · 30d</span>
-          <span className="stat-sub">{stats.totals.website} all-time</span>
-        </div>
-        <div className="stat-tile">
-          <span className="stat-num">{sum(stats.series.email)}</span>
-          <span className="stat-label">Email clicks · 30d</span>
-          <span className="stat-sub">{stats.totals.email} all-time</span>
-        </div>
+      <div style={{ marginTop: 24 }}>
+        <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />
       </div>
 
-      <div style={{ marginTop: 36 }}>
+      <div style={{ marginTop: 40 }}>
         <ListingEditor
           slug={vendor.slug}
           website={vendor.website || ""}

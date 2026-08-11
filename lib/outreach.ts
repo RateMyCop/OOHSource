@@ -39,3 +39,9 @@ export async function markUnsubscribed(email: string): Promise<void> {
   if (!r) return;
   await r.set(`unsub:${email.toLowerCase()}`, "1");
 }
+
+export async function resubscribe(email: string): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  await r.del(`unsub:${email.toLowerCase()}`);
+}

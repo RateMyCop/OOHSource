@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { readUnsubToken } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
@@ -11,19 +12,76 @@ export const metadata: Metadata = {
 export default function UnsubscribePage({
   searchParams,
 }: {
-  searchParams: { ok?: string };
+  searchParams: { t?: string; done?: string };
 }) {
-  const ok = searchParams.ok !== "0";
+  const { t, done } = searchParams;
+
+  // Result states (after the POST).
+  if (done === "1") {
+    return (
+      <Shell label="Unsubscribed" heading="You're unsubscribed.">
+        You won&rsquo;t receive any more outreach emails from OOHsource. Your
+        directory listing stays live — you can still claim or update it anytime.
+      </Shell>
+    );
+  }
+  if (done === "0") {
+    return (
+      <Shell label="Invalid link" heading="This link didn't work.">
+        We couldn&rsquo;t process that request. Reply to the email with
+        &ldquo;remove&rdquo; and we&rsquo;ll take care of it.
+      </Shell>
+    );
+  }
+
+  // Confirm step — reached by clicking the footer link (a GET). Nothing has
+  // been unsubscribed yet; that only happens when the button below is clicked.
+  const email = t ? readUnsubToken(t) : null;
+  if (t && email) {
+    return (
+      <section className="wrap page-head" style={{ paddingBottom: 100 }}>
+        <span className="eyebrow">
+          <span className="label label--accent">Unsubscribe</span>
+        </span>
+        <h1>Unsubscribe from OOHsource emails?</h1>
+        <p className="lede" style={{ marginBottom: 26 }}>
+          Confirm to stop outreach emails to <strong>{email}</strong>. Your
+          listing stays live.
+        </p>
+        <form action="/api/unsubscribe" method="post">
+          <input type="hidden" name="t" value={t} />
+          <button className="btn btn--primary" type="submit">
+            Unsubscribe
+          </button>
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <Shell label="Invalid link" heading="This link is invalid or expired.">
+      Reply to the email with &ldquo;remove&rdquo; and we&rsquo;ll take care of it.
+    </Shell>
+  );
+}
+
+function Shell({
+  label,
+  heading,
+  children,
+}: {
+  label: string;
+  heading: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="wrap page-head" style={{ paddingBottom: 100 }}>
       <span className="eyebrow">
-        <span className="label label--accent">{ok ? "Unsubscribed" : "Invalid link"}</span>
+        <span className="label label--accent">{label}</span>
       </span>
-      <h1>{ok ? "You're unsubscribed." : "This link didn't work."}</h1>
+      <h1>{heading}</h1>
       <p className="lede" style={{ marginBottom: 26 }}>
-        {ok
-          ? "You won't receive any more outreach emails from OOHsource. Your directory listing stays live — you can still claim or update it anytime."
-          : "We couldn't process that unsubscribe link. Reply to the email with “remove” and we'll take care of it."}
+        {children}
       </p>
       <div className="hero-cta">
         <Link className="btn btn--primary" href="/directory">

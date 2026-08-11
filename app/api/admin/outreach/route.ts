@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { emailConfigured, sendOutreachEmail } from "@/lib/email";
+import { resubscribe } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +19,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "email not configured" }, { status: 503 });
   }
 
-  let body: { to?: unknown; company?: unknown; slug?: unknown };
+  let body: { to?: unknown; company?: unknown; slug?: unknown; resubscribe?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "invalid body" }, { status: 400 });
   }
+
+  // Admin can clear a false unsubscribe (e.g. a scanner-triggered one).
+  const resub = String(body.resubscribe ?? "").trim();
+  if (resub) {
+    await resubscribe(resub);
+    return NextResponse.json({ ok: true, resubscribed: resub });
+  }
+
   const to = String(body.to ?? "").trim();
   const company = String(body.company ?? "").trim();
   const slug = String(body.slug ?? "").trim();

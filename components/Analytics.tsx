@@ -49,10 +49,11 @@ export function Analytics({
     return { txt: `${d >= 0 ? "+" : ""}${d}%`, cls: d > 0 ? "up" : d < 0 ? "down" : "flat" };
   }
 
-  // Chart geometry (SVG user units; scales to container width).
-  const W = 760;
+  // Chart geometry (SVG user units; scales to container width). Wide, short
+  // aspect ratio keeps the rendered chart compact.
+  const W = 1000;
   const H = 200;
-  const padB = 22;
+  const padB = 24;
   const max = Math.max(1, ...data);
   const bw = W / Math.max(1, data.length);
   const barW = Math.max(1, bw * 0.66);

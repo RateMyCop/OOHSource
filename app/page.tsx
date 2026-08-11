@@ -2,14 +2,18 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
+import { getAllVendors } from "@/lib/vendors";
 
-export default function HomePage() {
+export default async function HomePage() {
   // Personalize the hero search from the visitor's approximate city (Vercel edge
   // geolocation, derived from IP — no permission prompt, no cookie). Falls back
   // gracefully in dev / when unavailable.
   const rawCity = headers().get("x-vercel-ip-city");
   const city = rawCity ? decodeURIComponent(rawCity.replace(/\+/g, " ")) : "";
   const searchCity = city || "your area";
+
+  // Live directory size — a credibility signal, kept accurate as it grows.
+  const vendorCount = (await getAllVendors()).length;
 
   return (
     <>
@@ -33,7 +37,10 @@ export default function HomePage() {
                 Browse the directory
               </Link>
             </div>
-            <p className="hero-fine">Free to list · Worldwide · Every OOH format</p>
+            <p className="hero-fine">
+              <strong className="hero-count">{vendorCount.toLocaleString()} companies</strong>{" "}
+              · Free to list · Worldwide · Every OOH format
+            </p>
           </div>
 
           <div className="hero-visual">

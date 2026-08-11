@@ -1,5 +1,8 @@
 import crypto from "node:crypto";
 import { kv } from "./kv";
+import { createAirtableRecord } from "./airtable";
+
+const UNSUB_TABLE = process.env.AIRTABLE_UNSUB_TABLE || "Unsubscribes";
 
 // Unsubscribe handling for outreach email. A signed token encodes the email so
 // nothing sensitive sits in the URL and nobody can unsubscribe a third party.
@@ -37,11 +40,36 @@ export async function isUnsubscribed(email: string): Promise<boolean> {
 export async function markUnsubscribed(email: string): Promise<void> {
   const r = kv();
   if (!r) return;
-  await r.set(`unsub:${email.toLowerCase()}`, "1");
+  const e = email.toLowerCase();
+  const at = new Date().toISOString();
+  // Suppression flag (value is the timestamp) + an index set for enumeration.
+  await r.set(`unsub:${e}`, at);
+  await r.sadd("unsub:index", e);
+  // Durable, visible copy in Airtable. Best-effort: if the "Unsubscribes" table
+  // doesn't exist yet, the opt-out still holds in KV — we just log and move on.
+  try {
+    await createAirtableRecord({ Email: e, Date: at, Source: "outreach" }, UNSUB_TABLE);
+  } catch (err) {
+    console.error("[unsub] Airtable mirror failed (create an 'Unsubscribes' table):", (err as Error).message);
+  }
 }
 
 export async function resubscribe(email: string): Promise<void> {
   const r = kv();
   if (!r) return;
-  await r.del(`unsub:${email.toLowerCase()}`);
+  const e = email.toLowerCase();
+  await r.del(`unsub:${e}`);
+  await r.srem("unsub:index", e);
+}
+
+// All unsubscribed emails with the time they opted out (newest data from KV).
+export async function listUnsubscribes(): Promise<{ email: string; at: string | null }[]> {
+  const r = kv();
+  if (!r) return [];
+  const emails = (await r.smembers("unsub:index")) as string[];
+  if (!emails.length) return [];
+  const ats = (await r.mget<(string | null)[]>(...emails.map((e) => `unsub:${e}`))) || [];
+  return emails
+    .map((email, i) => ({ email, at: ats[i] ?? null }))
+    .sort((a, b) => (b.at || "").localeCompare(a.at || ""));
 }

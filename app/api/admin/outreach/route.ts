@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { emailConfigured, sendOutreachEmail } from "@/lib/email";
-import { resubscribe } from "@/lib/outreach";
+import { listUnsubscribes, resubscribe } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
+
+// GET returns the unsubscribe list (email + opt-out time). Admin-key gated.
+export async function GET(req: Request) {
+  const key = (req.headers.get("x-admin-key") || "").trim();
+  const configured = (process.env.ADMIN_KEY || "").trim();
+  if (!configured || key !== configured) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  const unsubscribes = await listUnsubscribes();
+  return NextResponse.json({ ok: true, count: unsubscribes.length, unsubscribes });
+}
 
 // Admin-only outreach sender. Sends the "you're listed — claim your profile"
 // email from info@oohsource.com (not the transactional verify@ sender).

@@ -27,10 +27,10 @@ export default async function AdminPage() {
   const [activity, visited, unsubs, bounces, complaints, claims, submissions, reports] =
     await Promise.all([
       getAdminActivity(slugs, 20),
-      listEmailVisits(),
-      listUnsubscribes(),
-      listBounces(),
-      listComplaints(),
+      listEmailVisits().catch(() => []),
+      listUnsubscribes().catch(() => []),
+      listBounces().catch(() => []),
+      listComplaints().catch(() => []),
       fetchClaims(100).catch(() => []),
       fetchPendingVendors(100).catch(() => []),
       fetchReports(50).catch(() => []),

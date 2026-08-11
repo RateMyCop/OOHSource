@@ -43,22 +43,28 @@ export async function getStats(slug: string, days: number): Promise<Stats> {
   const r = kv();
   if (!r) return empty;
 
-  const totalKeys = EVENTS.map((e) => `t:${slug}:${e}`);
-  const dailyKeys = EVENTS.flatMap((e) => dates.map((d) => `t:${slug}:${e}:${d}`));
-  const [totalVals, dailyVals] = await Promise.all([
-    r.mget<(number | null)[]>(...totalKeys),
-    dailyKeys.length
-      ? r.mget<(number | null)[]>(...dailyKeys)
-      : Promise.resolve([] as (number | null)[]),
-  ]);
+  try {
+    const totalKeys = EVENTS.map((e) => `t:${slug}:${e}`);
+    const dailyKeys = EVENTS.flatMap((e) => dates.map((d) => `t:${slug}:${e}:${d}`));
+    const [totalVals, dailyVals] = await Promise.all([
+      r.mget<(number | null)[]>(...totalKeys),
+      dailyKeys.length
+        ? r.mget<(number | null)[]>(...dailyKeys)
+        : Promise.resolve([] as (number | null)[]),
+    ]);
 
-  const totals: Record<Ev, number> = { view: 0, website: 0, email: 0 };
-  EVENTS.forEach((e, i) => (totals[e] = Number(totalVals[i] ?? 0)));
-  const series: Record<Ev, number[]> = { view: [], website: [], email: [] };
-  EVENTS.forEach((e, ei) => {
-    series[e] = dates.map((_, di) => Number(dailyVals[ei * days + di] ?? 0));
-  });
-  return { dates, totals, series };
+    const totals: Record<Ev, number> = { view: 0, website: 0, email: 0 };
+    EVENTS.forEach((e, i) => (totals[e] = Number(totalVals[i] ?? 0)));
+    const series: Record<Ev, number[]> = { view: [], website: [], email: [] };
+    EVENTS.forEach((e, ei) => {
+      series[e] = dates.map((_, di) => Number(dailyVals[ei * days + di] ?? 0));
+    });
+    return { dates, totals, series };
+  } catch (e) {
+    // A transient KV blip must never crash the owner dashboard.
+    console.error("[stats] getStats failed:", e);
+    return empty;
+  }
 }
 
 // Directory-wide activity for the admin dashboard: total views/clicks and the
@@ -74,6 +80,7 @@ export async function getAdminActivity(
   const r = kv();
   if (!r || !slugs.length) return empty;
 
+  try {
   const view: Record<string, number> = {};
   const web: Record<string, number> = {};
   const eml: Record<string, number> = {};
@@ -102,6 +109,10 @@ export async function getAdminActivity(
     .slice(0, limit)
     .map((s) => ({ slug: s, view: view[s], website: web[s], email: eml[s] }));
   return { totals, top };
+  } catch (e) {
+    console.error("[stats] getAdminActivity failed:", e);
+    return empty;
+  }
 }
 
 // Atomically mark a one-time token id as used. Returns true the first time,

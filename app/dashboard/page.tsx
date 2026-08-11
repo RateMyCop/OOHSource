@@ -20,17 +20,24 @@ export default async function DashboardPage() {
   const email = getSessionEmail();
   if (!email) redirect("/login");
 
-  const slugs = await ownedSlugsForEmail(email);
-  const items = await Promise.all(
-    slugs.map(async (slug) => {
-      const [vendor, stats] = await Promise.all([
-        getVendorBySlug(slug),
-        getStats(slug, 30),
-      ]);
-      return { slug, vendor, stats };
-    })
-  );
-  const live = items.filter((it) => it.vendor);
+  let live: { slug: string; vendor: Awaited<ReturnType<typeof getVendorBySlug>>; stats: Awaited<ReturnType<typeof getStats>> }[] = [];
+  let loadError = false;
+  try {
+    const slugs = await ownedSlugsForEmail(email);
+    const items = await Promise.all(
+      slugs.map(async (slug) => {
+        const [vendor, stats] = await Promise.all([
+          getVendorBySlug(slug),
+          getStats(slug, 30),
+        ]);
+        return { slug, vendor, stats };
+      })
+    );
+    live = items.filter((it) => it.vendor);
+  } catch (e) {
+    console.error("[dashboard] load failed:", e);
+    loadError = true;
+  }
 
   return (
     <section className="wrap page-head" style={{ paddingBottom: 90 }}>
@@ -55,7 +62,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {live.length === 0 ? (
+      {loadError ? (
+        <div className="aside-card" style={{ marginTop: 28, maxWidth: 560 }}>
+          <p style={{ margin: 0 }}>Couldn&rsquo;t load your dashboard just now.</p>
+          <p className="hint" style={{ margin: 0 }}>
+            This is usually a momentary hiccup — please refresh the page. If it
+            keeps happening, let us know.
+          </p>
+          <a className="btn btn--primary btn--sm" href="/dashboard" style={{ alignSelf: "flex-start" }}>
+            Refresh
+          </a>
+        </div>
+      ) : live.length === 0 ? (
         <div className="aside-card" style={{ marginTop: 28, maxWidth: 560 }}>
           <p style={{ margin: 0 }}>
             No confirmed listings are linked to <strong>{email}</strong> yet.

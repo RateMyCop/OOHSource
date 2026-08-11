@@ -35,8 +35,10 @@ export async function POST(req: Request) {
   }
 
   try {
-    await sendOutreachEmail(to, company, slug);
-    return NextResponse.json({ ok: true, sent: to });
+    const sent = await sendOutreachEmail(to, company, slug);
+    return NextResponse.json(
+      sent ? { ok: true, sent: to } : { ok: true, skipped: "unsubscribed" }
+    );
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },

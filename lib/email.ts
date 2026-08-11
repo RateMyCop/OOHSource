@@ -1,3 +1,5 @@
+import { isUnsubscribed, makeUnsubToken } from "./outreach";
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://oohsource.com";
@@ -41,11 +43,13 @@ async function sendEmailFrom(
   to: string,
   subject: string,
   html: string,
-  replyTo?: string
+  replyTo?: string,
+  headers?: Record<string, string>
 ): Promise<void> {
   if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not set");
   const payload: Record<string, unknown> = { from, to, subject, html };
   if (replyTo) payload.reply_to = replyTo;
+  if (headers) payload.headers = headers;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -62,13 +66,17 @@ async function sendEmailFrom(
 
 const OUTREACH_FROM = process.env.OUTREACH_FROM || "OOHsource <info@oohsource.com>";
 
-// "You're listed — claim your free profile" outreach email.
+// "You're listed — claim your free profile" outreach email. Returns false
+// (without sending) if the recipient has unsubscribed.
 export async function sendOutreachEmail(
   to: string,
   company: string,
   slug: string
-): Promise<void> {
+): Promise<boolean> {
+  if (await isUnsubscribed(to)) return false;
+
   const listingUrl = `${SITE_URL}/directory/${slug}`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
   const safe = escapeHtml(company);
   const html = wrap(`
     <p style="font-size: 16px; line-height: 1.6;">Hi ${safe},</p>
@@ -79,14 +87,19 @@ export async function sendOutreachEmail(
       <a href="${listingUrl}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Claim your listing &rarr;</a>
     </p>
     <p style="font-size: 15px; line-height: 1.6;">Best,<br />The OOHsource team</p>
-    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. Reply &ldquo;remove&rdquo; and we&rsquo;ll take the listing down or stop contacting you.</p>`);
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> to stop these emails.</p>`);
   await sendEmailFrom(
     OUTREACH_FROM,
     to,
     `${company} is now listed on OOHsource`,
     html,
-    "info@oohsource.com"
+    "info@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:info@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
   );
+  return true;
 }
 
 function wrap(bodyHtml: string): string {

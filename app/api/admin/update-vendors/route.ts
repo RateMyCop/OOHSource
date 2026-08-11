@@ -26,6 +26,10 @@ export async function GET(req: Request) {
       name: v.name,
       website: v.website,
       heroImage: v.heroImage || "",
+      categorySlug: v.categorySlug,
+      location: v.location || "",
+      contactEmail: v.contactEmail || "",
+      tier: v.tier,
     })),
   });
 }

@@ -1,4 +1,4 @@
-import { isUnsubscribed, makeUnsubToken } from "./outreach";
+import { isSuppressed, makeUnsubToken } from "./outreach";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
@@ -73,7 +73,7 @@ export async function sendOutreachEmail(
   company: string,
   slug: string
 ): Promise<boolean> {
-  if (await isUnsubscribed(to)) return false;
+  if (await isSuppressed(to)) return false;
 
   // ?ref=email lets us attribute which emailed vendors actually clicked through.
   const listingUrl = `${SITE_URL}/directory/${slug}?ref=email`;

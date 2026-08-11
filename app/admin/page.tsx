@@ -5,7 +5,7 @@ import { getSessionEmail, isAdmin } from "@/lib/auth";
 import { getAllVendors } from "@/lib/vendors";
 import { getAdminActivity } from "@/lib/stats";
 import { fetchClaims, fetchPendingVendors, fetchReports } from "@/lib/airtable";
-import { listEmailVisits, listUnsubscribes } from "@/lib/outreach";
+import { listBounces, listComplaints, listEmailVisits, listUnsubscribes } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +24,17 @@ export default async function AdminPage() {
   const slugs = vendors.map((v) => v.slug);
   const nameBySlug = new Map(vendors.map((v) => [v.slug, v.name]));
 
-  const [activity, visited, unsubs, claims, submissions, reports] = await Promise.all([
-    getAdminActivity(slugs, 20),
-    listEmailVisits(),
-    listUnsubscribes(),
-    fetchClaims(100).catch(() => []),
-    fetchPendingVendors(100).catch(() => []),
-    fetchReports(50).catch(() => []),
-  ]);
+  const [activity, visited, unsubs, bounces, complaints, claims, submissions, reports] =
+    await Promise.all([
+      getAdminActivity(slugs, 20),
+      listEmailVisits(),
+      listUnsubscribes(),
+      listBounces(),
+      listComplaints(),
+      fetchClaims(100).catch(() => []),
+      fetchPendingVendors(100).catch(() => []),
+      fetchReports(50).catch(() => []),
+    ]);
 
   const featured = vendors.filter((v) => v.tier === "Featured").length;
   // A claim is authorized (owner can manage the listing) when it's admin-
@@ -224,6 +227,35 @@ export default async function AdminPage() {
                   <td>{i + 1}</td>
                   <td><Link href={`/directory/${t.slug}`}>{nameBySlug.get(t.slug) || t.slug}</Link></td>
                   <td>{t.view}</td><td>{t.website}</td><td>{t.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Deliverability: bounces + complaints (from Resend webhook) */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Bounces <span className="opt">— {bounces.length}</span>
+        {"  "}·  Spam complaints <span className="opt">— {complaints.length}</span>
+      </h2>
+      {bounces.length === 0 && complaints.length === 0 ? (
+        <p className="hint">
+          No bounces or complaints recorded. (Requires the Resend webhook — see setup.)
+        </p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead><tr><th>Email</th><th>Type</th><th>Reason</th><th>When (UTC)</th></tr></thead>
+            <tbody>
+              {complaints.map((c) => (
+                <tr key={`c-${c.email}`}>
+                  <td>{c.email}</td><td><span className="adm-no">complaint</span></td><td>spam report</td><td>{fmt(c.at || "")}</td>
+                </tr>
+              ))}
+              {bounces.map((b) => (
+                <tr key={`b-${b.email}`}>
+                  <td>{b.email}</td><td><span className="adm-no">bounce</span></td><td>{b.reason || "—"}</td><td>{fmt(b.at || "")}</td>
                 </tr>
               ))}
             </tbody>

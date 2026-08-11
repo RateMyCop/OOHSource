@@ -37,6 +37,75 @@ export async function isUnsubscribed(email: string): Promise<boolean> {
   return Boolean(await r.get(`unsub:${email.toLowerCase()}`));
 }
 
+// True if the address must not be emailed — unsubscribed, bounced, or
+// complained. Used by the sender so we never re-hit a bad/opted-out address.
+export async function isSuppressed(email: string): Promise<boolean> {
+  const r = kv();
+  if (!r) return false;
+  const e = email.toLowerCase();
+  const [u, b, c] = await r.mget<(string | null)[]>(
+    `unsub:${e}`,
+    `bounce:${e}`,
+    `complaint:${e}`
+  );
+  return Boolean(u || b || c);
+}
+
+// Record a hard deliverability event from the Resend webhook. Bounces and
+// complaints also suppress future sends.
+export async function recordBounce(email: string, reason: string): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  const e = email.toLowerCase();
+  await r.set(`bounce:${e}`, JSON.stringify({ at: new Date().toISOString(), reason }));
+  await r.sadd("bounce:index", e);
+}
+
+export async function recordComplaint(email: string): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  const e = email.toLowerCase();
+  await r.set(`complaint:${e}`, new Date().toISOString());
+  await r.sadd("complaint:index", e);
+}
+
+async function listIndexed(
+  index: string,
+  prefix: string
+): Promise<{ email: string; at: string | null; reason?: string }[]> {
+  const r = kv();
+  if (!r) return [];
+  const emails = (await r.smembers(index)) as string[];
+  if (!emails.length) return [];
+  const vals = (await r.mget<(string | null)[]>(...emails.map((e) => `${prefix}:${e}`))) || [];
+  return emails
+    .map((email, i) => {
+      const raw = vals[i];
+      let at: string | null = null;
+      let reason: string | undefined;
+      if (raw && raw.startsWith("{")) {
+        try {
+          const o = JSON.parse(raw);
+          at = o.at ?? null;
+          reason = o.reason;
+        } catch {
+          /* ignore */
+        }
+      } else {
+        at = raw ?? null;
+      }
+      return { email, at, reason };
+    })
+    .sort((a, b) => (b.at || "").localeCompare(a.at || ""));
+}
+
+export function listBounces() {
+  return listIndexed("bounce:index", "bounce");
+}
+export function listComplaints() {
+  return listIndexed("complaint:index", "complaint");
+}
+
 export async function markUnsubscribed(email: string): Promise<void> {
   const r = kv();
   if (!r) return;

@@ -123,12 +123,19 @@ export async function markUnsubscribed(email: string): Promise<void> {
   }
 }
 
+// Fully un-suppress an address: clears unsubscribe, bounce, and complaint.
 export async function resubscribe(email: string): Promise<void> {
   const r = kv();
   if (!r) return;
   const e = email.toLowerCase();
-  await r.del(`unsub:${e}`);
-  await r.srem("unsub:index", e);
+  await Promise.all([
+    r.del(`unsub:${e}`),
+    r.del(`bounce:${e}`),
+    r.del(`complaint:${e}`),
+    r.srem("unsub:index", e),
+    r.srem("bounce:index", e),
+    r.srem("complaint:index", e),
+  ]);
 }
 
 // Record that a vendor clicked through from their outreach email (arrived with

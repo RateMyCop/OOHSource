@@ -87,7 +87,7 @@ export async function sendOutreachEmail(
       <a href="${listingUrl}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Claim your listing &rarr;</a>
     </p>
     <p style="font-size: 15px; line-height: 1.6;">Best,<br />The OOHsource team</p>
-    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> to stop these emails.</p>`);
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> to stop these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
   await sendEmailFrom(
     OUTREACH_FROM,
     to,

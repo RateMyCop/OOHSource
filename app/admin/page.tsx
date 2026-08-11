@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getSessionEmail, isAdmin } from "@/lib/auth";
 import { getAllVendors } from "@/lib/vendors";
 import { getAdminActivity } from "@/lib/stats";
-import { fetchClaims } from "@/lib/airtable";
+import { fetchClaims, fetchPendingVendors, fetchReports } from "@/lib/airtable";
 import { listEmailVisits, listUnsubscribes } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
@@ -24,15 +24,22 @@ export default async function AdminPage() {
   const slugs = vendors.map((v) => v.slug);
   const nameBySlug = new Map(vendors.map((v) => [v.slug, v.name]));
 
-  const [activity, visited, unsubs, claims] = await Promise.all([
+  const [activity, visited, unsubs, claims, submissions, reports] = await Promise.all([
     getAdminActivity(slugs, 20),
     listEmailVisits(),
     listUnsubscribes(),
     fetchClaims(100).catch(() => []),
+    fetchPendingVendors(100).catch(() => []),
+    fetchReports(50).catch(() => []),
   ]);
 
   const featured = vendors.filter((v) => v.tier === "Featured").length;
   const pending = claims.filter((c) => !APPROVED.has(c.status.toLowerCase()));
+  // Latest verified accounts: claims that are now authorized, newest first.
+  const verified = claims
+    .filter((c) => APPROVED.has(c.status.toLowerCase()) || (c.status.toLowerCase() === "email confirmed" && c.domainMatch))
+    .slice(0, 12);
+  const fmt = (iso: string) => (iso ? iso.replace("T", " ").slice(0, 16) : "—");
   const n = (x: number) => x.toLocaleString();
 
   return (
@@ -84,6 +91,92 @@ export default async function AdminPage() {
                       <button className="btn btn--primary btn--sm" type="submit">Approve</button>
                     </form>
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Pending listing submissions */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Pending submissions <span className="opt">— {submissions.length} to review</span>
+      </h2>
+      {submissions.length === 0 ? (
+        <p className="hint">No new listing submissions waiting.</p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead>
+              <tr><th>Company</th><th>Website</th><th>Submitter</th><th>Status</th><th>Submitted</th><th></th></tr>
+            </thead>
+            <tbody>
+              {submissions.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    {s.name}
+                    {s.category ? <div className="hint" style={{ marginTop: 2 }}>{s.category}</div> : null}
+                  </td>
+                  <td>{s.website ? <a href={s.website} target="_blank" rel="noopener noreferrer nofollow">{s.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : "—"}</td>
+                  <td>{s.submitter || "—"}</td>
+                  <td>{s.status || "—"}</td>
+                  <td>{fmt(s.created)}</td>
+                  <td style={{ textAlign: "right" }}>
+                    <form action="/api/admin/vendors/publish" method="post">
+                      <input type="hidden" name="id" value={s.id} />
+                      <input type="hidden" name="slug" value={s.slug} />
+                      <button className="btn btn--primary btn--sm" type="submit">Publish</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Latest verified accounts */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Latest verified accounts <span className="opt">— {verified.length}</span>
+      </h2>
+      {verified.length === 0 ? (
+        <p className="hint">No verified owner accounts yet.</p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead><tr><th>Company</th><th>Owner email</th><th>Status</th><th>Verified</th></tr></thead>
+            <tbody>
+              {verified.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.slug ? <Link href={`/directory/${c.slug}`}>{c.company || c.slug}</Link> : c.company}</td>
+                  <td>{c.email}</td>
+                  <td>{c.status}</td>
+                  <td>{fmt(c.created)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Reported issues / changes people submit */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Reported issues <span className="opt">— {reports.length}</span>
+      </h2>
+      {reports.length === 0 ? (
+        <p className="hint">No issues or change requests submitted.</p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead><tr><th>Listing</th><th>Type</th><th>Details</th><th>From</th><th>When</th></tr></thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.slug ? <Link href={`/directory/${r.slug}`}>{r.vendor || r.slug}</Link> : r.vendor || "—"}</td>
+                  <td>{r.type || "—"}</td>
+                  <td style={{ maxWidth: 340 }}>{r.details || "—"}</td>
+                  <td>{r.reporter || "—"}</td>
+                  <td>{fmt(r.created)}</td>
                 </tr>
               ))}
             </tbody>

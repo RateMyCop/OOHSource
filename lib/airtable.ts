@@ -388,6 +388,8 @@ export async function fetchClaimsByEmail(email: string): Promise<ClaimRow[]> {
     .filter((c) => c.slug);
 }
 
+const REPORTS_TABLE = process.env.AIRTABLE_REPORTS_TABLE || "Reports";
+
 export type ClaimFull = {
   id: string;
   company: string;
@@ -396,6 +398,7 @@ export type ClaimFull = {
   status: string;
   domainMatch: boolean;
   note: string;
+  created: string;
 };
 
 // All claims (most recent first), with record ids so admin can approve them.
@@ -426,15 +429,110 @@ export async function fetchClaims(max = 100): Promise<ClaimFull[]> {
         status: String(f.Status ?? "").trim(),
         domainMatch: String(f["Domain Match"] ?? "").trim().toLowerCase() === "yes",
         note: String(f.Note ?? "").trim(),
-        _created: rec.createdTime || "",
+        created: rec.createdTime || "",
       };
     })
-    .sort((a, b) => (b as any)._created.localeCompare((a as any)._created))
-    .map(({ _created, ...c }: any) => c as ClaimFull);
+    .sort((a, b) => b.created.localeCompare(a.created));
 }
 
 export async function approveClaim(id: string): Promise<void> {
   await updateAirtableRecord(id, { Status: "Approved" }, CLAIMS_TABLE);
+}
+
+export type PendingVendor = {
+  id: string;
+  name: string;
+  slug: string;
+  website: string;
+  category: string;
+  submitter: string;
+  status: string;
+  created: string;
+};
+
+// Vendor submissions awaiting review (any Status set and not "Published").
+export async function fetchPendingVendors(max = 100): Promise<PendingVendor[]> {
+  if (!TOKEN || !BASE_ID) return [];
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`
+  );
+  url.searchParams.set("pageSize", String(Math.min(max, 100)));
+  url.searchParams.set(
+    "filterByFormula",
+    `AND(NOT({Status}=''), NOT({Status}='Published'))`
+  );
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable pending list failed ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as {
+    records?: { id: string; createdTime?: string; fields?: Record<string, unknown> }[];
+  };
+  return (data.records ?? [])
+    .map((rec) => {
+      const f = rec.fields ?? {};
+      return {
+        id: rec.id,
+        name: String(f.Name ?? "").trim(),
+        slug: String(f.Slug ?? "").trim(),
+        website: String(f.Website ?? "").trim(),
+        category: String(f.Category ?? "").trim(),
+        submitter: String(f["Submitter Email"] ?? "").trim(),
+        status: String(f.Status ?? "").trim(),
+        created: rec.createdTime || "",
+      };
+    })
+    .sort((a, b) => b.created.localeCompare(a.created));
+}
+
+export async function publishVendor(id: string): Promise<void> {
+  await updateAirtableRecord(id, { Status: "Published" }, TABLE);
+}
+
+export type ReportRow = {
+  id: string;
+  vendor: string;
+  slug: string;
+  type: string;
+  details: string;
+  reporter: string;
+  status: string;
+  created: string;
+};
+
+// Reported issues / suggested changes people submit on listings.
+export async function fetchReports(max = 50): Promise<ReportRow[]> {
+  if (!TOKEN || !BASE_ID) return [];
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(REPORTS_TABLE)}`
+  );
+  url.searchParams.set("pageSize", String(Math.min(max, 100)));
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return []; // table may not exist yet — non-fatal
+  const data = (await res.json()) as {
+    records?: { id: string; createdTime?: string; fields?: Record<string, unknown> }[];
+  };
+  return (data.records ?? [])
+    .map((rec) => {
+      const f = rec.fields ?? {};
+      return {
+        id: rec.id,
+        vendor: String(f.Vendor ?? "").trim(),
+        slug: String(f["Vendor Slug"] ?? "").trim(),
+        type: String(f["Issue Type"] ?? "").trim(),
+        details: String(f.Details ?? "").trim(),
+        reporter: String(f["Reporter Email"] ?? "").trim(),
+        status: String(f.Status ?? "").trim(),
+        created: rec.createdTime || "",
+      };
+    })
+    .sort((a, b) => b.created.localeCompare(a.created));
 }
 
 // Find a record ID by its Verify Token in the given table. Returns null if none.

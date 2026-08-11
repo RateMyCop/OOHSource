@@ -34,6 +34,61 @@ async function sendEmail(
   }
 }
 
+// Lower-level send that allows a custom From and Reply-To (used for outreach,
+// which must NOT go out as the transactional verify@ sender).
+async function sendEmailFrom(
+  from: string,
+  to: string,
+  subject: string,
+  html: string,
+  replyTo?: string
+): Promise<void> {
+  if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not set");
+  const payload: Record<string, unknown> = { from, to, subject, html };
+  if (replyTo) payload.reply_to = replyTo;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Resend send failed ${res.status}: ${await res.text()}`);
+  }
+}
+
+const OUTREACH_FROM = process.env.OUTREACH_FROM || "OOHsource <info@oohsource.com>";
+
+// "You're listed — claim your free profile" outreach email.
+export async function sendOutreachEmail(
+  to: string,
+  company: string,
+  slug: string
+): Promise<void> {
+  const listingUrl = `${SITE_URL}/directory/${slug}`;
+  const safe = escapeHtml(company);
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">Hi ${safe},</p>
+    <p style="font-size: 16px; line-height: 1.6;">We&rsquo;ve added <strong>${safe}</strong> to <strong>OOHsource</strong>, the new global directory for the out-of-home advertising industry &mdash; media owners, agencies, printers, installers, and the tech behind them.</p>
+    <p style="font-size: 16px; line-height: 1.6;">Your listing is live here:<br /><a href="${listingUrl}" style="color:#A9660E;">${listingUrl}</a></p>
+    <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>free</strong>. Claim it to manage your details, add photos, and see how many buyers are viewing and contacting you.</p>
+    <p style="margin: 26px 0;">
+      <a href="${listingUrl}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Claim your listing &rarr;</a>
+    </p>
+    <p style="font-size: 15px; line-height: 1.6;">Best,<br />Gino Sesto<br /><span style="color:#71767E;">Founder, OOHsource</span></p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. Reply &ldquo;remove&rdquo; and we&rsquo;ll take the listing down or stop contacting you.</p>`);
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `${company} is now listed on OOHsource`,
+    html,
+    "info@oohsource.com"
+  );
+}
+
 function wrap(bodyHtml: string): string {
   return `<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 28px 24px; color: #17191E;">
     <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 22px;">

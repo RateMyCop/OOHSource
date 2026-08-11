@@ -64,7 +64,7 @@ async function sendEmailFrom(
   }
 }
 
-const OUTREACH_FROM = process.env.OUTREACH_FROM || "OOHsource <info@oohsource.com>";
+const OUTREACH_FROM = process.env.OUTREACH_FROM || "OOHsource <hello@oohsource.com>";
 
 // "You're listed — claim your free profile" outreach email. Returns false
 // (without sending) if the recipient has unsubscribed.
@@ -93,9 +93,9 @@ export async function sendOutreachEmail(
     to,
     `${company} is now listed on OOHsource`,
     html,
-    "info@oohsource.com",
+    "hello@oohsource.com",
     {
-      "List-Unsubscribe": `<${unsubUrl}>, <mailto:info@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     }
   );

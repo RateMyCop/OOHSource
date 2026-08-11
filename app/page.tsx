@@ -82,7 +82,7 @@ export default function HomePage() {
 
             <div className="searchcard searchcard--results">
               <div className="searchcard-top">
-                <span className="cap">Just added</span>
+                <span className="cap">Recently Added</span>
               </div>
               <Link className="search-result" href="/directory/circle-graphics">
                 <div>

@@ -62,6 +62,31 @@ export async function resubscribe(email: string): Promise<void> {
   await r.srem("unsub:index", e);
 }
 
+// Record that a vendor clicked through from their outreach email (arrived with
+// ?ref=email on their listing). Tracks visit count + last-seen per listing.
+export async function recordEmailVisit(slug: string): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  const at = new Date().toISOString();
+  await r.incr(`emvn:${slug}`);
+  await r.set(`emvl:${slug}`, at);
+  await r.sadd("emv:index", slug);
+}
+
+export async function listEmailVisits(): Promise<
+  { slug: string; count: number; last: string | null }[]
+> {
+  const r = kv();
+  if (!r) return [];
+  const slugs = (await r.smembers("emv:index")) as string[];
+  if (!slugs.length) return [];
+  const counts = (await r.mget<(number | null)[]>(...slugs.map((s) => `emvn:${s}`))) || [];
+  const lasts = (await r.mget<(string | null)[]>(...slugs.map((s) => `emvl:${s}`))) || [];
+  return slugs
+    .map((slug, i) => ({ slug, count: Number(counts[i] ?? 0), last: lasts[i] ?? null }))
+    .sort((a, b) => (b.last || "").localeCompare(a.last || ""));
+}
+
 // All unsubscribed emails with the time they opted out (newest data from KV).
 export async function listUnsubscribes(): Promise<{ email: string; at: string | null }[]> {
   const r = kv();

@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
 import { emailConfigured, sendOutreachEmail } from "@/lib/email";
-import { listUnsubscribes, resubscribe } from "@/lib/outreach";
+import { listEmailVisits, listUnsubscribes, resubscribe } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
-// GET returns the unsubscribe list (email + opt-out time). Admin-key gated.
+// GET returns outreach reports — who unsubscribed and which emailed vendors
+// clicked through to the site. Admin-key gated.
 export async function GET(req: Request) {
   const key = (req.headers.get("x-admin-key") || "").trim();
   const configured = (process.env.ADMIN_KEY || "").trim();
   if (!configured || key !== configured) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  const unsubscribes = await listUnsubscribes();
-  return NextResponse.json({ ok: true, count: unsubscribes.length, unsubscribes });
+  const [unsubscribes, visited] = await Promise.all([
+    listUnsubscribes(),
+    listEmailVisits(),
+  ]);
+  return NextResponse.json({ ok: true, unsubscribes, visited });
 }
 
 // Admin-only outreach sender. Sends the "you're listed — claim your profile"

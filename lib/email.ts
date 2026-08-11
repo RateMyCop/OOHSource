@@ -75,7 +75,8 @@ export async function sendOutreachEmail(
 ): Promise<boolean> {
   if (await isUnsubscribed(to)) return false;
 
-  const listingUrl = `${SITE_URL}/directory/${slug}`;
+  // ?ref=email lets us attribute which emailed vendors actually clicked through.
+  const listingUrl = `${SITE_URL}/directory/${slug}?ref=email`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
   const safe = escapeHtml(company);
   const html = wrap(`

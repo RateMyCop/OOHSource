@@ -26,13 +26,31 @@ function send(slug: string, e: "view" | "website" | "email") {
   }
 }
 
-// Records one profile view on mount. Renders nothing.
+// Records one profile view on mount — plus an outreach click-through when the
+// visitor arrived from an email link (?ref=email). Renders nothing.
 export function TrackView({ slug }: { slug: string }) {
   const fired = useRef(false);
   useEffect(() => {
     if (fired.current) return;
     fired.current = true;
     send(slug, "view");
+    try {
+      if (new URLSearchParams(window.location.search).get("ref") === "email") {
+        const body = JSON.stringify({ slug });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon("/api/em-visit", new Blob([body], { type: "application/json" }));
+        } else {
+          void fetch("/api/em-visit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            keepalive: true,
+          });
+        }
+      }
+    } catch {
+      /* attribution is best-effort */
+    }
   }, [slug]);
   return null;
 }

@@ -199,11 +199,20 @@ export function ListingEditor(p: Props) {
             {busyHero ? "Uploading…" : "Drag an image here, or click to upload a header banner"}
           </div>
         )}
+        <span className="hint">
+          JPG, PNG, WebP, GIF or AVIF · up to 8&nbsp;MB · looks best wide and
+          landscape (around 1600×700px).
+        </span>
       </div>
 
       <h2 className="form-section">
         Portfolio photos <span className="opt">— {images.length}/{MAX_IMAGES}</span>
       </h2>
+      <span className="hint" style={{ display: "block", marginBottom: 12 }}>
+        Up to {MAX_IMAGES} images · JPG, PNG, WebP, GIF or AVIF · 8&nbsp;MB each ·
+        ~1200px wide works well. Drag thumbnails to reorder; the first is shown
+        first.
+      </span>
 
       <input
         ref={galleryInput}

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { CATEGORIES } from "@/lib/data";
 import { getAllVendors } from "@/lib/vendors";
 import { LISTS, SITE_URL } from "@/lib/lists";
+import { FORMAT_TYPES } from "@/lib/formats";
 
 export const revalidate = 3600;
 
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/agencies",
     "/vendors",
     "/best",
+    "/formats",
     "/list-your-company",
   ].map((path) => ({
     url: `${SITE_URL}${path}`,
@@ -34,11 +36,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const formatPages = FORMAT_TYPES.map((f) => ({
+    url: `${SITE_URL}/formats/${f.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
   const vendorPages = vendors.map((v) => ({
     url: `${SITE_URL}/directory/${v.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
-  return [...staticPages, ...categoryPages, ...listPages, ...vendorPages];
+  return [...staticPages, ...categoryPages, ...listPages, ...formatPages, ...vendorPages];
 }

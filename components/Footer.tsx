@@ -21,6 +21,7 @@ export function Footer() {
             <div className="foot-col">
               <span className="h">Directory</span>
               <Link href="/directory">Browse all</Link>
+              <Link href="/formats">By format</Link>
               <Link href="/agencies">Agencies</Link>
               <Link href="/vendors">Vendors</Link>
             </div>

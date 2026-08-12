@@ -238,12 +238,26 @@ function textOf(v: Vendor): string {
   return `${v.name} ${v.subcategory} ${(v.specialties || []).join(" ")} ${v.description}`.toLowerCase();
 }
 
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// Whole-word / whole-phrase matching so short keywords like "bar" or "mall"
+// don't false-match "Barrett" or "small".
+const reCache = new Map<string, RegExp[]>();
+function regexesFor(type: FormatType): RegExp[] {
+  let res = reCache.get(type.slug);
+  if (!res) {
+    res = type.keywords.map((k) => new RegExp(`\\b${escapeRe(k)}\\b`, "i"));
+    reCache.set(type.slug, res);
+  }
+  return res;
+}
+
 // Vendors relevant to a format type, ranked (Featured first, then verified).
 export function vendorsForFormat(vendors: Vendor[], type: FormatType): Vendor[] {
+  const res = regexesFor(type);
   return vendors
     .filter((v) => {
       const t = textOf(v);
-      return type.keywords.some((k) => t.includes(k));
+      return res.some((re) => re.test(t));
     })
     .sort((a, b) => {
       const fa = a.tier === "Featured" ? 1 : 0;

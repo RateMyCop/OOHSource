@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CATEGORIES } from "@/lib/data";
 import { getAllVendors } from "@/lib/vendors";
+import { SITE_URL } from "@/lib/lists";
 import { DirectoryClient } from "./DirectoryClient";
 
 export const revalidate = 60;
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   title: "Directory",
   description:
     "Search the global out-of-home directory by category, format, and market. Media owners, agencies, printers, installers, and OOH technology.",
+  alternates: { canonical: `${SITE_URL}/directory` },
 };
 
 export default async function DirectoryPage({

@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
 import { getAllVendors } from "@/lib/vendors";
+import { SITE_URL } from "@/lib/lists";
+
+export const metadata: Metadata = {
+  alternates: { canonical: SITE_URL },
+};
 
 export default async function HomePage() {
   // Personalize the hero search from the visitor's approximate city (Vercel edge

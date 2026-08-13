@@ -5,7 +5,7 @@ import { CATEGORIES, getCategory, sortByTier } from "@/lib/data";
 import { getVendorsByCategory } from "@/lib/vendors";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
-import { listForCategory } from "@/lib/lists";
+import { listForCategory, SITE_URL } from "@/lib/lists";
 
 export const revalidate = 60;
 
@@ -23,6 +23,7 @@ export function generateMetadata({
   return {
     title: category.name,
     description: `Browse ${category.name.toLowerCase()} in the global out-of-home directory. ${category.blurb}`,
+    alternates: { canonical: `${SITE_URL}/category/${category.slug}` },
   };
 }
 

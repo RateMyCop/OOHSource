@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { agencyCategories, sortByTier, AGENCY_CATEGORY_SLUGS } from "@/lib/data";
 import { getVendorsInCategories } from "@/lib/vendors";
+import { SITE_URL } from "@/lib/lists";
 import { VendorCard } from "@/components/VendorCard";
 
 export const revalidate = 60;
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   title: "OOH Agencies & Media Buyers",
   description:
     "The specialists who plan and buy out-of-home on behalf of brands — OOH agencies, media planning & buying, and programmatic DOOH partners.",
+  alternates: { canonical: `${SITE_URL}/agencies` },
 };
 
 export default async function AgenciesHub() {

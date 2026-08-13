@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL } from "@/lib/lists";
 
 export const metadata: Metadata = {
   title: "Pricing — Free & Featured listings",
   description:
     "List your out-of-home company free, or go Featured for top placement in the OOHsource directory. Featured is $50/year.",
+  alternates: { canonical: `${SITE_URL}/pricing` },
 };
 
 const ROWS: { label: string; free: boolean | string; featured: boolean | string }[] = [

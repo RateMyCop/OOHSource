@@ -43,6 +43,15 @@ function toParagraphs(text: string): string[] {
   return paras;
 }
 
+// Trim a long description to a clean ~N-char meta snippet on a word boundary.
+function metaSnippet(text: string, max: number): string {
+  const t = (text || "").replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, "") + "…";
+}
+
 export async function generateStaticParams() {
   const vendors = await getAllVendors();
   return vendors.map((v) => ({ slug: v.slug }));
@@ -55,9 +64,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const vendor = await getVendorBySlug(params.slug);
   if (!vendor) return { title: "Not found" };
+  const url = `${SITE_URL}/directory/${vendor.slug}`;
+  const title = `${vendor.name} — ${vendor.subcategory}`;
+  const description = metaSnippet(vendor.description, 155);
+  const images = vendor.heroImage ? [vendor.heroImage] : undefined;
   return {
-    title: `${vendor.name} — ${vendor.subcategory}`,
-    description: vendor.description,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "profile",
+      url,
+      title,
+      description,
+      ...(images ? { images } : {}),
+    },
+    twitter: {
+      card: images ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(images ? { images } : {}),
+    },
   };
 }
 

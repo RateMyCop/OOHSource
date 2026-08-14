@@ -321,8 +321,10 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .load-more:hover { border-color: var(--accent-strong); color: var(--accent-strong); }
 .hub-copy { max-width: 62ch; color: var(--ink-2, #4a463d); font-size: 1rem; line-height: 1.62; margin: 0 0 34px; }
 .pub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 6px; }
-.pub-card { display: flex; flex-direction: column; gap: 4px; padding: 15px 17px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2); color: var(--ink); text-decoration: none; transition: border-color 0.15s, background 0.15s; }
+.pub-card { display: flex; flex-direction: row; align-items: center; gap: 13px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2); color: var(--ink); text-decoration: none; transition: border-color 0.15s, background 0.15s; }
 .pub-card:hover { border-color: var(--accent); background: var(--paper-raise); }
+.pub-card .vlogo { flex: none; border-radius: 7px; background: #fff; object-fit: contain; }
+.pub-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .pub-card-name { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.98rem; }
 .pub-card-meta { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: var(--ink-3); text-transform: uppercase; }
 .pub-head { display: flex; align-items: center; gap: 16px; margin-top: 8px; }

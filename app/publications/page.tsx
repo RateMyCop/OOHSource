@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PUB_GROUPS, publicationsOfTypes } from "@/lib/publications";
+import { VendorLogo } from "@/components/VendorLogo";
 import { SITE_URL } from "@/lib/lists";
 
 export const metadata: Metadata = {
@@ -56,9 +57,12 @@ export default function PublicationsIndexPage() {
                   className="pub-card"
                   href={`/publications/${p.slug}`}
                 >
-                  <span className="pub-card-name">{p.name}</span>
-                  <span className="pub-card-meta">
-                    {p.type} · {p.cadence}
+                  <VendorLogo name={p.name} website={p.website} size={38} />
+                  <span className="pub-card-text">
+                    <span className="pub-card-name">{p.name}</span>
+                    <span className="pub-card-meta">
+                      {p.type} · {p.cadence}
+                    </span>
                   </span>
                 </Link>
               ))}

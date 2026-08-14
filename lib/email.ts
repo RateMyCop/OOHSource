@@ -2,7 +2,7 @@ import { isSuppressed, makeUnsubToken } from "./outreach";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://oohsource.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.oohsource.com";
 
 export function emailConfigured(): boolean {
   return Boolean(RESEND_API_KEY);

@@ -9,11 +9,13 @@ import { useState } from "react";
 export function HeroImage({ src, alt }: { src: string; alt: string }) {
   const [ok, setOk] = useState(true);
   if (!src || !ok) return null;
+  // Upgrade insecure image URLs so they don't trigger mixed-content on https.
+  const secure = src.replace(/^http:\/\//i, "https://");
   return (
     <div className="detail-hero">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={secure}
         alt={alt}
         loading="lazy"
         decoding="async"

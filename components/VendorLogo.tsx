@@ -22,10 +22,12 @@ export function VendorLogo({
   size?: number;
 }) {
   const domain = domainFromUrl(website || "");
-  // Try, in order: explicit logo -> real brand logo -> favicon -> monogram.
+  const https = (u?: string) => (u ? u.replace(/^http:\/\//i, "https://") : "");
+  // Try, in order: explicit logo -> domain favicon -> monogram.
+  // (Clearbit's logo API was retired in 2024, so it 404'd on every card;
+  // Google's favicon service always returns a 200 image, so no broken <img>.)
   const sources = [
-    logo,
-    domain ? `https://logo.clearbit.com/${domain}` : "",
+    https(logo),
     domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : "",
   ].filter(Boolean) as string[];
 

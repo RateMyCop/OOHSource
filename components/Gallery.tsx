@@ -8,7 +8,9 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
   const [broken, setBroken] = useState<Record<number, boolean>>({});
   const [open, setOpen] = useState<number | null>(null);
 
-  const visible = images
+  // Upgrade insecure URLs so hotlinked images don't trip mixed-content on https.
+  const secureImages = images.map((s) => s.replace(/^http:\/\//i, "https://"));
+  const visible = secureImages
     .map((src, i) => ({ src, i }))
     .filter((x) => !broken[x.i]);
   if (visible.length === 0) return null;
@@ -51,7 +53,7 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
             ✕
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={images[open]} alt={`${name} work`} />
+          <img src={secureImages[open]} alt={`${name} work`} />
         </div>
       )}
     </>

@@ -170,3 +170,14 @@ export async function sendClaimVerificationEmail(
     <p style="font-size: 13px; color: #71767E; line-height: 1.55;">If you didn&rsquo;t request this, you can safely ignore this email.</p>`);
   await sendEmail(to, "Confirm your OOHsource listing claim", html);
 }
+
+// One-off human reply to an inbound email, sent from hello@oohsource.com.
+// Replies route back to hello@ (which forwards to the owner inbox).
+export async function sendReply(
+  to: string,
+  subject: string,
+  html: string,
+  replyTo = "hello@oohsource.com"
+): Promise<void> {
+  await sendEmailFrom("OOHsource <hello@oohsource.com>", to, subject, html, replyTo);
+}

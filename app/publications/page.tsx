@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PUB_GROUPS, publicationsOfTypes } from "@/lib/publications";
 import { VendorLogo } from "@/components/VendorLogo";
+import { SuggestEdit } from "@/components/SuggestEdit";
 import { SITE_URL } from "@/lib/lists";
 
 export const metadata: Metadata = {
@@ -70,6 +71,15 @@ export default function PublicationsIndexPage() {
           </div>
         );
       })}
+
+      <div className="detail-section" style={{ borderTop: "1px solid var(--line)" }}>
+        <h2>Missing something?</h2>
+        <p className="hint" style={{ marginBottom: 4 }}>
+          Know an OOH publication, newsletter, or podcast we should add — or spot
+          something to fix? Let us know.
+        </p>
+        <SuggestEdit />
+      </div>
     </section>
   );
 }

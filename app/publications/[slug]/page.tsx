@@ -7,6 +7,7 @@ import {
   type PubType,
 } from "@/lib/publications";
 import { VendorLogo } from "@/components/VendorLogo";
+import { SuggestEdit } from "@/components/SuggestEdit";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
 
@@ -145,6 +146,8 @@ export default function PublicationPage({
           </div>
         </div>
       )}
+
+      <SuggestEdit context={`Edit: ${p.name}`} />
 
       <p className="hint" style={{ marginTop: 40 }}>
         <Link href="/publications">← All industry media</Link>

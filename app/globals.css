@@ -328,6 +328,18 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .pub-card-name { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.98rem; }
 .pub-card-meta { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: var(--ink-3); text-transform: uppercase; }
 .pub-head { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+.suggest { margin-top: 34px; }
+.suggest-toggle { font-family: var(--font-mono), monospace; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent-strong); background: none; border: 1px dashed var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer; transition: border-color 0.15s; }
+.suggest-toggle:hover { border-color: var(--accent-strong); }
+.suggest-form { max-width: 460px; margin-top: 6px; display: flex; flex-direction: column; gap: 14px; }
+.suggest-field { display: flex; flex-direction: column; gap: 5px; }
+.suggest-field > span { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); }
+.suggest-field input, .suggest-field textarea { font-family: var(--font-body), serif; font-size: 0.95rem; color: var(--ink); background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; resize: vertical; }
+.suggest-field input:focus, .suggest-field textarea:focus { outline: none; border-color: var(--accent-strong); }
+.suggest-actions { display: flex; align-items: center; gap: 14px; }
+.suggest-cancel { background: none; border: 0; color: var(--ink-3); font-size: 0.85rem; cursor: pointer; }
+.suggest-done { color: var(--accent-strong); font-size: 0.95rem; margin: 0; }
+.suggest-err { color: #b4441f; font-size: 0.85rem; margin: 0; }
 
 .vcard { position: relative; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease; }
 .vcard:hover { border-color: var(--line-strong); transform: translateY(-2px); background: var(--paper-raise); }

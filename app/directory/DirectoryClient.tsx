@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Category, Vendor, FORMATS } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 
 const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
+// Render results a page at a time so the directory HTML stays light even
+// though the full set is held in memory for instant client-side filtering.
+const PAGE_SIZE = 24;
 
 export function DirectoryClient({
   vendors,
@@ -68,6 +71,13 @@ export function DirectoryClient({
 
   const hasFilters =
     query.trim() !== "" || cats.size > 0 || formats.size > 0 || verifiedOnly;
+
+  // Show the first page; grow on demand. Reset whenever the result set changes.
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [query, cats, formats, verifiedOnly]);
+  const shown = filtered.slice(0, visible);
 
   return (
     <div className="dir-layout">
@@ -152,11 +162,24 @@ export function DirectoryClient({
             .
           </div>
         ) : (
-          <div className="vgrid">
-            {filtered.map((v) => (
-              <VendorCard key={v.slug} vendor={v} />
-            ))}
-          </div>
+          <>
+            <div className="vgrid">
+              {shown.map((v) => (
+                <VendorCard key={v.slug} vendor={v} />
+              ))}
+            </div>
+            {visible < filtered.length && (
+              <div className="load-more-wrap">
+                <button
+                  className="load-more"
+                  type="button"
+                  onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                >
+                  Load more — showing {shown.length} of {filtered.length}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

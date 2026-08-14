@@ -316,6 +316,10 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 
 .vgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 @media (max-width: 1080px) { .vgrid { grid-template-columns: 1fr; } }
+.load-more-wrap { display: flex; justify-content: center; margin-top: 22px; }
+.load-more { font-family: var(--font-mono), monospace; font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: var(--surface, #fff); border: 1px solid var(--line, #e2ddd3); border-radius: 999px; padding: 11px 20px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.load-more:hover { border-color: var(--accent-strong); color: var(--accent-strong); }
+.hub-copy { max-width: 62ch; color: var(--ink-2, #4a463d); font-size: 1rem; line-height: 1.62; margin: 0 0 34px; }
 
 .vcard { position: relative; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease; }
 .vcard:hover { border-color: var(--line-strong); transform: translateY(-2px); background: var(--paper-raise); }

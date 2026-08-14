@@ -103,9 +103,18 @@ export default function ListYourCompanyPage() {
         <span>List your company</span>
       </div>
       <h1>List your company.</h1>
-      <p className="lede" style={{ marginBottom: 34 }}>
+      <p className="lede" style={{ marginBottom: 16 }}>
         Add your company to the global out-of-home directory. Free, always — a
         listing takes a couple of minutes.
+      </p>
+      <p className="hub-copy">
+        A free listing includes your full company description, website and
+        contact details, service categories and formats, markets served, social
+        links, a hero image and photo gallery, and customer review ratings —
+        everything a media buyer needs to evaluate you at a glance. Media owners,
+        agencies, printers, installers, fabricators, and DOOH technology
+        companies are all welcome. Submit now, then claim your listing later to
+        edit the profile and see how many people are viewing it.
       </p>
 
       <div className="form-wrap">

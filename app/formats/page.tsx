@@ -30,9 +30,19 @@ export default async function FormatsIndexPage() {
         <span className="label label--accent">Browse by format</span>
       </span>
       <h1>Out-of-home by format.</h1>
-      <p className="lede" style={{ marginBottom: 40, maxWidth: "60ch" }}>
+      <p className="lede" style={{ marginBottom: 16, maxWidth: "60ch" }}>
         Every major out-of-home format, and the media owners, agencies, and tech
         companies that operate them.
+      </p>
+      <p className="hub-copy" style={{ marginBottom: 40 }}>
+        Choose a format to see every vendor that runs it, worldwide — from
+        classic bulletins, wallscapes, and posters to programmatic DOOH networks,
+        transit and bus wraps, bus shelters, mall and place-based screens, and
+        experiential activations. Each format page is generated live from the
+        directory, so the list grows automatically as new operators are added
+        and verified. It&rsquo;s the fastest way to move from &ldquo;I need digital
+        billboards in these markets&rdquo; to a shortlist of companies that
+        actually offer them.
       </p>
 
       {FORMAT_GROUPS.map((group) => {

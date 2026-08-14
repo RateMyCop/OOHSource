@@ -40,6 +40,15 @@ export default function BestIndexPage() {
           Curated Top 10 rankings across the out-of-home industry — ordered by
           verified customer ratings and market coverage, never by who pays.
         </p>
+        <p className="hub-copy">
+          Out-of-home advertising — billboards, digital screens, transit, street
+          furniture, and place-based media — is one of the few channels that
+          can&rsquo;t be skipped, blocked, or scrolled past. These lists surface the
+          strongest operators in each corner of the industry, scored on verified
+          customer reviews and the breadth of markets they cover, so buyers can
+          shortlist with confidence instead of guesswork. Rankings refresh as new
+          companies are added and reviewed.
+        </p>
       </div>
 
       <div className="vgrid" style={{ paddingBottom: 80 }}>

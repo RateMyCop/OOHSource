@@ -3,6 +3,7 @@ import { CATEGORIES } from "@/lib/data";
 import { getAllVendors } from "@/lib/vendors";
 import { LISTS, SITE_URL } from "@/lib/lists";
 import { FORMAT_TYPES } from "@/lib/formats";
+import { PUBLICATIONS } from "@/lib/publications";
 
 export const revalidate = 3600;
 
@@ -17,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/vendors",
     "/best",
     "/formats",
+    "/publications",
     "/list-your-company",
   ].map((path) => ({
     url: `${SITE_URL}${path}`,
@@ -48,5 +50,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...categoryPages, ...listPages, ...formatPages, ...vendorPages];
+  const publicationPages = PUBLICATIONS.map((p) => ({
+    url: `${SITE_URL}/publications/${p.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [
+    ...staticPages,
+    ...categoryPages,
+    ...listPages,
+    ...formatPages,
+    ...publicationPages,
+    ...vendorPages,
+  ];
 }

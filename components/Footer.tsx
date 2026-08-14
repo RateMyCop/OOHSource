@@ -24,6 +24,7 @@ export function Footer() {
               <Link href="/formats">By format</Link>
               <Link href="/agencies">Agencies</Link>
               <Link href="/vendors">Vendors</Link>
+              <Link href="/publications">Industry media</Link>
             </div>
             <div className="foot-col">
               <span className="h">Get listed</span>

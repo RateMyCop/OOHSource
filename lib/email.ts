@@ -181,3 +181,42 @@ export async function sendReply(
 ): Promise<void> {
   await sendEmailFrom("OOHsource <hello@oohsource.com>", to, subject, html, replyTo);
 }
+
+// Triggered nudge when a signed-in owner views the pricing page — a one-time
+// push toward Featured. Suppression-aware; returns false if opted out.
+export async function sendFeaturedNudge(
+  to: string,
+  company: string
+): Promise<boolean> {
+  if (await isSuppressed(to)) return false;
+  const dash = `${SITE_URL}/dashboard`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const who = company ? escapeHtml(company) : "your listing";
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">Hi there,</p>
+    <p style="font-size: 16px; line-height: 1.6;">Saw you checking out Featured on OOHsource &mdash; here&rsquo;s the quick version for <strong>${who}</strong>.</p>
+    <p style="font-size: 16px; line-height: 1.6;"><strong>Featured</strong> gets you:</p>
+    <ul style="font-size: 15px; line-height: 1.7; padding-left: 20px;">
+      <li>Top placement at the top of your category</li>
+      <li>The <strong>Featured</strong> &amp; <strong>Verified</strong> badges</li>
+      <li>Priority in search and category pages</li>
+    </ul>
+    <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>, and you can turn it on from your dashboard in a couple of clicks.</p>
+    <p style="margin: 26px 0;">
+      <a href="${dash}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Go Featured &rarr;</a>
+    </p>
+    <p style="font-size: 15px; line-height: 1.6;">No rush &mdash; your free listing stays exactly as it is either way.</p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;"><a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> from these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `Ready to feature ${company || "your company"} on OOHsource?`,
+    html,
+    "hello@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+  );
+  return true;
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/lists";
+import { PricingIntent } from "@/components/PricingIntent";
 
 export const metadata: Metadata = {
   title: "Pricing — Free & Featured listings",
@@ -34,6 +35,7 @@ function Cell({ value }: { value: boolean | string }) {
 export default function PricingPage() {
   return (
     <section className="wrap">
+      <PricingIntent />
       <div className="page-head">
         <span className="eyebrow">Pricing</span>
         <h1>Get seen by OOH buyers.</h1>

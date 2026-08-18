@@ -194,12 +194,13 @@ export async function sendFeaturedNudge(
   const who = company ? escapeHtml(company) : "your listing";
   const html = wrap(`
     <p style="font-size: 16px; line-height: 1.6;">Hi there,</p>
-    <p style="font-size: 16px; line-height: 1.6;">Saw you checking out Featured on OOHsource &mdash; here&rsquo;s the quick version for <strong>${who}</strong>.</p>
-    <p style="font-size: 16px; line-height: 1.6;"><strong>Featured</strong> gets you:</p>
+    <p style="font-size: 16px; line-height: 1.6;">A quick note on why <strong>Featured</strong> is worth it for <strong>${who}</strong>.</p>
+    <p style="font-size: 16px; line-height: 1.6;">OOHsource is the only major out-of-home directory that&rsquo;s <strong>fully public</strong> &mdash; not locked behind a login or paywall like the rest. That&rsquo;s exactly why search engines and AI assistants (ChatGPT, Perplexity, Google&rsquo;s AI Overviews) can actually crawl and cite it. We built it to be <strong>LLM- and AI-optimized</strong> from the ground up.</p>
+    <p style="font-size: 16px; line-height: 1.6;"><strong>Featured</strong> puts ${who} at the top of the one OOH directory that buyers <em>and</em> AI models read first:</p>
     <ul style="font-size: 15px; line-height: 1.7; padding-left: 20px;">
-      <li>Top placement at the top of your category</li>
+      <li>Top placement in your category</li>
       <li>The <strong>Featured</strong> &amp; <strong>Verified</strong> badges</li>
-      <li>Priority in search and category pages</li>
+      <li>Priority everywhere buyers and AI look</li>
     </ul>
     <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>, and you can turn it on from your dashboard in a couple of clicks.</p>
     <p style="margin: 26px 0;">

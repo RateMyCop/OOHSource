@@ -29,3 +29,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local AI design tooling (impeccable) — re-installable, not part of the site
+.claude/
+.agents/
+.codex/
+.impeccable/
+imp-install.log
+impeccable-detect.log

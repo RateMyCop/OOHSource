@@ -28,7 +28,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.oohsource.com"),
+  metadataBase: new URL("https://oohsource.com"),
   title: {
     default: "OOHsource — The Global Out-of-Home Directory",
     template: "%s | OOHsource",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "OOHsource",
-    url: "https://www.oohsource.com",
+    url: "https://oohsource.com",
     title: "OOHsource — The Global Out-of-Home Directory",
     description:
       "The neutral, vetted directory of the world's out-of-home advertising industry.",

@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const origin =
     req.headers.get("origin") ||
-    (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.oohsource.com");
+    (process.env.NEXT_PUBLIC_SITE_URL ?? "https://oohsource.com");
   const url = new URL(req.url);
   const sessionId = (url.searchParams.get("session_id") || "").trim();
 

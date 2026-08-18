@@ -1,6 +1,6 @@
 import { CategorySlug, Vendor } from "./types";
 
-export const SITE_URL = "https://www.oohsource.com";
+export const SITE_URL = "https://oohsource.com";
 
 export interface RankedList {
   slug: string;

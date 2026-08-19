@@ -16,10 +16,23 @@ export const metadata: Metadata = {
 export default async function DirectoryPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: {
+    q?: string;
+    category?: string;
+    format?: string;
+    verified?: string;
+    sort?: string;
+  };
 }) {
   const vendors = await getAllVendors();
+  const csv = (v?: string) =>
+    typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const initialQuery = typeof searchParams.q === "string" ? searchParams.q : "";
+  const initialCategories = csv(searchParams.category);
+  const initialFormats = csv(searchParams.format);
+  const initialVerified = searchParams.verified === "1";
+  const initialSort =
+    typeof searchParams.sort === "string" ? searchParams.sort : "";
 
   return (
     <>
@@ -40,6 +53,10 @@ export default async function DirectoryPage({
           vendors={vendors}
           categories={CATEGORIES}
           initialQuery={initialQuery}
+          initialCategories={initialCategories}
+          initialFormats={initialFormats}
+          initialVerified={initialVerified}
+          initialSort={initialSort}
         />
       </div>
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Category, Vendor, FORMATS } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { InfoTip } from "@/components/InfoTip";
@@ -25,16 +25,28 @@ export function DirectoryClient({
   vendors,
   categories,
   initialQuery = "",
+  initialCategories = [],
+  initialFormats = [],
+  initialVerified = false,
+  initialSort = "",
 }: {
   vendors: Vendor[];
   categories: Category[];
   initialQuery?: string;
+  initialCategories?: string[];
+  initialFormats?: string[];
+  initialVerified?: boolean;
+  initialSort?: string;
 }) {
   const [query, setQuery] = useState(initialQuery);
-  const [cats, setCats] = useState<Set<string>>(new Set());
-  const [formats, setFormats] = useState<Set<string>>(new Set());
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [sort, setSort] = useState<SortKey>("featured");
+  const [cats, setCats] = useState<Set<string>>(() => new Set(initialCategories));
+  const [formats, setFormats] = useState<Set<string>>(
+    () => new Set(initialFormats)
+  );
+  const [verifiedOnly, setVerifiedOnly] = useState(initialVerified);
+  const [sort, setSort] = useState<SortKey>(
+    SORTS.some((s) => s.key === initialSort) ? (initialSort as SortKey) : "featured"
+  );
 
   function toggle(set: Set<string>, value: string): Set<string> {
     const next = new Set(set);
@@ -111,6 +123,29 @@ export function DirectoryClient({
     setVisible(PAGE_SIZE);
   }, [query, cats, formats, verifiedOnly, sort]);
   const shown = sorted.slice(0, visible);
+
+  // Keep the URL in sync with the active filters so a filtered view is
+  // shareable/bookmarkable and shared links SSR the same set (the server reads
+  // these params on first load). replaceState avoids any refetch/re-render.
+  const firstSync = useRef(true);
+  useEffect(() => {
+    if (firstSync.current) {
+      firstSync.current = false;
+      return;
+    }
+    const p = new URLSearchParams();
+    if (query.trim()) p.set("q", query.trim());
+    if (cats.size) p.set("category", Array.from(cats).join(","));
+    if (formats.size) p.set("format", Array.from(formats).join(","));
+    if (verifiedOnly) p.set("verified", "1");
+    if (sort !== "featured") p.set("sort", sort);
+    const qs = p.toString();
+    window.history.replaceState(
+      null,
+      "",
+      qs ? `${window.location.pathname}?${qs}` : window.location.pathname
+    );
+  }, [query, cats, formats, verifiedOnly, sort]);
 
   return (
     <div className="dir-layout">

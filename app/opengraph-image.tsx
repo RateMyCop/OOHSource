@@ -15,45 +15,84 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#101216",
-          padding: "72px 80px",
+          background: "#101113",
+          padding: "76px 84px",
           fontFamily: "sans-serif",
         }}
       >
+        {/* Brand lockup */}
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ width: 46, height: 46, background: "#E6A340", borderRadius: 6 }} />
-          <div style={{ display: "flex", fontSize: 42, fontWeight: 800, letterSpacing: -1 }}>
-            <span style={{ color: "#ECEBE4" }}>OOH</span>
-            <span style={{ color: "#E6A340" }}>source</span>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              background: "#1a1b1e",
+              borderRadius: 14,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div style={{ position: "relative", width: 38, height: 38, display: "flex" }}>
+              <div style={{ width: 38, height: 38, borderRadius: 999, border: "6px solid #f4f3ee" }} />
+              <div
+                style={{
+                  position: "absolute",
+                  top: -2,
+                  left: 13,
+                  width: 12,
+                  height: 12,
+                  borderRadius: 999,
+                  background: "#c2954f",
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", fontSize: 40, fontWeight: 700, letterSpacing: -0.5 }}>
+            <span style={{ color: "#eceae2" }}>OOH</span>
+            <span style={{ color: "#8a8d94" }}>source</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+        {/* Headline */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ width: 56, height: 3, background: "#c2954f", marginBottom: 30 }} />
           <div
             style={{
               display: "flex",
-              fontSize: 74,
-              fontWeight: 800,
-              color: "#ECEBE4",
+              fontSize: 76,
+              fontWeight: 700,
+              color: "#eceae2",
               letterSpacing: -3,
-              lineHeight: 1.05,
-              maxWidth: 940,
+              lineHeight: 1.04,
+              maxWidth: 900,
             }}
           >
             The whole out-of-home industry, in one place.
           </div>
-          <div style={{ display: "flex", fontSize: 30, color: "#ABAFB6", letterSpacing: -0.5 }}>
+          <div
+            style={{
+              display: "flex",
+              marginTop: 28,
+              fontSize: 27,
+              color: "#adafb5",
+              letterSpacing: 2,
+              textTransform: "uppercase",
+            }}
+          >
             Media owners · Agencies · Printers · Installers · DOOH tech
           </div>
         </div>
 
+        {/* Footer */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: 24,
-            color: "#787D86",
-            letterSpacing: 1,
+            fontSize: 22,
+            color: "#7a7d84",
+            letterSpacing: 3,
+            textTransform: "uppercase",
           }}
         >
           <div style={{ display: "flex" }}>oohsource.com</div>

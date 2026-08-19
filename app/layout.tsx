@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Newsreader, IBM_Plex_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -22,7 +22,7 @@ const body = Newsreader({
 });
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -61,6 +61,13 @@ export const metadata: Metadata = {
       "The neutral, vetted directory of the world's out-of-home advertising industry.",
   },
   robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f3ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#101113" },
+  ],
 };
 
 const themeInit = `(function(){try{var t=localStorage.getItem('oohs-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;

@@ -13,6 +13,14 @@ const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
 // though the full set is held in memory for instant client-side filtering.
 const PAGE_SIZE = 24;
 
+type SortKey = "featured" | "rating" | "reviews" | "name";
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "featured", label: "Featured first" },
+  { key: "rating", label: "Top rated" },
+  { key: "reviews", label: "Most reviewed" },
+  { key: "name", label: "Name (A–Z)" },
+];
+
 export function DirectoryClient({
   vendors,
   categories,
@@ -26,6 +34,7 @@ export function DirectoryClient({
   const [cats, setCats] = useState<Set<string>>(new Set());
   const [formats, setFormats] = useState<Set<string>>(new Set());
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("featured");
 
   function toggle(set: Set<string>, value: string): Set<string> {
     const next = new Set(set);
@@ -66,12 +75,32 @@ export function DirectoryClient({
           if (!hay.includes(q)) return false;
         }
         return true;
-      })
-      .sort(
-        (a, b) =>
-          TIER_RANK[a.tier] - TIER_RANK[b.tier] || a.name.localeCompare(b.name)
-      );
+      });
   }, [vendors, query, cats, formats, verifiedOnly]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    const byName = (a: Vendor, b: Vendor) => a.name.localeCompare(b.name);
+    switch (sort) {
+      case "rating":
+        return arr.sort(
+          (a, b) =>
+            (b.googleRating ?? -1) - (a.googleRating ?? -1) ||
+            (b.googleReviews ?? 0) - (a.googleReviews ?? 0) ||
+            byName(a, b)
+        );
+      case "reviews":
+        return arr.sort(
+          (a, b) => (b.googleReviews ?? -1) - (a.googleReviews ?? -1) || byName(a, b)
+        );
+      case "name":
+        return arr.sort(byName);
+      default:
+        return arr.sort(
+          (a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || byName(a, b)
+        );
+    }
+  }, [filtered, sort]);
 
   const hasFilters =
     query.trim() !== "" || cats.size > 0 || formats.size > 0 || verifiedOnly;
@@ -80,8 +109,8 @@ export function DirectoryClient({
   const [visible, setVisible] = useState(PAGE_SIZE);
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [query, cats, formats, verifiedOnly]);
-  const shown = filtered.slice(0, visible);
+  }, [query, cats, formats, verifiedOnly, sort]);
+  const shown = sorted.slice(0, visible);
 
   return (
     <div className="dir-layout">
@@ -156,8 +185,23 @@ export function DirectoryClient({
       <div>
         <div className="results-top">
           <span className="results-count">
-            {filtered.length} {filtered.length === 1 ? "company" : "companies"}
+            {sorted.length} {sorted.length === 1 ? "company" : "companies"}
           </span>
+          <label className="sort-control">
+            <span className="sort-label">Sort</span>
+            <select
+              className="sort-select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              aria-label="Sort results"
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {filtered.length === 0 ? (

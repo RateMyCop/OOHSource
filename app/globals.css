@@ -313,6 +313,12 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 
 .results-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
 .results-count { font-family: var(--font-mono), monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--ink-3); text-transform: uppercase; }
+.sort-control { display: inline-flex; align-items: center; gap: 8px; }
+.sort-label { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.sort-select { font-family: var(--font-mono), monospace; font-size: 0.74rem; color: var(--ink); background: var(--paper-raise); border: 1px solid var(--line); border-radius: 999px; padding: 7px 30px 7px 13px; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 11px center; }
+.sort-select:hover { border-color: var(--accent-strong); }
+.sort-select:focus-visible { outline: none; border-color: var(--accent-strong); }
+@media (max-width: 560px) { .sort-label { display: none; } }
 
 .vgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 @media (max-width: 1080px) { .vgrid { grid-template-columns: 1fr; } }

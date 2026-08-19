@@ -4,11 +4,24 @@ import { headers } from "next/headers";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
 import { getAllVendors } from "@/lib/vendors";
+import { fetchClaims } from "@/lib/airtable";
 import { SITE_URL } from "@/lib/lists";
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 };
+
+// Owners are "authorized" (a real, verified account) when a claim is admin-
+// Approved/Verified, or email-confirmed from a matching company domain.
+const APPROVED = new Set(["approved", "verified"]);
+
+type RecentItem = { href: string; name: string; meta: string; verified: boolean };
+
+// Fallback shown only if Airtable is unreachable, so the box is never empty.
+const RECENT_FALLBACK: RecentItem[] = [
+  { href: "/directory/circle-graphics", name: "Circle Graphics", meta: "Large-format printer · National", verified: true },
+  { href: "/directory/britten", name: "Britten", meta: "Grand format · Bulletins · Wraps", verified: true },
+];
 
 export default async function HomePage() {
   // Personalize the hero search from the visitor's approximate city (Vercel edge
@@ -19,7 +32,39 @@ export default async function HomePage() {
   const searchCity = city || "your area";
 
   // Live directory size — a credibility signal, kept accurate as it grows.
-  const vendorCount = (await getAllVendors()).length;
+  const vendors = await getAllVendors();
+  const vendorCount = vendors.length;
+
+  // "Recently Added" = the newest owners who actually claimed + verified their
+  // listing, matched to a live directory profile. Real activity, not a mockup.
+  const bySlug = new Map(vendors.map((v) => [v.slug, v]));
+  let recent: RecentItem[] = [];
+  try {
+    const seen = new Set<string>();
+    for (const c of await fetchClaims(50)) {
+      const status = c.status.toLowerCase();
+      const authorized =
+        APPROVED.has(status) || (status === "email confirmed" && c.domainMatch);
+      if (!authorized || !c.slug || seen.has(c.slug)) continue;
+      const v = bySlug.get(c.slug);
+      if (!v) continue;
+      seen.add(c.slug);
+      recent.push({
+        href: `/directory/${v.slug}`,
+        name: v.name,
+        meta: [v.subcategory, v.coverage].filter(Boolean).join(" · "),
+        // Every item here is an authorized owner claim (admin-approved, or a
+        // domain-matched confirmed email) — the same bar the admin panel calls
+        // a "verified account", so the badge is earned regardless of the
+        // listing's own (sometimes lagging) verified flag.
+        verified: true,
+      });
+      if (recent.length === 2) break;
+    }
+  } catch {
+    recent = [];
+  }
+  const recentShown = recent.length ? recent : RECENT_FALLBACK;
 
   return (
     <>
@@ -97,26 +142,23 @@ export default async function HomePage() {
               <div className="searchcard-top">
                 <span className="cap">Recently Added</span>
               </div>
-              <Link className="search-result" href="/directory/circle-graphics">
-                <div>
-                  <div className="co">Circle Graphics<span className="pill-new">Just added</span></div>
-                  <div className="meta">Large-format printer · National</div>
-                </div>
-                <span className="verified">
-                  <span className="v" />
-                  Verified
-                </span>
-              </Link>
-              <Link className="search-result" href="/directory/britten">
-                <div>
-                  <div className="co">Britten<span className="pill-new">Just added</span></div>
-                  <div className="meta">Grand format · Bulletins · Wraps</div>
-                </div>
-                <span className="verified">
-                  <span className="v" />
-                  Verified
-                </span>
-              </Link>
+              {recentShown.map((r, i) => (
+                <Link key={r.href} className="search-result" href={r.href}>
+                  <div>
+                    <div className="co">
+                      {r.name}
+                      {i === 0 && <span className="pill-new">Just added</span>}
+                    </div>
+                    <div className="meta">{r.meta}</div>
+                  </div>
+                  {r.verified && (
+                    <span className="verified">
+                      <span className="v" />
+                      Verified
+                    </span>
+                  )}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

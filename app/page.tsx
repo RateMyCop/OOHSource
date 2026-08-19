@@ -87,7 +87,7 @@ export default async function HomePage() {
                     {city}
                   </Link>
                 )}
-                <Link className="chip" href="/directory">
+                <Link className="chip" href="/directory?verified=1">
                   Verified only
                 </Link>
               </div>
@@ -308,30 +308,6 @@ export default async function HomePage() {
                 Browse the directory
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* GET LISTED */}
-      <section className="block text-center">
-        <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow">
-              <span className="label">Get listed</span>
-            </span>
-            <h2>Put your company on the map.</h2>
-            <p className="lede">
-              Add your company to the directory in minutes — free — and get found by
-              buyers sourcing OOH worldwide.
-            </p>
-          </div>
-          <div className="center-cta">
-            <Link className="btn btn--primary" href="/list-your-company">
-              List your company — free
-            </Link>
-            <Link className="btn btn--ghost" href="/directory">
-              Browse the directory
-            </Link>
           </div>
         </div>
       </section>

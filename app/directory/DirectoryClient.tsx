@@ -116,6 +116,12 @@ export function DirectoryClient({
 
   const hasFilters =
     query.trim() !== "" || cats.size > 0 || formats.size > 0 || verifiedOnly;
+  const activeCount =
+    cats.size + formats.size + (verifiedOnly ? 1 : 0) + (query.trim() ? 1 : 0);
+
+  // On mobile the filter rail collapses behind a toggle to keep results above
+  // the fold; on desktop CSS keeps the rail always visible regardless of this.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Show the first page; grow on demand. Reset whenever the result set changes.
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -149,7 +155,22 @@ export function DirectoryClient({
 
   return (
     <div className="dir-layout">
-      <aside className="filters">
+      <button
+        type="button"
+        className="filters-toggle"
+        aria-expanded={filtersOpen}
+        aria-controls="dir-filters"
+        onClick={() => setFiltersOpen((o) => !o)}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M3 5h18M6 12h12M10 19h4" />
+        </svg>
+        Filters{activeCount ? ` (${activeCount})` : ""}
+        <svg className="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      <aside className={`filters${filtersOpen ? " is-open" : ""}`} id="dir-filters">
         <div className="filter-group">
           <span className="fh">Search</span>
           <div className="searchbox">

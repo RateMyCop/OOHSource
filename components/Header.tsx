@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ThemeToggle } from "./ThemeToggle";
+import { NavLinks } from "./NavLinks";
 
 export function Header() {
   return (
@@ -10,30 +10,7 @@ export function Header() {
           <span className="ooh">OOH</span>
           <span className="src">source</span>
         </Link>
-        <nav className="nav-links" aria-label="Primary">
-          <Link className="navlink" href="/directory">
-            Directory
-          </Link>
-          <Link className="navlink" href="/best">
-            Best of
-          </Link>
-          <Link className="navlink" href="/agencies">
-            Agencies
-          </Link>
-          <Link className="navlink" href="/vendors">
-            Vendors
-          </Link>
-          <Link className="navlink" href="/pricing">
-            Pricing
-          </Link>
-          <Link className="navlink" href="/login">
-            Sign in
-          </Link>
-          <ThemeToggle />
-          <Link className="btn btn--primary btn--sm" href="/list-your-company">
-            List your company
-          </Link>
-        </nav>
+        <NavLinks />
       </div>
     </header>
   );

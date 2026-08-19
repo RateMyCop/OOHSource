@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Category, Vendor, FORMATS } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
+import { InfoTip } from "@/components/InfoTip";
+
+const VERIFIED_TIP =
+  "Confirmed against the company’s own website and primary sources — not scraped or auto-listed.";
 
 const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
 // Render results a page at a time so the directory HTML stays light even
@@ -128,7 +132,10 @@ export function DirectoryClient({
         </div>
 
         <div className="filter-group">
-          <span className="fh">Verification</span>
+          <span className="fh">
+            Verification
+            <InfoTip label={VERIFIED_TIP} />
+          </span>
           <label className="filter-opt">
             <input
               type="checkbox"

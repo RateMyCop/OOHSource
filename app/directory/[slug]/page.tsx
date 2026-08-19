@@ -10,6 +10,7 @@ import { ClaimListing } from "@/components/ClaimListing";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
+import { InfoTip } from "@/components/InfoTip";
 import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
@@ -187,10 +188,13 @@ export default async function VendorPage({
               <span className="badge badge--featured">Featured</span>
             )}
             {vendor.verified && (
-              <span className="badge badge--verified">
-                <span className="v" />
-                Verified
-              </span>
+              <>
+                <span className="badge badge--verified">
+                  <span className="v" />
+                  Verified
+                </span>
+                <InfoTip label="Confirmed against the company’s own website and primary sources — not scraped or auto-listed." />
+              </>
             )}
           </div>
 

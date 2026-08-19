@@ -557,6 +557,38 @@ export async function findRecordIdByToken(
   return data.records?.[0]?.id ?? null;
 }
 
+// Look up a Claims record by its verify token, returning the fields the
+// confirm flow needs to auto-verify the listing (which vendor, and whether the
+// claimant's email domain matched the company's — our authorization bar).
+export async function findClaimByToken(
+  token: string
+): Promise<{ id: string; slug: string; domainMatch: boolean } | null> {
+  if (!TOKEN || !BASE_ID) return null;
+  const url = new URL(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(CLAIMS_TABLE)}`
+  );
+  url.searchParams.set("filterByFormula", `{Verify Token}='${token}'`);
+  url.searchParams.set("maxRecords", "1");
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Airtable query failed ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as {
+    records?: { id?: string; fields?: Record<string, unknown> }[];
+  };
+  const rec = data.records?.[0];
+  if (!rec?.id) return null;
+  const f = rec.fields ?? {};
+  return {
+    id: rec.id,
+    slug: String(f["Vendor Slug"] ?? "").trim(),
+    domainMatch: String(f["Domain Match"] ?? "").trim().toLowerCase() === "yes",
+  };
+}
+
 // Update fields on a record by ID in the given table.
 export async function updateAirtableRecord(
   recordId: string,

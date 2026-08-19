@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { findRecordIdByToken, updateAirtableRecord } from "@/lib/airtable";
+import {
+  findRecordIdByToken,
+  findClaimByToken,
+  findVendorRecordIdBySlug,
+  updateAirtableRecord,
+} from "@/lib/airtable";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +29,31 @@ export async function POST(req: Request) {
 
   if (!token) return back("invalid");
   try {
-    const table = isClaim ? "Claims" : undefined;
-    const id = await findRecordIdByToken(token, table);
-    if (!id) return back("invalid");
     if (isClaim) {
+      const claim = await findClaimByToken(token);
+      if (!claim) return back("invalid");
       await updateAirtableRecord(
-        id,
+        claim.id,
         { Status: "Email confirmed", "Verify Token": "" },
         "Claims"
       );
+      // A domain-matched confirmation is our verification bar — badge the
+      // listing automatically so the owner's profile reflects it right away.
+      // Best-effort: never fail the confirmation if this lookup/update trips.
+      if (claim.domainMatch && claim.slug) {
+        try {
+          const vendorId = await findVendorRecordIdBySlug(claim.slug);
+          if (vendorId) {
+            await updateAirtableRecord(vendorId, { Verified: true });
+          }
+        } catch (e) {
+          console.error("[oohsource] auto-verify listing failed:", e);
+        }
+      }
+      return back("ok");
     } else {
+      const id = await findRecordIdByToken(token);
+      if (!id) return back("invalid");
       await updateAirtableRecord(id, {
         Status: "Pending Review",
         "Verify Token": "",

@@ -6,6 +6,32 @@ import { FORMATS } from "@/lib/types";
 import { getAllVendors } from "@/lib/vendors";
 import { fetchClaims } from "@/lib/airtable";
 import { SITE_URL } from "@/lib/lists";
+import { JsonLd } from "@/components/JsonLd";
+
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "OOHsource",
+  url: SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/directory?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const orgLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "OOHsource",
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.svg`,
+  description:
+    "The neutral, vetted directory of the world's out-of-home (OOH) advertising industry — media owners, agencies, printers, installers, and technology.",
+};
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
@@ -68,6 +94,8 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={websiteLd} />
+      <JsonLd data={orgLd} />
       {/* HERO */}
       <section className="hero">
         <div className="wrap hero-grid">

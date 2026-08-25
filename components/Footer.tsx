@@ -8,7 +8,10 @@ export function Footer() {
         <div className="foot">
           <div>
             <Link className="brand" href="/">
-              <span className="mark" aria-hidden="true" />
+              <svg className="brand-mark" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="7.4" fill="none" stroke="currentColor" strokeWidth="2.3" />
+                <circle cx="12" cy="4" r="2.5" fill="var(--accent)" />
+              </svg>
               <span className="ooh">OOH</span>
               <span className="src">source</span>
             </Link>
@@ -21,6 +24,7 @@ export function Footer() {
             <div className="foot-col">
               <span className="h">Directory</span>
               <Link href="/directory">Browse all</Link>
+              <Link href="/companies">All companies (A–Z)</Link>
               <Link href="/formats">By format</Link>
               <Link href="/agencies">Agencies</Link>
               <Link href="/vendors">Vendors</Link>

@@ -22,8 +22,20 @@ export async function GET() {
 
   lines.push("## Categories");
   for (const c of CATEGORIES) {
-    lines.push(`- [${c.name}](${SITE_URL}/category/${c.slug}): ${c.blurb}`);
+    const n = vendors.filter((v) => v.categorySlug === c.slug).length;
+    lines.push(
+      `- [${c.name}](${SITE_URL}/category/${c.slug}) — ${n} companies: ${c.blurb}`
+    );
   }
+  lines.push("");
+
+  lines.push("## Browse");
+  lines.push(`- [Full directory (search & filter by category, format, market)](${SITE_URL}/directory)`);
+  lines.push(`- [All companies A–Z (complete plain index of every listing)](${SITE_URL}/companies)`);
+  lines.push(`- [Browse by OOH format](${SITE_URL}/formats)`);
+  lines.push(`- [Agencies & buyers (demand side)](${SITE_URL}/agencies)`);
+  lines.push(`- [Vendors (supply side)](${SITE_URL}/vendors)`);
+  lines.push(`- [Industry media & associations](${SITE_URL}/publications)`);
   lines.push("");
 
   lines.push("## Ranked lists (Top 10s)");

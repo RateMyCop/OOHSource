@@ -95,6 +95,17 @@ p { margin: 0; }
 ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--ink); }
 input, textarea { caret-color: var(--accent-strong); }
 
+/* All-companies index (/companies) — dense crawlable link hub */
+.index-group { margin-bottom: 40px; }
+.index-head { display: flex; align-items: baseline; gap: 12px; font-size: 1.15rem; padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.index-head a { color: var(--ink); }
+.index-head a:hover { color: var(--accent-strong); }
+.index-count { font-family: var(--font-mono), ui-monospace, monospace; font-size: 0.72rem; color: var(--ink-3); letter-spacing: 0.08em; }
+.index-cols { list-style: none; margin: 0; padding: 0; columns: 4 210px; column-gap: 32px; }
+.index-cols li { break-inside: avoid; padding: 4px 0; font-size: 0.92rem; line-height: 1.4; }
+.index-cols li a { color: var(--ink-2); }
+.index-cols li a:hover { color: var(--accent-strong); }
+
 /* ===================== LAYOUT ===================== */
 .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
 .block { padding: clamp(56px, 8vw, 100px) 0; }

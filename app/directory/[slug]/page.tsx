@@ -101,9 +101,19 @@ export default async function VendorPage({
   if (!vendor) notFound();
 
   const category = getCategory(vendor.categorySlug);
-  const related = (await getVendorsByCategory(vendor.categorySlug))
-    .filter((v) => v.slug !== vendor.slug)
-    .slice(0, 2);
+  // Cross-link 6 peers in the same category, chosen as a rotating window from
+  // this vendor's position — so different listings link to different peers and
+  // the internal-link graph stays dense (helps crawl/indexation) instead of
+  // every page pointing at the same top two.
+  const catVendors = await getVendorsByCategory(vendor.categorySlug);
+  const others = catVendors.filter((v) => v.slug !== vendor.slug);
+  const related: typeof others = [];
+  if (others.length) {
+    const start = Math.max(0, catVendors.findIndex((v) => v.slug === vendor.slug)) % others.length;
+    for (let i = 0; i < Math.min(6, others.length); i++) {
+      related.push(others[(start + i) % others.length]);
+    }
+  }
 
   const sameAs = [
     vendor.linkedin,

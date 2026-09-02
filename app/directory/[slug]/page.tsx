@@ -11,6 +11,7 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
 import { InfoTip } from "@/components/InfoTip";
+import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
@@ -339,6 +340,14 @@ export default async function VendorPage({
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>
+          </div>
+          <div className="aside-card">
+            <span className="k" style={{ marginBottom: 2 }}>Show you&rsquo;re listed</span>
+            <p className="badge-embed-intro">
+              Add a free OOHsource badge to your website — it links back to this
+              profile.
+            </p>
+            <BadgeEmbed slug={vendor.slug} name={vendor.name} />
           </div>
           </div>
         </aside>

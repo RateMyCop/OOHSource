@@ -106,6 +106,23 @@ input, textarea { caret-color: var(--accent-strong); }
 .index-cols li a { color: var(--ink-2); }
 .index-cols li a:hover { color: var(--accent-strong); }
 
+/* Embeddable badge widget (vendor profile aside) */
+.badge-embed-intro { font-size: 0.85rem; color: var(--ink-3); margin: 2px 0 10px; line-height: 1.45; }
+.badge-embed-toggle { font-family: var(--font-mono), ui-monospace, monospace; font-size: 0.74rem; letter-spacing: 0.03em; color: var(--accent-strong); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.badge-embed-toggle:hover { text-decoration: underline; }
+.badge-embed-body { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.badge-embed-preview { display: flex; justify-content: center; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2); }
+.badge-embed-preview[data-dark="true"] { background: #101113; }
+.badge-embed-preview img { max-width: 100%; height: auto; }
+.badge-embed-row { display: flex; align-items: center; justify-content: space-between; }
+.badge-embed-label { font-family: var(--font-mono), monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.badge-embed-themes { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+.badge-embed-themes button { font-family: var(--font-mono), monospace; font-size: 0.72rem; padding: 4px 12px; background: transparent; border: 0; color: var(--ink-2); cursor: pointer; }
+.badge-embed-themes button.on { background: var(--ink); color: var(--paper-raise); }
+.badge-embed-code { width: 100%; font-family: var(--font-mono), ui-monospace, monospace; font-size: 0.72rem; line-height: 1.5; color: var(--ink-2); background: var(--paper-2); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 10px; resize: vertical; }
+.badge-embed-copy { font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.85rem; padding: 9px 14px; border-radius: var(--radius); border: 1px solid transparent; background: var(--accent); color: var(--accent-ink); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.badge-embed-copy:hover { background: var(--accent-strong); color: #fff; }
+
 /* ===================== LAYOUT ===================== */
 .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
 .block { padding: clamp(56px, 8vw, 100px) 0; }

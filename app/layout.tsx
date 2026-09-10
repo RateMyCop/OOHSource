@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Newsreader, IBM_Plex_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -91,6 +92,7 @@ export default function RootLayout({
         <Analytics />
       </body>
       {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
+      <Script id="chatway" src="https://cdn.chatway.app/widget.js?id=5jl7baOn1zjZ" strategy="lazyOnload" />
     </html>
   );
 }

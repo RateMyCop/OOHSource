@@ -7,6 +7,8 @@ import { getVendorBySlug } from "@/lib/vendors";
 import { getStats } from "@/lib/stats";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
+import { AiVisibility } from "@/components/AiVisibility";
+import { readAiVis, vendorAiVis } from "@/lib/aivis";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,7 @@ export default async function ManageListingPage({
   const vendor = await getVendorBySlug(params.slug);
   if (!vendor) notFound();
   const stats = await getStats(params.slug, 90);
+  const aiv = vendorAiVis(vendor, await readAiVis());
 
   return (
     <section className="wrap page-head" style={{ paddingBottom: 90 }}>
@@ -55,6 +58,10 @@ export default async function ManageListingPage({
       </div>
 
       <div style={{ marginTop: 40 }}>
+        <AiVisibility vendor={vendor} data={aiv} />
+      </div>
+
+      <div style={{ marginTop: 40 }} id="editor">
         <ListingEditor
           slug={vendor.slug}
           website={vendor.website || ""}

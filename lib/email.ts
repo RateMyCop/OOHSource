@@ -1,4 +1,4 @@
-import { isSuppressed, makeUnsubToken } from "./outreach";
+import { isSuppressed, makeUnsubToken, recordOutreachSent } from "./outreach";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
@@ -100,6 +100,9 @@ export async function sendOutreachEmail(
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     }
   );
+  // Durable record so future drips never re-email this address, even if local
+  // recipient lists are lost.
+  await recordOutreachSent(to);
   return true;
 }
 

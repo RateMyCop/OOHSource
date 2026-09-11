@@ -69,6 +69,27 @@ export async function recordComplaint(email: string): Promise<void> {
   await r.sadd("complaint:index", e);
 }
 
+// Durable "already contacted" ledger for outreach drips — the source of truth
+// for who has received a campaign email, so dedup never again depends on local
+// files that can be lost. Recorded on every successful outreach send.
+const SENT_INDEX = "outreach:sent";
+
+export async function recordOutreachSent(email: string): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  await r.sadd(SENT_INDEX, email.toLowerCase().trim());
+}
+
+export async function listOutreachSent(): Promise<string[]> {
+  const r = kv();
+  if (!r) return [];
+  try {
+    return ((await r.smembers(SENT_INDEX)) as string[]) || [];
+  } catch {
+    return [];
+  }
+}
+
 async function listIndexed(
   index: string,
   prefix: string

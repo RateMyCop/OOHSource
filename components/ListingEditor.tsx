@@ -30,9 +30,43 @@ export function ListingEditor(p: Props) {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [urlAdd, setUrlAdd] = useState("");
 
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[] | null>(null);
+  const [aiDesc, setAiDesc] = useState("");
+  const [aiErr, setAiErr] = useState("");
+
   const formRef = useRef<HTMLFormElement>(null);
   const heroInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+
+  async function optimize() {
+    setAiBusy(true);
+    setAiErr("");
+    setAiSuggestions(null);
+    setAiDesc("");
+    try {
+      const res = await fetch("/api/owner/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: p.slug, description: descRef.current?.value || "" }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.ok) throw new Error(d.error || "Couldn't analyze your listing.");
+      setAiSuggestions(d.suggestions || []);
+      setAiDesc(d.description || "");
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  function applyAiDesc() {
+    if (descRef.current && aiDesc) descRef.current.value = aiDesc;
+    setAiDesc("");
+    setAiSuggestions(null);
+  }
 
   async function uploadOne(file: File): Promise<string> {
     const res = await upload(`${p.slug}/${file.name}`, file, {
@@ -154,9 +188,46 @@ export function ListingEditor(p: Props) {
 
       <h2 className="form-section">About</h2>
       <div className="field">
-        <label htmlFor="description">Description</label>
-        <textarea id="description" name="description" rows={8} defaultValue={p.description} disabled={saving} />
+        <div className="opt-row">
+          <label htmlFor="description">Description</label>
+          <button type="button" className="opt-btn" onClick={optimize} disabled={saving || aiBusy}>
+            {aiBusy ? "Analyzing…" : "✦ Improve with AI"}
+          </button>
+        </div>
+        <textarea id="description" name="description" rows={8} defaultValue={p.description} disabled={saving} ref={descRef} />
         <span className="hint">What you do, who you serve, and where.</span>
+
+        {aiErr && <p className="opt-err">{aiErr}</p>}
+
+        {aiSuggestions && (
+          <div className="opt-panel">
+            {aiSuggestions.length > 0 && (
+              <>
+                <span className="opt-h">Suggestions</span>
+                <ul className="opt-list">
+                  {aiSuggestions.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {aiDesc && (
+              <>
+                <span className="opt-h">Suggested description</span>
+                <div className="opt-preview">{aiDesc}</div>
+                <div className="opt-actions">
+                  <button type="button" className="opt-use" onClick={applyAiDesc}>
+                    Use this description
+                  </button>
+                  <button type="button" className="opt-dismiss" onClick={() => { setAiDesc(""); setAiSuggestions(null); }}>
+                    Dismiss
+                  </button>
+                </div>
+                <span className="hint">Review it, then Save changes below to publish.</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <h2 className="form-section">Header image</h2>

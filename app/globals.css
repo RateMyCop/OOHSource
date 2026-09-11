@@ -152,6 +152,23 @@ input, textarea { caret-color: var(--accent-strong); }
 .aiv-action span { font-size: 0.85rem; color: var(--ink-2); line-height: 1.45; }
 @media (max-width: 620px) { .aiv-stats { grid-template-columns: 1fr; } .aiv-score { grid-template-columns: 1fr; } }
 
+/* Listing Optimizer (AI) — in the owner editor */
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.opt-btn { flex: none; font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.8rem; padding: 6px 12px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent-strong); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.opt-btn:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); }
+.opt-btn:disabled { opacity: 0.55; cursor: default; }
+.opt-err { color: #c0392b; font-size: 0.88rem; margin: 8px 0 0; }
+.opt-panel { margin-top: 14px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-2); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.opt-h { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.opt-list { margin: 0 0 6px; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.opt-list li { font-size: 0.9rem; color: var(--ink-2); line-height: 1.45; }
+.opt-preview { font-size: 0.95rem; line-height: 1.6; color: var(--ink); background: var(--paper-raise); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; white-space: pre-wrap; }
+.opt-actions { display: flex; gap: 10px; margin-top: 4px; }
+.opt-use { font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.88rem; padding: 8px 14px; border-radius: var(--radius); border: 0; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.opt-use:hover { background: var(--accent-strong); color: #fff; }
+.opt-dismiss { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.88rem; padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--line-strong); background: transparent; color: var(--ink-2); cursor: pointer; }
+.opt-dismiss:hover { border-color: var(--ink); color: var(--ink); }
+
 /* ===================== LAYOUT ===================== */
 .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
 .block { padding: clamp(56px, 8vw, 100px) 0; }

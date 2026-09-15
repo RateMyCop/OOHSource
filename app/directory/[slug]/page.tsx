@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCategory } from "@/lib/data";
-import { getAllVendors, getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
+import { getAllVendors, getVendorBySlug, getVendorsByCategory, resolveVendorForPage } from "@/lib/vendors";
 import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
@@ -98,7 +98,10 @@ export default async function VendorPage({
 }: {
   params: { slug: string };
 }) {
-  const vendor = await getVendorBySlug(params.slug);
+  // resolveVendorForPage() only reports a real 404 when the vendor is absent
+  // from authoritative Airtable data; during a degraded fallback it throws
+  // rather than let Next cache a 404 for a listing that likely exists.
+  const vendor = await resolveVendorForPage(params.slug);
   if (!vendor) notFound();
 
   const category = getCategory(vendor.categorySlug);

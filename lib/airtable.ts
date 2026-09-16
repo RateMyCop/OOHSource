@@ -56,12 +56,28 @@ function galleryFrom(field: unknown): string[] {
 }
 
 function toArray(v: unknown): string[] {
-  if (Array.isArray(v)) return v.map((x) => String(x));
-  if (typeof v === "string")
-    return v
+  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
+  if (typeof v === "string") {
+    const s = v.trim();
+    if (!s) return [];
+    // Some rows store the value as a JSON-array string, e.g.
+    // ["Place-based","Digital / DOOH"] — parse it so the brackets/quotes don't
+    // leak into the UI. Fall back to a delimiter split otherwise.
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed))
+          return parsed.map((x) => String(x).trim()).filter(Boolean);
+      } catch {
+        /* not valid JSON — fall through and clean stray characters */
+      }
+    }
+    return s
       .split(",")
-      .map((x) => x.trim())
+      // Strip any stray brackets/quotes left by a JSON-ish string.
+      .map((x) => x.replace(/^[\s["']+|[\s\]"']+$/g, "").trim())
       .filter(Boolean);
+  }
   return [];
 }
 

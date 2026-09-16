@@ -203,11 +203,15 @@ export default async function VendorPage({
             )}
             {vendor.verified && (
               <>
-                <span className="badge badge--verified">
+                <Link
+                  href="/how-verification-works"
+                  className="badge badge--verified badge--link"
+                  title="How verification works"
+                >
                   <span className="v" />
                   Verified
-                </span>
-                <InfoTip label="Confirmed against the company’s own website and primary sources — not scraped or auto-listed." />
+                </Link>
+                <InfoTip label="Confirmed against the company’s own website and primary sources — not scraped or auto-listed. Click to see how verification works." />
               </>
             )}
           </div>

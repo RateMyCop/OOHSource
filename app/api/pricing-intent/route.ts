@@ -17,10 +17,12 @@ export async function POST() {
   const email = getSessionEmail();
   if (!email) return NextResponse.json({ ok: true, skipped: "anonymous" });
 
-  const key = `pricenudge:${email.toLowerCase()}`;
+  // Shared key with the post-verify nudge so an owner gets at most one Featured
+  // nudge across either trigger.
+  const key = `featnudge:${email.toLowerCase()}`;
   const r = kv();
   if (r) {
-    // Atomic set-if-absent: the first pricing view wins; later ones skip.
+    // Atomic set-if-absent: the first nudge (pricing view or verify) wins.
     const first = await r.set(key, "1", { nx: true, ex: NUDGE_TTL });
     if (!first) return NextResponse.json({ ok: true, skipped: "already-nudged" });
   }

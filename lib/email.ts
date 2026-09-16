@@ -1,4 +1,5 @@
 import { isSuppressed, makeUnsubToken, recordOutreachSent } from "./outreach";
+import { kv } from "./kv";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
@@ -44,12 +45,15 @@ async function sendEmailFrom(
   subject: string,
   html: string,
   replyTo?: string,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
+  scheduledAt?: string
 ): Promise<void> {
   if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not set");
   const payload: Record<string, unknown> = { from, to, subject, html };
   if (replyTo) payload.reply_to = replyTo;
   if (headers) payload.headers = headers;
+  // Resend natively schedules delivery when given a future ISO 8601 time.
+  if (scheduledAt) payload.scheduled_at = scheduledAt;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -172,6 +176,70 @@ export async function sendClaimVerificationEmail(
     </p>
     <p style="font-size: 13px; color: #71767E; line-height: 1.55;">If you didn&rsquo;t request this, you can safely ignore this email.</p>`);
   await sendEmail(to, "Confirm your OOHsource listing claim", html);
+}
+
+// Post-verification Featured upsell. Scheduled to land ~2 days AFTER a listing
+// is verified (a high-intent moment), so it doesn't crowd the verification
+// itself. One-time per email (KV dedupe), suppression-aware, CAN-SPAM compliant.
+// Returns false without sending if suppressed or already nudged. Best-effort:
+// callers must not let a failure here break the verification flow.
+const VERIFY_NUDGE_TTL = 180 * 24 * 3600; // don't re-nudge the same owner for ~6 months
+const VERIFY_NUDGE_DELAY_MS = 2 * 24 * 3600 * 1000; // deliver in ~2 days
+
+export async function scheduleVerifiedUpgradeNudge(
+  to: string,
+  company: string
+): Promise<boolean> {
+  if (!to || (await isSuppressed(to))) return false;
+
+  // One-time gate on a SHARED key with the pricing-page nudge, so an owner
+  // never gets more than one Featured nudge across either trigger.
+  const r = kv();
+  if (r) {
+    const first = await r.set(`featnudge:${to.toLowerCase()}`, "1", {
+      nx: true,
+      ex: VERIFY_NUDGE_TTL,
+    });
+    if (!first) return false;
+  }
+
+  const dash = `${SITE_URL}/dashboard`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const who = company ? escapeHtml(company) : "your company";
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">Congrats — <strong>${who}</strong> is now <strong>Verified</strong> on OOHsource. Your listing shows the Verified badge, so buyers know it&rsquo;s genuine and company-managed.</p>
+    <p style="font-size: 16px; line-height: 1.6;">Now that you&rsquo;re set up, here&rsquo;s what <strong>Featured</strong> adds:</p>
+    <ul style="font-size: 15px; line-height: 1.7; padding-left: 20px;">
+      <li><strong>Top of your category</strong> and priority in search</li>
+      <li>The <strong>Featured</strong> badge alongside your Verified badge</li>
+      <li>Homepage &amp; spotlight placement in front of buyers</li>
+    </ul>
+    <p style="font-size: 16px; line-height: 1.6;">OOHsource is the only major OOH directory that&rsquo;s fully public — which is why buyers <em>and</em> AI assistants (ChatGPT, Perplexity, Google&rsquo;s AI Overviews) can actually find and cite it. Featured puts ${who} first there.</p>
+    <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>, and you can switch it on from your dashboard in a couple of clicks.</p>
+    <p style="margin: 26px 0;">
+      <a href="${dash}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">See Featured &rarr;</a>
+    </p>
+    <p style="font-size: 15px; line-height: 1.6;">No pressure — your verified free listing stays exactly as it is either way.</p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;"><a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> from these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+
+  const subject = company
+    ? `${company} is verified on OOHsource — here's what Featured adds`
+    : `You're verified on OOHsource — here's what Featured adds`;
+  const scheduledAt = new Date(Date.now() + VERIFY_NUDGE_DELAY_MS).toISOString();
+
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    subject,
+    html,
+    "hello@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+    scheduledAt
+  );
+  return true;
 }
 
 // Contact-form notification. Sent from hello@ (which forwards to the owner

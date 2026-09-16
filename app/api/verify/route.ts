@@ -5,6 +5,8 @@ import {
   findVendorRecordIdBySlug,
   updateAirtableRecord,
 } from "@/lib/airtable";
+import { getVendorBySlug } from "@/lib/vendors";
+import { scheduleVerifiedUpgradeNudge } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +50,19 @@ export async function POST(req: Request) {
           }
         } catch (e) {
           console.error("[oohsource] auto-verify listing failed:", e);
+        }
+        // Schedule a one-time Featured upsell to land ~2 days later — a
+        // high-intent moment. Best-effort and skipped for owners already on
+        // Featured; never let it break the confirmation.
+        try {
+          if (claim.email) {
+            const vendor = await getVendorBySlug(claim.slug);
+            if (vendor && vendor.tier !== "Featured") {
+              await scheduleVerifiedUpgradeNudge(claim.email, vendor.name);
+            }
+          }
+        } catch (e) {
+          console.error("[oohsource] verify upgrade nudge failed:", e);
         }
       }
       return back("ok");

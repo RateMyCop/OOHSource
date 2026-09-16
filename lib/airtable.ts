@@ -578,7 +578,7 @@ export async function findRecordIdByToken(
 // claimant's email domain matched the company's — our authorization bar).
 export async function findClaimByToken(
   token: string
-): Promise<{ id: string; slug: string; domainMatch: boolean } | null> {
+): Promise<{ id: string; slug: string; domainMatch: boolean; email: string } | null> {
   if (!TOKEN || !BASE_ID) return null;
   const url = new URL(
     `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(CLAIMS_TABLE)}`
@@ -602,6 +602,7 @@ export async function findClaimByToken(
     id: rec.id,
     slug: String(f["Vendor Slug"] ?? "").trim(),
     domainMatch: String(f["Domain Match"] ?? "").trim().toLowerCase() === "yes",
+    email: String(f["Claimant Email"] ?? "").trim(),
   };
 }
 

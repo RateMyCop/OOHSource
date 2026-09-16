@@ -446,6 +446,20 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .vcard h3 { font-size: 1.2rem; }
 .vcard .vsub { font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.06em; color: var(--ink-3); text-transform: uppercase; margin-top: 5px; }
 .vcard p { color: var(--ink-2); font-size: 0.95rem; }
+.vcard-lead { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.vcard-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex: none; }
+/* Ranked-leaderboard number. Uses --ink/--paper so it auto-inverts by theme;
+   the top three get the single bronze accent as a podium cue. */
+.vcard-rank { flex: none; display: inline-grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: var(--ink); color: var(--paper-raise); font-family: var(--font-mono), monospace; font-size: 0.82rem; font-weight: 600; line-height: 1; margin-top: 3px; }
+.vcard-rank--top { background: var(--accent); color: var(--accent-ink); }
+/* Compact metadata chip row (rating · coverage · formats · location). */
+.vcard-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono), monospace; font-size: 0.72rem; letter-spacing: 0.02em; line-height: 1; padding: 0.42em 0.66em; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--paper); white-space: nowrap; }
+.chip--rating { border-color: var(--line-strong); background: var(--paper-raise); color: var(--ink); }
+.chip-star { color: var(--accent-strong); font-size: 0.8rem; }
+.chip-muted { color: var(--ink-3); }
+.chip--soft { color: var(--ink-3); }
+.chip--loc { border-color: transparent; background: transparent; color: var(--ink-3); padding-left: 2px; padding-right: 2px; }
 .vcard-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; font-family: var(--font-mono), monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: var(--ink-3); }
 .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.76rem; padding: 0.32em 0.6em; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); }

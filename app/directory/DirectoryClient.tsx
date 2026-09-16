@@ -129,6 +129,8 @@ export function DirectoryClient({
     setVisible(PAGE_SIZE);
   }, [query, cats, formats, verifiedOnly, sort]);
   const shown = sorted.slice(0, visible);
+  // Featured/Top-rated/Most-reviewed are genuine rankings → show rank numbers.
+  const ranked = sort !== "name";
 
   // Keep the URL in sync with the active filters so a filtered view is
   // shareable/bookmarkable and shared links SSR the same set (the server reads
@@ -271,8 +273,10 @@ export function DirectoryClient({
         ) : (
           <>
             <div className="vgrid">
-              {shown.map((v) => (
-                <VendorCard key={v.slug} vendor={v} />
+              {shown.map((v, i) => (
+                // Rank numbers only make sense on a ranked order; suppress them
+                // for the A–Z (name) sort, which is a lookup, not a leaderboard.
+                <VendorCard key={v.slug} vendor={v} rank={ranked ? i + 1 : undefined} />
               ))}
             </div>
             {visible < filtered.length && (

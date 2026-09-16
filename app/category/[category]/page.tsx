@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CATEGORIES, getCategory, sortByTier } from "@/lib/data";
+import { CATEGORIES, getCategory } from "@/lib/data";
 import { getVendorsByCategory } from "@/lib/vendors";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
-import { listForCategory, SITE_URL } from "@/lib/lists";
+import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
 
 export const revalidate = 60;
 
@@ -35,7 +35,16 @@ export default async function CategoryPage({
   const category = getCategory(params.category as CategorySlug);
   if (!category) notFound();
 
-  const vendors = sortByTier(await getVendorsByCategory(category.slug));
+  // Ranked leaderboard order: Featured placements first (the pay-to-play model),
+  // then by the transparent rating-weighted score, then name. This makes the
+  // rank numbers on the cards meaningful rather than merely alphabetical.
+  const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
+  const vendors = [...(await getVendorsByCategory(category.slug))].sort(
+    (a, b) =>
+      TIER_RANK[a.tier] - TIER_RANK[b.tier] ||
+      vendorScore(b) - vendorScore(a) ||
+      a.name.localeCompare(b.name)
+  );
   const list = listForCategory(category.slug);
 
   return (
@@ -87,8 +96,8 @@ export default async function CategoryPage({
           </div>
         ) : (
           <div className="vgrid">
-            {vendors.map((v) => (
-              <VendorCard key={v.slug} vendor={v} />
+            {vendors.map((v, i) => (
+              <VendorCard key={v.slug} vendor={v} rank={i + 1} />
             ))}
           </div>
         )}

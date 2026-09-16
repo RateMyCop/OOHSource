@@ -654,6 +654,15 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .method-cta h2 { font-size: 1.35rem; margin-bottom: 8px; }
 .method-cta p { color: var(--ink-2); margin-bottom: 20px; }
 .method-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ===================== ABOUT ===================== */
+.about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 860px; margin: 8px 0 12px; }
+@media (max-width: 620px) { .about-stats { grid-template-columns: 1fr; } }
+.about-stat { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 6px; }
+.about-stat-n { font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 1.9rem; line-height: 1; color: var(--accent-strong); }
+.about-stat-l { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.about-inline-link { color: var(--accent-strong); font-weight: 600; }
+.about-inline-link:hover { text-decoration: underline; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }
 .checkline input { accent-color: var(--accent); margin-top: 3px; }
 

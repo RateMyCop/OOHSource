@@ -610,6 +610,21 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .more-socials .social-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .form-ok { display: none; padding: 22px; border: 1px solid var(--accent-strong); border-radius: var(--radius); color: var(--accent-strong); background: color-mix(in srgb, var(--accent-strong) 8%, transparent); font-family: var(--font-display), sans-serif; font-weight: 600; }
 .form-ok.show { display: block; }
+
+/* ===================== CONTACT ===================== */
+.contact-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: start; padding-bottom: 80px; }
+@media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; gap: 28px; } }
+.contact-form-col .form-wrap { max-width: none; }
+.contact-form-col .field label .opt { text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+.contact-aside { display: flex; flex-direction: column; gap: 16px; }
+.contact-aside .aside-card .k { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.contact-email { font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--accent-strong); word-break: break-all; }
+.contact-email:hover { text-decoration: underline; }
+.contact-links { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.contact-links li { display: flex; flex-direction: column; gap: 2px; }
+.contact-links a { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.98rem; color: var(--ink); }
+.contact-links a:hover { color: var(--accent-strong); }
+.contact-links span { font-size: 0.85rem; color: var(--ink-3); line-height: 1.4; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }
 .checkline input { accent-color: var(--accent); margin-top: 3px; }
 

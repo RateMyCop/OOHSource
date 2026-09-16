@@ -174,6 +174,37 @@ export async function sendClaimVerificationEmail(
   await sendEmail(to, "Confirm your OOHsource listing claim", html);
 }
 
+// Contact-form notification. Sent from hello@ (which forwards to the owner
+// inbox) with reply_to set to the sender, so a reply goes straight back to them.
+// Not suppression-gated — this is our own inbound notification, not outreach.
+export async function sendContactMessage(opts: {
+  name: string;
+  email: string;
+  company?: string;
+  topic?: string;
+  message: string;
+}): Promise<void> {
+  const to = process.env.CONTACT_TO || "hello@oohsource.com";
+  const row = (label: string, value: string) =>
+    `<tr><td style="color:#71767E;padding:2px 14px 2px 0;vertical-align:top;">${label}</td><td>${value}</td></tr>`;
+  const html = wrap(`
+    <p style="font-size:16px;line-height:1.6;"><strong>New contact message</strong></p>
+    <table style="font-size:15px;line-height:1.6;border-collapse:collapse;margin-bottom:8px;">
+      ${row("Name", escapeHtml(opts.name))}
+      ${row("Email", `<a href="mailto:${escapeHtml(opts.email)}" style="color:#A9660E;">${escapeHtml(opts.email)}</a>`)}
+      ${opts.company ? row("Company", escapeHtml(opts.company)) : ""}
+      ${opts.topic ? row("Topic", escapeHtml(opts.topic)) : ""}
+    </table>
+    <p style="font-size:16px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(opts.message)}</p>`);
+  await sendEmailFrom(
+    "OOHsource <hello@oohsource.com>",
+    to,
+    `Contact form${opts.topic ? ` · ${opts.topic}` : ""} — ${opts.name}`,
+    html,
+    opts.email
+  );
+}
+
 // One-off human reply to an inbound email, sent from hello@oohsource.com.
 // Replies route back to hello@ (which forwards to the owner inbox).
 export async function sendReply(

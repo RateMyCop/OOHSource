@@ -48,7 +48,7 @@ export function Footer() {
             <div className="foot-col">
               <span className="h">Company</span>
               <Link href="/pricing">Pricing</Link>
-              <Link href="/directory">Browse directory</Link>
+              <Link href="/contact">Contact</Link>
               <Link href="/list-your-company">List your company</Link>
             </div>
           </div>

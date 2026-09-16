@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Category, Vendor, FORMATS } from "@/lib/types";
+import { Category, DirectoryVendor, FORMATS } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { InfoTip } from "@/components/InfoTip";
 
@@ -30,7 +30,7 @@ export function DirectoryClient({
   initialVerified = false,
   initialSort = "",
 }: {
-  vendors: Vendor[];
+  vendors: DirectoryVendor[];
   categories: Category[];
   initialQuery?: string;
   initialCategories?: string[];
@@ -70,6 +70,10 @@ export function DirectoryClient({
         if (formats.size > 0 && !v.formats.some((f) => formats.has(f)))
           return false;
         if (verifiedOnly && !v.verified) return false;
+        // Haystack built from the lightweight fields shipped to the client (the
+        // teaser description, not the full body) plus precomputed `keywords`
+        // (specialties + markets). Keeps search useful without shipping the
+        // full descriptions, which would blow past the 2MB HTML limit.
         if (q) {
           const hay = (
             v.name +
@@ -80,9 +84,9 @@ export function DirectoryClient({
             " " +
             v.location +
             " " +
-            v.specialties.join(" ") +
+            v.formats.join(" ") +
             " " +
-            (v.marketsServed ?? []).join(" ")
+            v.keywords
           ).toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -92,7 +96,7 @@ export function DirectoryClient({
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
-    const byName = (a: Vendor, b: Vendor) => a.name.localeCompare(b.name);
+    const byName = (a: DirectoryVendor, b: DirectoryVendor) => a.name.localeCompare(b.name);
     switch (sort) {
       case "rating":
         return arr.sort(

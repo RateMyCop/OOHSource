@@ -9,6 +9,11 @@ import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
 
 export const revalidate = 60;
 
+// Cap of ranked cards rendered on a category page. The full set is one click
+// away in the filtered directory; this keeps even the largest category's HTML
+// well under Googlebot's 2MB indexing limit.
+const CARD_CAP = 60;
+
 export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }));
 }
@@ -95,11 +100,27 @@ export default async function CategoryPage({
             </a>
           </div>
         ) : (
-          <div className="vgrid">
-            {vendors.map((v, i) => (
-              <VendorCard key={v.slug} vendor={v} rank={i + 1} />
-            ))}
-          </div>
+          <>
+            {/* Render a ranked top slice server-side. The rest live in the
+                filtered directory (and every vendor is linked from /companies),
+                which keeps this page well under Googlebot's 2MB HTML limit even
+                for the largest categories. */}
+            <div className="vgrid">
+              {vendors.slice(0, CARD_CAP).map((v, i) => (
+                <VendorCard key={v.slug} vendor={v} rank={i + 1} />
+              ))}
+            </div>
+            {vendors.length > CARD_CAP && (
+              <div className="load-more-wrap">
+                <Link
+                  href={`/directory?category=${category.slug}`}
+                  className="load-more"
+                >
+                  See all {vendors.length} {category.name.toLowerCase()} →
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

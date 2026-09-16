@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Vendor } from "@/lib/types";
+import { CardVendor } from "@/lib/types";
 import { VendorLogo } from "./VendorLogo";
 
 // Card previews show only a short teaser; the full description lives on the
@@ -12,7 +12,7 @@ function truncateWords(text: string, max: number): string {
 
 // Best available public rating, preferring Google, then Yelp, then Facebook —
 // the same precedence used on the profile's Reviews block.
-function bestRating(v: Vendor): { rating: number; count: number } | null {
+function bestRating(v: CardVendor): { rating: number; count: number } | null {
   const sources = [
     [v.googleRating, v.googleReviews],
     [v.yelpRating, v.yelpReviews],
@@ -29,7 +29,7 @@ function compactCount(n: number): string {
   return String(n);
 }
 
-export function VendorCard({ vendor, rank }: { vendor: Vendor; rank?: number }) {
+export function VendorCard({ vendor, rank }: { vendor: CardVendor; rank?: number }) {
   const review = bestRating(vendor);
   const formats = vendor.formats.slice(0, 2);
   const extraFormats = vendor.formats.length - formats.length;

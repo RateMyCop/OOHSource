@@ -49,6 +49,40 @@ export interface Vendor {
   verified: boolean;
 }
 
+// Lean shape VendorCard needs to render. It's a structural subset of Vendor, so
+// a full Vendor is assignable wherever a CardVendor is expected (SSR pages keep
+// passing full objects) while lightweight projections also satisfy it.
+export interface CardVendor {
+  slug: string;
+  name: string;
+  subcategory: string;
+  formats: string[];
+  location: string;
+  coverage: string;
+  tier: Tier;
+  verified: boolean;
+  logo?: string;
+  website: string;
+  description: string;
+  googleRating?: number;
+  googleReviews?: number;
+  yelpRating?: number;
+  yelpReviews?: number;
+  facebookRating?: number;
+  facebookReviews?: number;
+}
+
+// What the client-side directory needs: card fields + category (for filtering) +
+// extra searchable keywords. Deliberately OMITS gallery, hero image, socials,
+// contact/phone/address AND the full description body (only the ~34-word teaser
+// in `description` ships) so the full list serialized into the /directory HTML
+// stays well under Googlebot's 2MB indexing limit. `keywords` carries the
+// search-only terms not already on the object (specialties + markets served).
+export interface DirectoryVendor extends CardVendor {
+  categorySlug: CategorySlug;
+  keywords: string;
+}
+
 export const FORMATS = [
   "Billboards",
   "Digital / DOOH",

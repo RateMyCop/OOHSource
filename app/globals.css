@@ -361,6 +361,9 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .foot-col a { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.95rem; color: var(--ink-2); transition: color 0.15s; }
 .foot-col a:hover { color: var(--accent-strong); }
 .foot-base { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-family: var(--font-mono), monospace; font-size: 0.72rem; color: var(--ink-3); letter-spacing: 0.04em; }
+.foot-legal { display: inline-flex; gap: 18px; }
+.foot-legal a { color: var(--ink-3); }
+.foot-legal a:hover { color: var(--accent-strong); }
 
 /* ===================== DIRECTORY ===================== */
 .page-head { padding: clamp(40px, 6vw, 72px) 0 28px; }
@@ -663,6 +666,19 @@ footer.site { border-top: 1px solid var(--line); background: var(--paper-2); pad
 .about-stat-l { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .about-inline-link { color: var(--accent-strong); font-weight: 600; }
 .about-inline-link:hover { text-decoration: underline; }
+
+/* ===================== LEGAL (privacy / terms) ===================== */
+.legal-meta { font-family: var(--font-mono), monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.legal { max-width: 760px; padding-bottom: 90px; }
+.legal h2 { font-size: 1.3rem; margin: 36px 0 12px; }
+.legal h3 { font-size: 1.02rem; margin: 22px 0 8px; color: var(--ink); }
+.legal p { color: var(--ink-2); font-size: 0.98rem; line-height: 1.7; margin-bottom: 14px; }
+.legal ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 4px 0 16px; }
+.legal ul li { position: relative; padding-left: 20px; color: var(--ink-2); font-size: 0.98rem; line-height: 1.65; }
+.legal ul li::before { content: ""; position: absolute; left: 3px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.legal strong { color: var(--ink); }
+.legal a { color: var(--accent-strong); font-weight: 600; }
+.legal a:hover { text-decoration: underline; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-2); }
 .checkline input { accent-color: var(--accent); margin-top: 3px; }
 

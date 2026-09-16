@@ -57,7 +57,11 @@ export function Footer() {
         </div>
         <div className="foot-base">
           <span>&copy; 2026 OOHsource &middot; oohsource.com</span>
-          <span>Worldwide &middot; Out-of-home advertising</span>
+          <span className="foot-legal">
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            <Link href="/contact">Contact</Link>
+          </span>
         </div>
       </div>
     </footer>

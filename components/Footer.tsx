@@ -47,6 +47,7 @@ export function Footer() {
             </div>
             <div className="foot-col">
               <span className="h">Company</span>
+              <Link href="/how-verification-works">How verification works</Link>
               <Link href="/pricing">Pricing</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/list-your-company">List your company</Link>

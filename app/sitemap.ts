@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/publications",
     "/list-your-company",
     "/contact",
+    "/how-verification-works",
   ].map((path) => ({
     url: `${SITE_URL}${path}`,
     changeFrequency: "weekly" as const,

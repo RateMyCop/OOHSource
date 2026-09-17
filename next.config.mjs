@@ -44,8 +44,45 @@ const heroHosts = [
   "gorillaprinting.com",
 ];
 
+// Content-Security-Policy, scoped to what the site actually loads:
+//  - scripts: our own + inline (Next hydration/flight, GA init) + Google Tag Manager
+//  - images: any https host (vendor logos/heroes come from arbitrary domains) + data/blob
+//  - connect: GA endpoints (Vercel Analytics beacons to same-origin /_vercel)
+//  - frames/forms: Stripe checkout
+// Kept permissive enough not to break third parties; object-src/base-uri/
+// frame-ancestors/form-action still close the common attack vectors.
+const csp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self' https://checkout.stripe.com",
+  "script-src 'self' 'unsafe-inline' https://*.googletagmanager.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com",
+  "frame-src 'self' https://checkout.stripe.com https://js.stripe.com",
+  "upgrade-insecure-requests",
+].join("; ");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+  },
+];
+
 const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2592000, // 30 days

@@ -67,10 +67,18 @@ export async function generateMetadata({
   const vendor = await getVendorBySlug(params.slug);
   if (!vendor) return { title: "Not found" };
   const url = `${SITE_URL}/directory/${vendor.slug}`;
-  // Keep the tag under ~60 chars (the " | OOHsource" suffix adds ~13): only
-  // append the subcategory when the combined length still fits.
-  const withSub = `${vendor.name} — ${vendor.subcategory}`;
-  const title = withSub.length <= 47 ? withSub : vendor.name;
+  // Build a title that fills the useful length band. The " | OOHsource" suffix
+  // adds 12 chars, so we cap the built part at ~48 to stay under ~60 total, and
+  // enrich short/empty-subcategory names with the category and HQ city so they
+  // stop landing in the "title too short" bucket.
+  const TITLE_CAP = 48;
+  const role = (vendor.subcategory || getCategory(vendor.categorySlug)?.name || "").trim();
+  const city = (vendor.location.split(",")[0] || "").trim();
+  let title = vendor.name.trim();
+  if (role && title.length + 3 + role.length <= TITLE_CAP) title += ` — ${role}`;
+  if (city && city.length <= 22 && title.length + 4 + city.length <= TITLE_CAP) {
+    title += ` in ${city}`;
+  }
   const description = metaSnippet(vendor.description, 155);
   const images = vendor.heroImage ? [vendor.heroImage] : undefined;
   return {

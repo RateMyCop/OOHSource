@@ -167,7 +167,7 @@ export function ListingEditor(p: Props) {
     <form ref={formRef} onSubmit={handleSubmit} className="form-wrap">
       {status === "saved" && (
         <div className="form-ok show" role="status">
-          ✓ Saved. Your public listing updates within about a minute.
+          ✓ Saved. Your public listing updates within a few minutes.
         </div>
       )}
 

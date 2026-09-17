@@ -4,78 +4,135 @@ import { airtableConfigured, fetchAirtableVendors } from "./airtable";
 import { kv } from "./kv";
 
 // Single source of truth for vendor data.
-// If Airtable env vars are set -> read from Airtable (revalidated every 60s).
-// Otherwise (or on Airtable error) -> fall back to a cached snapshot, then the
-// built-in seed data.
 //
-// WHY THE SNAPSHOT: the built-in SEED is a tiny ~21-vendor list. Before this,
-// ANY transient Airtable failure (e.g. a rate-limit spike while the ISR fleet
-// re-fetches) collapsed getAllVendors() to those 21 rows. getVendorBySlug()
-// then returned undefined for the other ~1,160 vendors, the profile page called
-// notFound(), and Next CACHED that 404 — leaving hundreds of real, published
-// listings serving a sticky 404 until something forced a regen. We now keep a
-// last-known-good copy of the full list in KV and fall back to that instead, so
-// an Airtable blip can never shrink the public directory to the seed.
+// RUNTIME reads serve the full list from a KV snapshot via a CACHED fetch to the
+// Upstash REST API — one ~300ms read instead of ~17 paginated Airtable requests
+// (~14s), which is what made cold renders time out under crawl load. A cron
+// (/api/cron/refresh-vendors) keeps the snapshot fresh from Airtable, so no page
+// render ever waits on Airtable pagination. If the snapshot is unavailable we
+// fall back to Airtable, then the built-in seed.
+//
+// BUILD reads use Airtable's cached fetch directly — the KV client uses no-store
+// fetches that throw DYNAMIC_SERVER_USAGE and hang `next build` when run across
+// ~1,184 pages, so KV is strictly runtime-only (see writeSnapshot/isBuildPhase).
+//
+// The snapshot also guards against the sticky-404 storm: the built-in SEED is a
+// tiny ~21-vendor list, and a transient Airtable failure must never collapse the
+// public directory to it (which previously cached 404s for ~1,160 real vendors).
 
 const SNAPSHOT_KEY = "vendors:snapshot";
-// Throttle snapshot writes per warm instance so the ISR fleet doesn't hammer KV
-// with a ~MB write on every render; the data only changes on admin edits.
-let lastSnapshotWrite = 0;
-const SNAPSHOT_WRITE_INTERVAL_MS = 60_000;
 
-async function readSnapshot(): Promise<Vendor[] | null> {
-  const r = kv();
-  if (!r) return null;
+// During `next build`, static generation of ~1,184 pages must NOT touch the KV
+// client (its no-store fetches throw DYNAMIC_SERVER_USAGE and hang the build) —
+// so at build we read Airtable via its cached fetch, and only at runtime do we
+// serve from the KV snapshot.
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
+// Read the snapshot via a CACHED fetch to the Upstash REST API (NOT the no-store
+// client). This is static-generation-safe and lets a cold render serve the full
+// list in one ~300ms read instead of paginating ~17 Airtable requests (~14s).
+// Returns null on any problem so callers fall back to Airtable — the site keeps
+// working even if this path is unavailable.
+async function readSnapshotViaCachedFetch(): Promise<Vendor[] | null> {
+  const url =
+    process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
+  const token =
+    process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
+  if (!url || !token) return null;
   try {
-    const data = await r.get<Vendor[]>(SNAPSHOT_KEY);
-    return Array.isArray(data) && data.length > 0 ? data : null;
+    const res = await fetch(`${url}/get/${SNAPSHOT_KEY}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { result?: unknown };
+    let value: unknown = body?.result;
+    if (value == null) return null;
+    // The KV client JSON-stringifies on set, so `result` is a JSON string; parse
+    // (defensively up to twice in case of double-encoding).
+    for (let i = 0; i < 2 && typeof value === "string"; i++) {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+    if (
+      Array.isArray(value) &&
+      value.length > 0 &&
+      typeof (value[0] as { slug?: unknown })?.slug === "string"
+    ) {
+      return value as Vendor[];
+    }
+    return null;
   } catch (err) {
-    console.error("[oohsource] vendor snapshot read failed:", err);
+    console.error("[oohsource] cached snapshot fetch failed:", err);
     return null;
   }
 }
 
+// Persist the snapshot via the KV client (a no-store write). Only ever called at
+// RUNTIME — the cron refresh and the rare Airtable fallback — never during the
+// build (guarded), so it can't hang static generation.
 async function writeSnapshot(vendors: Vendor[]): Promise<void> {
+  if (isBuildPhase()) return;
   const r = kv();
   if (!r || vendors.length === 0) return;
-  const now = Date.now();
-  if (now - lastSnapshotWrite < SNAPSHOT_WRITE_INTERVAL_MS) return;
-  lastSnapshotWrite = now;
   try {
     await r.set(SNAPSHOT_KEY, vendors);
   } catch (err) {
-    // Non-fatal: a missing snapshot only degrades the fallback path.
     console.error("[oohsource] vendor snapshot write failed:", err);
   }
 }
 
+// Refresh the snapshot from Airtable. Called by the cron so renders never have
+// to paginate Airtable themselves. Returns the number of vendors written.
+export async function refreshVendorSnapshot(): Promise<number> {
+  if (!airtableConfigured()) return 0;
+  const vendors = await fetchAirtableVendors();
+  if (vendors.length > 0) await writeSnapshot(vendors);
+  return vendors.length;
+}
+
 export type VendorSource = "airtable" | "snapshot" | "seed";
 
-// Load the full vendor list plus where it came from. "airtable" is the only
-// authoritative source; "snapshot"/"seed" mean Airtable was unavailable, so a
-// missing slug must NOT be treated as a permanent 404 (see resolveVendorForPage).
+// Load the full vendor list plus where it came from. "airtable"/"snapshot" are
+// authoritative (the full list); "seed" means both Airtable AND the snapshot
+// were unavailable, so a missing slug must NOT be cached as a permanent 404
+// (see resolveVendorForPage).
 export async function loadAllVendors(): Promise<{
   vendors: Vendor[];
   source: VendorSource;
 }> {
-  if (airtableConfigured()) {
+  if (!airtableConfigured()) return { vendors: SEED, source: "seed" };
+
+  // BUILD: read Airtable via its cached (deduped) fetch — never the snapshot,
+  // which is large and would slow static generation.
+  if (isBuildPhase()) {
     try {
       const vendors = await fetchAirtableVendors();
-      if (vendors.length > 0) {
-        await writeSnapshot(vendors);
-        return { vendors, source: "airtable" };
-      }
-      // An empty result is almost always a transient/config fault, not a truly
-      // empty directory — treat it like a failure and fall back.
-      console.error("[oohsource] Airtable returned 0 vendors; using fallback.");
+      if (vendors.length > 0) return { vendors, source: "airtable" };
     } catch (err) {
-      console.error(
-        "[oohsource] Airtable fetch failed, using cached snapshot:",
-        err
-      );
+      console.error("[oohsource] Airtable build fetch failed:", err);
     }
-    const snap = await readSnapshot();
-    if (snap) return { vendors: snap, source: "snapshot" };
+    return { vendors: SEED, source: "seed" };
+  }
+
+  // RUNTIME: snapshot-first (fast cold renders). Fall back to Airtable (and
+  // re-seed the snapshot) only if the snapshot is unavailable.
+  const snap = await readSnapshotViaCachedFetch();
+  if (snap) return { vendors: snap, source: "snapshot" };
+  try {
+    const vendors = await fetchAirtableVendors();
+    if (vendors.length > 0) {
+      await writeSnapshot(vendors);
+      return { vendors, source: "airtable" };
+    }
+    console.error("[oohsource] Airtable returned 0 vendors; using seed.");
+  } catch (err) {
+    console.error("[oohsource] Airtable fetch failed; using seed:", err);
   }
   return { vendors: SEED, source: "seed" };
 }
@@ -103,7 +160,10 @@ export async function resolveVendorForPage(
   const { vendors, source } = await loadAllVendors();
   const vendor = vendors.find((v) => v.slug === slug);
   if (vendor) return vendor;
-  if (source !== "airtable") {
+  // "airtable" and "snapshot" are the full list, so a miss is a real 404. Only
+  // "seed" (both Airtable and the snapshot were unavailable) is degraded — throw
+  // there so Next doesn't cache a 404 for a listing that likely exists.
+  if (source === "seed") {
     throw new Error(
       `Vendor data source degraded (${source}); refusing to cache 404 for "${slug}"`
     );

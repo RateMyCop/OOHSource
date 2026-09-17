@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "crons": [
-    { "path": "/api/cron/ai-visibility", "schedule": "0 6 * * 1" }
+    { "path": "/api/cron/ai-visibility", "schedule": "0 6 * * 1" },
+    { "path": "/api/cron/refresh-vendors", "schedule": "*/2 * * * *" }
   ]
 }

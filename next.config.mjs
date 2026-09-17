@@ -83,6 +83,17 @@ const nextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async redirects() {
+    return [
+      // Renamed to the generic "wheat pasting" (avoid genericizing the Wild
+      // Posting® trademark). 301 so the indexed old URL passes its SEO across.
+      {
+        source: "/formats/wild-posting",
+        destination: "/formats/wheat-pasting",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2592000, // 30 days

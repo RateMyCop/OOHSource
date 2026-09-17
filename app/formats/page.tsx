@@ -9,7 +9,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Browse OOH by Format — Billboards, Transit, DOOH & More",
   description:
-    "Explore out-of-home advertising by format — digital billboards, transit, street furniture, place-based, wild posting and more — and find the companies that operate each.",
+    "Explore out-of-home advertising by format — digital billboards, transit, street furniture, place-based, wheat pasting and more — and find the companies that operate each.",
   alternates: { canonical: `${SITE_URL}/formats` },
 };
 

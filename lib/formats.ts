@@ -205,12 +205,15 @@ export const FORMAT_TYPES: FormatType[] = [
   },
   // Alternative & Experiential
   {
-    slug: "wild-posting",
-    name: "Wild Posting & Street Posters",
+    slug: "wheat-pasting",
+    name: "Wheat Pasting & Street Posters",
     group: "Alternative & Experiential",
     blurb:
-      "Wild posting (fly posting) blankets high-traffic urban walls and construction sites with clusters of street posters for a grassroots, culturally-embedded feel. Browse wild posting specialists.",
-    keywords: ["wild posting", "wheatpaste", "wheat paste", "street poster", "flyposting", "fly posting", "snipe", "wildposting"],
+      "Wheat pasting (fly posting) blankets high-traffic urban walls and construction sites with clusters of street posters for a grassroots, culturally-embedded feel. Browse wheat pasting specialists.",
+    // "wild posting"/"wildposting" are kept only as hidden vendor-matching terms
+    // (never displayed); the public name, blurb and URL use the generic "wheat
+    // pasting" so we don't genericize the Wild Posting® trademark.
+    keywords: ["wheat pasting", "wheatpaste", "wheat paste", "street poster", "flyposting", "fly posting", "snipe", "wild posting", "wildposting"],
   },
   {
     slug: "aerial-advertising",

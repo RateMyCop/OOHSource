@@ -146,7 +146,10 @@ interface AirtableRecord {
   fields?: Record<string, unknown>;
 }
 
-export async function fetchAirtableVendors(): Promise<Vendor[]> {
+// One full paginated pass over the Vendors table. `fresh` bypasses Next's fetch
+// cache (no-store) so a retry gets valid offset tokens; the cached path is used
+// otherwise (and always during the build, where no-store isn't allowed).
+async function fetchVendorPages(fresh: boolean): Promise<Vendor[]> {
   const base = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
     TABLE
   )}`;
@@ -160,7 +163,9 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${TOKEN}` },
-      next: { revalidate: 60 },
+      ...(fresh
+        ? { cache: "no-store" as const }
+        : { next: { revalidate: 60 } }),
     });
 
     if (!res.ok) {
@@ -189,6 +194,37 @@ export async function fetchAirtableVendors(): Promise<Vendor[]> {
   } while (offset);
 
   return out;
+}
+
+// Airtable pagination offset tokens are short-lived: if the list changes (e.g.
+// a record is created) or the fleet is slow between pages, a later page 422s
+// with LIST_RECORDS_ITERATOR_NOT_AVAILABLE. Rate-limit (429) and 5xx blips are
+// similar. On any of these, restart the whole pagination from scratch — using a
+// fresh (uncached) read so the new offset chain is valid — up to a few times.
+export async function fetchAirtableVendors(): Promise<Vendor[]> {
+  const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+  const MAX_ATTEMPTS = 3;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      // First pass uses the cached path (build-safe, deduped across pages);
+      // retries read fresh to get valid offsets — but never during the build.
+      return await fetchVendorPages(attempt > 1 && !isBuild);
+    } catch (err) {
+      lastErr = err;
+      const retryable =
+        /LIST_RECORDS_ITERATOR_NOT_AVAILABLE|responded 429|responded 50\d/i.test(
+          String(err)
+        );
+      if (!retryable || attempt === MAX_ATTEMPTS) throw err;
+      console.error(
+        `[oohsource] Airtable list retry ${attempt}/${MAX_ATTEMPTS}:`,
+        String(err).slice(0, 160)
+      );
+      await new Promise((r) => setTimeout(r, 400 * attempt));
+    }
+  }
+  throw lastErr;
 }
 
 // Fetch a map of Slug -> record id for all Vendors (only the Slug field).

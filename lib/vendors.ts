@@ -3,10 +3,10 @@ import { VENDORS as SEED } from "./data";
 import { airtableConfigured, fetchAirtableVendors } from "./airtable";
 import { kv } from "./kv";
 
-// Single source of truth for vendor data. KV-FIRST: reads serve from a KV
-// snapshot of the full list when it's fresh (one fast read), refreshing from
-// Airtable only when the snapshot is stale or missing; on Airtable failure we
-// serve the last-known-good snapshot, then the built-in seed data.
+// Single source of truth for vendor data.
+// If Airtable env vars are set -> read from Airtable (revalidated every 60s).
+// Otherwise (or on Airtable error) -> fall back to a cached snapshot, then the
+// built-in seed data.
 //
 // WHY THE SNAPSHOT: the built-in SEED is a tiny ~21-vendor list. Before this,
 // ANY transient Airtable failure (e.g. a rate-limit spike while the ISR fleet
@@ -18,28 +18,17 @@ import { kv } from "./kv";
 // an Airtable blip can never shrink the public directory to the seed.
 
 const SNAPSHOT_KEY = "vendors:snapshot";
-// A KV snapshot younger than this serves directly (KV-FIRST): a cold page render
-// does one fast KV read instead of paginating ~17 Airtable requests, which is
-// what caused the crawl "No Response" timeouts and hammered Airtable. Set to the
-// page revalidate window, so admin edits still go live within ~60s as before.
-const SNAPSHOT_FRESH_MS = 60_000;
+// Throttle snapshot writes per warm instance so the ISR fleet doesn't hammer KV
+// with a ~MB write on every render; the data only changes on admin edits.
+let lastSnapshotWrite = 0;
+const SNAPSHOT_WRITE_INTERVAL_MS = 60_000;
 
-type Snapshot = { ts: number; vendors: Vendor[] };
-
-async function readSnapshot(): Promise<Snapshot | null> {
+async function readSnapshot(): Promise<Vendor[] | null> {
   const r = kv();
   if (!r) return null;
   try {
-    const raw = await r.get<Snapshot | Vendor[]>(SNAPSHOT_KEY);
-    // Legacy bare-array snapshots (pre-KV-first) have no timestamp — treat them
-    // as stale (ts:0) so they force a refresh but still serve as a fallback.
-    if (Array.isArray(raw)) {
-      return raw.length > 0 ? { ts: 0, vendors: raw } : null;
-    }
-    if (raw && Array.isArray(raw.vendors) && raw.vendors.length > 0) {
-      return { ts: typeof raw.ts === "number" ? raw.ts : 0, vendors: raw.vendors };
-    }
-    return null;
+    const data = await r.get<Vendor[]>(SNAPSHOT_KEY);
+    return Array.isArray(data) && data.length > 0 ? data : null;
   } catch (err) {
     console.error("[oohsource] vendor snapshot read failed:", err);
     return null;
@@ -49,56 +38,44 @@ async function readSnapshot(): Promise<Snapshot | null> {
 async function writeSnapshot(vendors: Vendor[]): Promise<void> {
   const r = kv();
   if (!r || vendors.length === 0) return;
+  const now = Date.now();
+  if (now - lastSnapshotWrite < SNAPSHOT_WRITE_INTERVAL_MS) return;
+  lastSnapshotWrite = now;
   try {
-    await r.set(SNAPSHOT_KEY, { ts: Date.now(), vendors });
+    await r.set(SNAPSHOT_KEY, vendors);
   } catch (err) {
     // Non-fatal: a missing snapshot only degrades the fallback path.
     console.error("[oohsource] vendor snapshot write failed:", err);
   }
 }
 
-// "airtable" and "snapshot-fresh" are authoritative (a genuine miss is a real
-// 404). "snapshot-stale"/"seed" mean Airtable was unavailable, so a missing slug
-// must NOT be treated as a permanent 404 (see resolveVendorForPage).
-export type VendorSource =
-  | "airtable"
-  | "snapshot-fresh"
-  | "snapshot-stale"
-  | "seed";
+export type VendorSource = "airtable" | "snapshot" | "seed";
 
-// Load the full vendor list plus where it came from. KV-first: a fresh snapshot
-// serves immediately; otherwise we refresh from Airtable and re-cache; if
-// Airtable is unavailable we serve the last-known-good snapshot, then the seed.
+// Load the full vendor list plus where it came from. "airtable" is the only
+// authoritative source; "snapshot"/"seed" mean Airtable was unavailable, so a
+// missing slug must NOT be treated as a permanent 404 (see resolveVendorForPage).
 export async function loadAllVendors(): Promise<{
   vendors: Vendor[];
   source: VendorSource;
 }> {
-  if (!airtableConfigured()) return { vendors: SEED, source: "seed" };
-
-  const cached = await readSnapshot();
-  if (cached && Date.now() - cached.ts < SNAPSHOT_FRESH_MS) {
-    return { vendors: cached.vendors, source: "snapshot-fresh" };
-  }
-
-  // Stale or missing snapshot -> refresh from Airtable and re-cache.
-  try {
-    const vendors = await fetchAirtableVendors();
-    if (vendors.length > 0) {
-      await writeSnapshot(vendors);
-      return { vendors, source: "airtable" };
+  if (airtableConfigured()) {
+    try {
+      const vendors = await fetchAirtableVendors();
+      if (vendors.length > 0) {
+        await writeSnapshot(vendors);
+        return { vendors, source: "airtable" };
+      }
+      // An empty result is almost always a transient/config fault, not a truly
+      // empty directory — treat it like a failure and fall back.
+      console.error("[oohsource] Airtable returned 0 vendors; using fallback.");
+    } catch (err) {
+      console.error(
+        "[oohsource] Airtable fetch failed, using cached snapshot:",
+        err
+      );
     }
-    // An empty result is almost always a transient/config fault, not a truly
-    // empty directory — treat it like a failure and fall back.
-    console.error("[oohsource] Airtable returned 0 vendors; using fallback.");
-  } catch (err) {
-    console.error(
-      "[oohsource] Airtable fetch failed, using cached snapshot:",
-      err
-    );
-  }
-
-  if (cached && cached.vendors.length > 0) {
-    return { vendors: cached.vendors, source: "snapshot-stale" };
+    const snap = await readSnapshot();
+    if (snap) return { vendors: snap, source: "snapshot" };
   }
   return { vendors: SEED, source: "seed" };
 }
@@ -126,11 +103,7 @@ export async function resolveVendorForPage(
   const { vendors, source } = await loadAllVendors();
   const vendor = vendors.find((v) => v.slug === slug);
   if (vendor) return vendor;
-  // A miss is only a real 404 against an authoritative source. A fresh snapshot
-  // is the full list (just up to ~60s old), so it counts; a stale snapshot or
-  // the seed means Airtable was down — don't let Next cache that 404.
-  const authoritative = source === "airtable" || source === "snapshot-fresh";
-  if (!authoritative) {
+  if (source !== "airtable") {
     throw new Error(
       `Vendor data source degraded (${source}); refusing to cache 404 for "${slug}"`
     );

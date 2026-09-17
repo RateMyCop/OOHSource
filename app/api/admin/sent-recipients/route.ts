@@ -14,6 +14,12 @@ export async function GET(req: Request) {
   if (!configured || key !== configured) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
+  // ?dump=1 → just return the durable KV outreach ledger (the authoritative
+  // "already emailed" set for deduping the next drip), no Resend scan.
+  if (new URL(req.url).searchParams.get("dump") === "1") {
+    const ledger = await listOutreachSent();
+    return NextResponse.json({ ok: true, ledgerSize: ledger.length, ledger: ledger.sort() });
+  }
   const RESEND = (process.env.RESEND_API_KEY || "").trim();
   if (!RESEND) {
     return NextResponse.json({ ok: false, error: "RESEND_API_KEY not set" }, { status: 503 });

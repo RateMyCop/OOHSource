@@ -27,8 +27,8 @@ const ROWS: { label: string; free: boolean | string; featured: boolean | string 
 ];
 
 function Cell({ value }: { value: boolean | string }) {
-  if (value === true) return <span className="pc-yes" aria-label="Included">✓</span>;
-  if (value === false) return <span className="pc-no" aria-label="Not included">—</span>;
+  if (value === true) return <span className="pc-yes" role="img" aria-label="Included">✓</span>;
+  if (value === false) return <span className="pc-no" role="img" aria-label="Not included">—</span>;
   return <span className="pc-txt">{value}</span>;
 }
 

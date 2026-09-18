@@ -3,13 +3,13 @@
 // both server components (the vendor badge) and client ones (the directory filter).
 export function InfoTip({ label }: { label: string }) {
   return (
-    <span className="vtip" tabIndex={0} aria-label={label}>
+    <button type="button" className="vtip" aria-label={label}>
       <span className="vtip-mark" aria-hidden="true">
         i
       </span>
       <span className="vtip-pop" aria-hidden="true">
         {label}
       </span>
-    </span>
+    </button>
   );
 }

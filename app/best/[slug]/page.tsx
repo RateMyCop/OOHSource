@@ -143,7 +143,10 @@ export default async function BestListPage({
         transparent blend of verified Google and Yelp ratings (weighted by review
         volume) plus market coverage — not by who pays. Featured listings are
         labeled but are not given an unearned rank. Data is refreshed regularly;
-        see each company&rsquo;s profile for current details.
+        see each company&rsquo;s profile for current details.{" "}
+        <strong>Ranked here?</strong> Open your profile and click{" "}
+        <em>&ldquo;Get your award badge&rdquo;</em> to embed an official
+        OOHsource rank badge on your site.
       </div>
 
       <div className="list-cta">

@@ -5,6 +5,7 @@ export const SITE_URL = "https://oohsource.com";
 export interface RankedList {
   slug: string;
   title: string; // H1 / page title
+  badgeLabel: string; // compact label for the embeddable rank badge
   category: CategorySlug;
   metaDescription: string;
   intro: string;
@@ -17,6 +18,7 @@ export const LISTS: RankedList[] = [
   {
     slug: "top-ooh-media-owners",
     title: "Top 10 OOH Media Owners & Billboard Operators",
+    badgeLabel: "Top OOH Media Owners",
     category: "media-owners-operators",
     metaDescription:
       "The top out-of-home media owners and billboard operators, ranked by verified customer ratings and market coverage.",
@@ -27,6 +29,7 @@ export const LISTS: RankedList[] = [
   {
     slug: "best-large-format-printers",
     title: "Top 10 Large-Format & Billboard Printers",
+    badgeLabel: "Top Large-Format Printers",
     category: "printing-production",
     metaDescription:
       "The best large-format and billboard printers for out-of-home advertising, ranked by verified ratings and coverage.",
@@ -37,6 +40,7 @@ export const LISTS: RankedList[] = [
   {
     slug: "top-dooh-adtech-companies",
     title: "Top 10 DOOH & Ad-Tech Companies",
+    badgeLabel: "Top DOOH & Ad-Tech",
     category: "technology-data",
     metaDescription:
       "The top digital out-of-home (DOOH) and ad-tech companies — DSPs, SSPs, measurement, and screen software — ranked by verified ratings.",
@@ -47,6 +51,7 @@ export const LISTS: RankedList[] = [
   {
     slug: "best-ooh-agencies",
     title: "Top 10 Out-of-Home Advertising Agencies",
+    badgeLabel: "Top OOH Agencies",
     category: "agencies-buyers",
     metaDescription:
       "The best out-of-home advertising agencies and media buyers, ranked by verified customer ratings and coverage.",
@@ -57,6 +62,7 @@ export const LISTS: RankedList[] = [
   {
     slug: "top-billboard-installers",
     title: "Top 10 Billboard Installation & Fabrication Companies",
+    badgeLabel: "Top Billboard Installers",
     category: "installation-fabrication",
     metaDescription:
       "The top billboard installation and fabrication companies — installers, sign fabricators, structure builders — ranked by verified ratings.",
@@ -92,4 +98,17 @@ export function rankVendors(vendors: Vendor[], limit: number): Vendor[] {
   return [...vendors]
     .sort((a, b) => vendorScore(b) - vendorScore(a) || a.name.localeCompare(b.name))
     .slice(0, limit);
+}
+
+// A vendor's 1-based position within a list's ranking, or null if it doesn't
+// place inside the list's limit. `vendors` is the full category pool (same
+// input the /best/[slug] page ranks), so the position matches the page exactly.
+export function rankOfVendor(
+  vendors: Vendor[],
+  slug: string,
+  limit: number
+): number | null {
+  const ranked = rankVendors(vendors, limit);
+  const idx = ranked.findIndex((v) => v.slug === slug);
+  return idx === -1 ? null : idx + 1;
 }

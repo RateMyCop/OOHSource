@@ -585,6 +585,8 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .spec-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .aside-stack { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
 .aside-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.aside-card--award { border-color: var(--accent); box-shadow: inset 0 2px 0 var(--accent); }
+.aside-card--award .k { color: var(--accent-strong); }
 .aside-row { display: flex; flex-direction: column; gap: 3px; }
 .aside-row .k { font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .aside-row .val { font-size: 1rem; color: var(--ink); }

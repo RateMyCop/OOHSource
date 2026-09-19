@@ -53,11 +53,11 @@ export default async function ManageListingPage({
         </Link>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 24 }} id="analytics">
         <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />
       </div>
 
-      <div style={{ marginTop: 40 }}>
+      <div style={{ marginTop: 40 }} id="aivis">
         <AiVisibility vendor={vendor} data={aiv} />
       </div>
 

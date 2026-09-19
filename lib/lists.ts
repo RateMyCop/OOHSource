@@ -112,3 +112,18 @@ export function rankOfVendor(
   const idx = ranked.findIndex((v) => v.slug === slug);
   return idx === -1 ? null : idx + 1;
 }
+
+// A vendor's position across the WHOLE category (not capped at a list limit),
+// plus the category size. Used by the owner dashboard to show "you're #14 of
+// 52" even when outside the Top 10.
+export function fullRankOfVendor(
+  vendors: Vendor[],
+  slug: string
+): { rank: number; total: number } | null {
+  const sorted = [...vendors].sort(
+    (a, b) => vendorScore(b) - vendorScore(a) || a.name.localeCompare(b.name)
+  );
+  const idx = sorted.findIndex((v) => v.slug === slug);
+  if (idx === -1) return null;
+  return { rank: idx + 1, total: sorted.length };
+}

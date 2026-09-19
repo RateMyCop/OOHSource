@@ -18,6 +18,7 @@ const ICONS = {
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   spark: "M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z",
   bulb: "M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0012 2z",
+  inbox: "M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13l3.5 7v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6z",
   tag: "M20 12l-8 8-9-9V3h8zM7.5 7.5h.01",
   chat: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
 } as const;
@@ -58,6 +59,7 @@ export function DashboardNav({
   const performance: Item[] = [
     { label: "Performance Analytics", href: tab("analytics"), icon: "chart", match: () => activeTab === "analytics" },
     { label: "AI Visibility", href: tab("aivis"), icon: "spark", badge: "New", match: () => activeTab === "aivis" },
+    { label: "Leads", href: tab("leads"), icon: "inbox", match: () => activeTab === "leads" },
     { label: "Engagement", href: tab("engagement"), icon: "bulb", match: () => activeTab === "engagement" },
   ];
 

@@ -7,6 +7,7 @@ import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
 import { ClaimListing } from "@/components/ClaimListing";
+import { ContactCompany } from "@/components/ContactCompany";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
@@ -386,6 +387,7 @@ export default async function VendorPage({
             >
               Visit website →
             </TrackedLink>
+            <ContactCompany slug={vendor.slug} name={vendor.name} />
             {vendor.tier !== "Featured" && (
               <FeatureButton slug={vendor.slug} />
             )}

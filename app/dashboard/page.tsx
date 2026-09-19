@@ -14,6 +14,8 @@ import { ProfileStrength } from "@/components/ProfileStrength";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
 import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
+import { OwnerLeads, type OLead } from "@/components/OwnerLeads";
+import { listLeadsForSlug } from "@/lib/leads";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
 import { AiVisibility } from "@/components/AiVisibility";
@@ -36,6 +38,7 @@ const TABS: Record<string, string> = {
   reviews: "Reviews",
   packages: "Packages",
   analytics: "Performance analytics",
+  leads: "Leads",
   aivis: "AI visibility",
   engagement: "Engagement",
 };
@@ -152,6 +155,17 @@ export default async function DashboardPage({
       {tab === "packages" && (
         <div className="dash-panel">
           <PackagesPanel slug={activeSlug} />
+        </div>
+      )}
+
+      {tab === "leads" && (
+        <div className="dash-panel">
+          <OwnerLeads
+            leads={(await listLeadsForSlug(activeSlug)).map((l): OLead => ({
+              id: l.id, name: l.name, email: l.email, company: l.company,
+              message: l.message, created: l.created, read: l.read,
+            }))}
+          />
         </div>
       )}
 

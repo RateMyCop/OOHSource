@@ -254,6 +254,33 @@ export async function sendMonthlyReport(
   return true;
 }
 
+// Notify a company of a new buyer inquiry from their profile. Reply-To is the
+// buyer's email so the owner can just hit reply.
+export async function sendLeadNotification(
+  to: string,
+  company: string,
+  slug: string,
+  lead: { name: string; email: string; company?: string; message: string }
+): Promise<void> {
+  const dash = `${SITE_URL}/dashboard?tab=leads`;
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">You have a new inquiry for <strong>${escapeHtml(company)}</strong> on OOHsource.</p>
+    <table style="width:100%;font-size:15px;border-collapse:collapse;margin:8px 0 16px;">
+      <tr><td style="padding:3px 0;color:#4a4c52;width:90px;">From</td><td style="padding:3px 0;"><strong>${escapeHtml(lead.name)}</strong>${lead.company ? ` · ${escapeHtml(lead.company)}` : ""}</td></tr>
+      <tr><td style="padding:3px 0;color:#4a4c52;">Email</td><td style="padding:3px 0;"><a href="mailto:${escapeHtml(lead.email)}" style="color:#A9660E;">${escapeHtml(lead.email)}</a></td></tr>
+    </table>
+    <div style="font-size:15px;line-height:1.6;background:#faf9f4;border:1px solid #e4e2db;border-radius:6px;padding:14px 16px;white-space:pre-wrap;">${escapeHtml(lead.message)}</div>
+    <p style="margin:22px 0 8px;font-size:15px;">Just reply to this email to reach them directly, or manage inquiries in your dashboard:</p>
+    <p style="margin:0 0 8px;"><a href="${dash}" style="color:#A9660E;">${dash}</a></p>`);
+  await sendEmailFrom(
+    "OOHsource <hello@oohsource.com>",
+    to,
+    `New inquiry for ${company} on OOHsource`,
+    html,
+    lead.email // reply goes straight to the buyer
+  );
+}
+
 function wrap(bodyHtml: string): string {
   return `<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 28px 24px; color: #17191E;">
     <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 22px;">

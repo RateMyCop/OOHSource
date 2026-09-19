@@ -23,13 +23,15 @@ export function VendorLogo({
 }) {
   const domain = domainFromUrl(website || "");
   const https = (u?: string) => (u ? u.replace(/^http:\/\//i, "https://") : "");
-  // Try, in order: explicit logo -> domain favicon -> monogram.
-  // (Clearbit's logo API was retired in 2024, so it 404'd on every card;
-  // Google's favicon service always returns a 200 image, so no broken <img>.)
-  const sources = [
-    https(logo),
-    domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : "",
-  ].filter(Boolean) as string[];
+  // Load via our cached /api/logo proxy (explicit logo -> DuckDuckGo -> Google,
+  // server-side with a timeout, then CDN-cached for a year). One same-origin
+  // request instead of a slow third-party redirect; monogram on total failure.
+  const params = new URLSearchParams();
+  if (domain) params.set("d", domain);
+  if (logo) params.set("u", https(logo));
+  const sources = (domain || logo
+    ? [`/api/logo?${params.toString()}`]
+    : []) as string[];
 
   const [idx, setIdx] = useState(0);
   const letter = (name.trim()[0] || "?").toUpperCase();
@@ -55,6 +57,7 @@ export function VendorLogo({
       width={size}
       height={size}
       loading="lazy"
+      decoding="async"
       onError={() => setIdx((i) => i + 1)}
     />
   );

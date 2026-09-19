@@ -257,13 +257,33 @@ async function OverviewPanel({ slugs }: { slugs: string[] }) {
   );
 }
 
+function bestRating(v: { googleRating?: number; yelpRating?: number; facebookRating?: number }) {
+  return v.googleRating ?? v.yelpRating ?? v.facebookRating;
+}
+function bestReviews(v: { googleRating?: number; googleReviews?: number; yelpRating?: number; yelpReviews?: number; facebookRating?: number; facebookReviews?: number }) {
+  if (v.googleRating != null) return v.googleReviews ?? 0;
+  if (v.yelpRating != null) return v.yelpReviews ?? 0;
+  if (v.facebookRating != null) return v.facebookReviews ?? 0;
+  return 0;
+}
+
 async function RankingsPanel({ slug }: { slug: string }) {
   const vendor = await getVendorBySlug(slug);
   if (!vendor) return null;
   const list = listForCategory(vendor.categorySlug);
   const catName = getCategory(vendor.categorySlug)?.name || "your category";
-  const fr = list ? fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug) : null;
+  const cat = list ? await getVendorsByCategory(vendor.categorySlug) : [];
+  const fr = list && cat.length ? fullRankOfVendor(cat, slug) : null;
   const year = new Date().getUTCFullYear();
+
+  // Category benchmark (uses ratings we already have).
+  const rated = cat.map(bestRating).filter((n): n is number => typeof n === "number");
+  const avgRating = rated.length ? rated.reduce((a, b) => a + b, 0) / rated.length : 0;
+  const revs = cat.map(bestReviews);
+  const avgReviews = revs.length ? revs.reduce((a, b) => a + b, 0) / revs.length : 0;
+  const myRating = bestRating(vendor);
+  const myReviews = bestReviews(vendor);
+  const pctTop = fr ? Math.max(1, Math.round((fr.rank / fr.total) * 100)) : 100;
   if (!list || !fr) {
     return (
       <>
@@ -305,6 +325,27 @@ async function RankingsPanel({ slug }: { slug: string }) {
           <Link className="btn btn--primary btn--sm" href={`/dashboard?tab=packages&slug=${slug}`}>See Packages →</Link>
         </div>
       )}
+
+      <div className="dash-section" style={{ marginTop: 26 }}>
+        <h3 className="dash-section-h">How you compare</h3>
+        <div className="bench">
+          <div className="bench-row">
+            <span className="bench-lab">Category rank</span>
+            <span className="bench-you">#{fr.rank}<small> of {fr.total}</small></span>
+            <span className="bench-vs">top {pctTop}% of {catName}</span>
+          </div>
+          <div className="bench-row">
+            <span className="bench-lab">Average rating</span>
+            <span className="bench-you">{myRating != null ? myRating.toFixed(1) : "—"}</span>
+            <span className="bench-vs">category avg {avgRating.toFixed(1)}{myRating != null && myRating >= avgRating ? " · above average ▲" : ""}</span>
+          </div>
+          <div className="bench-row">
+            <span className="bench-lab">Reviews</span>
+            <span className="bench-you">{myReviews}</span>
+            <span className="bench-vs">category avg {Math.round(avgReviews)}{myReviews >= avgReviews ? " · above average ▲" : ""}</span>
+          </div>
+        </div>
+      </div>
 
       <div className="dash-section" style={{ marginTop: 26 }}>
         <h3 className="dash-section-h">Show you&rsquo;re listed</h3>

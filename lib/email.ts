@@ -1,5 +1,6 @@
 import { isSuppressed, makeUnsubToken, recordOutreachSent } from "./outreach";
 import { kv } from "./kv";
+import type { ListingReport } from "./reports";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || "OOHsource <verify@oohsource.com>";
@@ -191,6 +192,65 @@ export async function sendReviewInvite(
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     }
   );
+  return true;
+}
+
+// Monthly performance recap to an owner, covering all their listings. Honors
+// unsubscribes; sent from hello@ with a working List-Unsubscribe.
+export async function sendMonthlyReport(
+  to: string,
+  listings: ListingReport[]
+): Promise<boolean> {
+  if (await isSuppressed(to)) return false;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const dash = `${SITE_URL}/dashboard`;
+
+  const arrow = (n: number) =>
+    n > 0
+      ? `<span style="color:#3f9d6a;">&#9650; ${n}%</span>`
+      : n < 0
+      ? `<span style="color:#c0563d;">&#9660; ${Math.abs(n)}%</span>`
+      : `<span style="color:#9AA0A8;">&mdash;</span>`;
+
+  const rankRow = (l: ListingReport) => {
+    if (l.rank === null) return "";
+    const delta =
+      l.rankDelta && l.rankDelta !== 0
+        ? l.rankDelta > 0
+          ? ` <span style="color:#3f9d6a;">&#9650; ${l.rankDelta} vs last month</span>`
+          : ` <span style="color:#c0563d;">&#9660; ${Math.abs(l.rankDelta)} vs last month</span>`
+        : "";
+    const listName = l.listTitle ? ` in ${escapeHtml(l.listTitle.replace(/^Top 10 /, ""))}` : "";
+    return `<tr><td style="padding:4px 0;color:#4a4c52;">Category rank</td><td style="padding:4px 0;text-align:right;"><strong>#${l.rank}</strong> of ${l.total}${listName}${delta}</td></tr>`;
+  };
+
+  const blocks = listings
+    .map(
+      (l) => `
+    <div style="border:1px solid #e4e2db;border-radius:4px;padding:16px 18px;margin:0 0 16px;">
+      <div style="font-size:17px;font-weight:800;margin-bottom:10px;">${escapeHtml(l.name)}</div>
+      <table style="width:100%;font-size:14px;border-collapse:collapse;">
+        <tr><td style="padding:4px 0;color:#4a4c52;">Profile views (30d)</td><td style="padding:4px 0;text-align:right;"><strong>${l.views}</strong> &nbsp;${arrow(l.viewsPct)}</td></tr>
+        <tr><td style="padding:4px 0;color:#4a4c52;">Website &amp; email clicks</td><td style="padding:4px 0;text-align:right;"><strong>${l.clicks}</strong></td></tr>
+        ${rankRow(l)}
+        <tr><td style="padding:4px 0;color:#4a4c52;">New reviews</td><td style="padding:4px 0;text-align:right;"><strong>${l.newReviews}</strong>${l.pendingReviews ? ` <span style="color:#8a6d33;">(${l.pendingReviews} pending)</span>` : ""}</td></tr>
+      </table>
+    </div>`
+    )
+    .join("");
+
+  const html = wrap(`
+    <p style="font-size:16px;line-height:1.6;">Here&rsquo;s how your ${listings.length > 1 ? "listings are" : "listing is"} doing on <strong>OOHsource</strong> over the last 30 days.</p>
+    ${blocks}
+    <p style="margin:22px 0;">
+      <a href="${dash}" style="background:#6b5124;color:#fbf7ee;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:4px;display:inline-block;">Open your dashboard &rarr;</a>
+    </p>
+    <p style="font-size:13px;color:#9AA0A8;line-height:1.5;">You&rsquo;re getting this monthly recap because you manage a listing on OOHsource. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a>.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+
+  await sendEmailFrom(OUTREACH_FROM, to, "Your OOHsource recap — last 30 days", html, "hello@oohsource.com", {
+    "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  });
   return true;
 }
 

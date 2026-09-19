@@ -1,5 +1,6 @@
 import type { Vendor } from "@/lib/types";
 import type { VendorAiVis } from "@/lib/aivis";
+import { Sparkline } from "./Sparkline";
 
 function Gauge({ value, band }: { value: number; band: string }) {
   const cx = 110, cy = 100, r = 82;
@@ -70,15 +71,31 @@ export function AiVisibility({ vendor, data }: { vendor: Vendor; data: VendorAiV
         </div>
       </div>
 
+      {data.trend.length >= 2 && (
+        <div className="aiv-trend">
+          <span className="aiv-sub">Your AI citations over time</span>
+          <div className="aiv-trend-row">
+            <Sparkline data={data.trend} />
+            <span className="aiv-trend-nums">{data.trend.join(" → ")}</span>
+          </div>
+        </div>
+      )}
+
       {data.prompts.length > 0 && (
         <div className="aiv-prompts">
-          <span className="aiv-sub">AI prompts relevant to you</span>
+          <span className="aiv-sub">What AI says when buyers ask about you</span>
           <ul>
             {data.prompts.map((p, i) => (
               <li key={i}>
                 <span className={`aiv-flag ${p.mentioned ? "yes" : "no"}`}>{p.mentioned ? "✓ Mentioned" : "Not mentioned"}</span>
                 <span className="aiv-q">{p.q}</span>
                 {!p.mentioned && p.oohsource && <span className="aiv-note">OOHsource is cited here — a complete listing gets you named</span>}
+                {p.answer && (
+                  <details className="aiv-answer">
+                    <summary>See what the AI said</summary>
+                    <p>{p.answer}{p.answer.length >= 800 ? "…" : ""}</p>
+                  </details>
+                )}
               </li>
             ))}
           </ul>

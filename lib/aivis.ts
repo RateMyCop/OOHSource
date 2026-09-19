@@ -35,6 +35,14 @@ export type PromptResult = {
   cat: PromptCat;
   mentioned: string[]; // vendor slugs named/cited in the AI answer
   oohsource: boolean; // did OOHsource / oohsource.com appear as a source?
+  answer?: string; // a snippet of what the AI actually said
+};
+
+// A compact per-run record kept for the citation trend over time.
+export type AiVisHistoryEntry = {
+  at: string;
+  ohsCitations: number;
+  counts: Record<string, number>; // only cited slugs, so it stays small
 };
 
 export type AiVisLatest = {
@@ -67,6 +75,35 @@ export async function readAiVis(): Promise<AiVisLatest | null> {
   }
 }
 
+const HISTORY_KEY = "aivis:history";
+
+export async function appendAiVisHistory(entry: AiVisHistoryEntry): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  let hist: AiVisHistoryEntry[] = [];
+  try {
+    const raw = await r.get<string | AiVisHistoryEntry[]>(HISTORY_KEY);
+    if (raw) hist = typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    hist = [];
+  }
+  hist.push(entry);
+  if (hist.length > 8) hist = hist.slice(-8);
+  await r.set(HISTORY_KEY, JSON.stringify(hist));
+}
+
+export async function readAiVisHistory(): Promise<AiVisHistoryEntry[]> {
+  const r = kv();
+  if (!r) return [];
+  try {
+    const raw = await r.get<string | AiVisHistoryEntry[]>(HISTORY_KEY);
+    if (!raw) return [];
+    return typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    return [];
+  }
+}
+
 export type ScoreBand = "Needs Work" | "Fair" | "Good" | "Great" | "Excellent";
 
 export function scoreBand(citations: number): { band: ScoreBand; pct: number } {
@@ -90,16 +127,21 @@ export type VendorAiVis = {
   catAvg: number;
   catTop: number;
   ohsCitations: number;
-  prompts: { q: string; mentioned: boolean; oohsource: boolean }[];
+  trend: number[]; // owner's citation count per historical run, oldest → newest
+  prompts: { q: string; mentioned: boolean; oohsource: boolean; answer?: string }[];
 };
 
-// Combine the latest run into one vendor's view.
-export function vendorAiVis(vendor: Vendor, data: AiVisLatest | null): VendorAiVis {
+// Combine the latest run (and optional history) into one vendor's view.
+export function vendorAiVis(
+  vendor: Vendor,
+  data: AiVisLatest | null,
+  history: AiVisHistoryEntry[] = []
+): VendorAiVis {
   if (!data) {
     return {
       ran: false, at: null, citations: 0, band: "Needs Work", gauge: 0.08,
       rank: 0, totalVendors: 0, percentileTop: 100, catAvg: 0, catTop: 0,
-      ohsCitations: 0, prompts: [],
+      ohsCitations: 0, trend: [], prompts: [],
     };
   }
   const citations = data.counts[vendor.slug] || 0;
@@ -117,7 +159,9 @@ export function vendorAiVis(vendor: Vendor, data: AiVisLatest | null): VendorAiV
       q: p.q,
       mentioned: p.mentioned.includes(vendor.slug),
       oohsource: p.oohsource,
+      answer: p.answer,
     }));
+  const trend = history.map((h) => h.counts[vendor.slug] || 0);
   return {
     ran: true,
     at: data.at,
@@ -130,6 +174,7 @@ export function vendorAiVis(vendor: Vendor, data: AiVisLatest | null): VendorAiV
     catAvg: Math.round(cs.avg * 10) / 10,
     catTop: cs.top,
     ohsCitations: data.ohsCitations,
+    trend,
     prompts: relevant,
   };
 }

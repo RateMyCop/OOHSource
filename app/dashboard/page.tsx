@@ -8,7 +8,7 @@ import { getCategory } from "@/lib/data";
 import { getStats } from "@/lib/stats";
 import { listForCategory, fullRankOfVendor } from "@/lib/lists";
 import { listReviewsForSlug } from "@/lib/reviews";
-import { readAiVis, vendorAiVis } from "@/lib/aivis";
+import { readAiVis, readAiVisHistory, vendorAiVis } from "@/lib/aivis";
 import { Sparkline } from "@/components/Sparkline";
 import { ProfileStrength } from "@/components/ProfileStrength";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
@@ -166,7 +166,10 @@ export default async function DashboardPage({
 
       {tab === "aivis" && (
         <div className="dash-panel">
-          <AiVisibility vendor={vendor} data={vendorAiVis(vendor, await readAiVis())} />
+          {await (async () => {
+            const [aiv, hist] = await Promise.all([readAiVis(), readAiVisHistory()]);
+            return <AiVisibility vendor={vendor} data={vendorAiVis(vendor, aiv, hist)} />;
+          })()}
         </div>
       )}
 

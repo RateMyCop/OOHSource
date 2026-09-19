@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAllVendors } from "@/lib/vendors";
 import { CATEGORIES } from "@/lib/data";
-import { PROMPTS, writeAiVis, type PromptResult, type AiVisLatest } from "@/lib/aivis";
+import { PROMPTS, writeAiVis, appendAiVisHistory, type PromptResult, type AiVisLatest } from "@/lib/aivis";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -91,8 +91,10 @@ export async function GET(req: Request) {
       const p = PROMPTS[idx++];
       const hits = new Set<string>();
       let ohs = false;
+      let answer = "";
       try {
         const { text, urls } = await askOne(client, p.q);
+        answer = text.trim();
         const t = norm(text);
         const lurls = urls.map((u) => u.toLowerCase());
         // OOHsource directory URLs -> the exact vendor cited via OOHsource.
@@ -111,7 +113,7 @@ export async function GET(req: Request) {
       }
       if (ohs) ohsCitations++;
       for (const slug of Array.from(hits)) counts[slug] = (counts[slug] || 0) + 1;
-      prompts[PROMPTS.indexOf(p)] = { id: p.id, q: p.q, cat: p.cat, mentioned: Array.from(hits), oohsource: ohs };
+      prompts[PROMPTS.indexOf(p)] = { id: p.id, q: p.q, cat: p.cat, mentioned: Array.from(hits), oohsource: ohs, answer: answer.slice(0, 800) || undefined };
     }
   }
   await Promise.all(Array.from({ length: CONC }, worker));
@@ -140,6 +142,7 @@ export async function GET(req: Request) {
     prompts: prompts.filter(Boolean),
   };
   await writeAiVis(data);
+  await appendAiVisHistory({ at: data.at, ohsCitations, counts });
 
   return NextResponse.json({
     ok: true,

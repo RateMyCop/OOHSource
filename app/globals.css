@@ -153,6 +153,14 @@ input, textarea { caret-color: var(--accent-strong); }
 .aiv-flag.no { color: var(--ink-3); background: var(--paper-2); border: 1px solid var(--line); }
 .aiv-q { color: var(--ink); flex: 1; min-width: 200px; }
 .aiv-note { flex-basis: 100%; font-size: 0.8rem; color: var(--accent-strong); padding-left: 2px; }
+.aiv-trend-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.aiv-trend-nums { font-family: var(--font-mono), monospace; font-size: 0.85rem; color: var(--ink-2); }
+.aiv-answer { flex-basis: 100%; margin-top: 4px; }
+.aiv-answer summary { cursor: pointer; font-size: 0.82rem; color: var(--accent-strong); font-weight: 600; list-style: none; }
+.aiv-answer summary::-webkit-details-marker { display: none; }
+.aiv-answer summary::before { content: "▸ "; }
+.aiv-answer[open] summary::before { content: "▾ "; }
+.aiv-answer p { margin: 8px 0 0; font-size: 0.88rem; line-height: 1.6; color: var(--ink-2); background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; white-space: pre-wrap; }
 .aiv-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .aiv-action { display: flex; flex-direction: column; gap: 5px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); text-decoration: none; transition: border-color 0.15s; }
 .aiv-action:hover { border-color: var(--accent); }

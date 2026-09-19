@@ -29,7 +29,7 @@ export default function BestIndexPage() {
   return (
     <section className="wrap">
       <JsonLd data={collection} />
-      <div className="page-head">
+      <div className="page-head best-hub">
         <div className="crumb">
           <Link href="/">Home</Link>
           <span>/</span>

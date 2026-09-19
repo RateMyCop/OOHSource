@@ -571,12 +571,13 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .lightbox img { max-width: 92vw; max-height: 90vh; object-fit: contain; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 .lightbox-close { position: fixed; top: 18px; right: 22px; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 1.1rem; cursor: pointer; }
 .lightbox-close:hover { background: rgba(255,255,255,0.26); }
-.lightbox-nav { position: fixed; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; border-radius: 50%; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 2rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding-bottom: 4px; transition: background 0.15s; }
-.lightbox-nav:hover { background: rgba(255,255,255,0.3); }
-.lightbox-prev { left: 20px; }
-.lightbox-next { right: 20px; }
-.lightbox-count { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.82); font-family: var(--font-mono), monospace; font-size: 0.78rem; letter-spacing: 0.06em; }
-@media (max-width: 560px) { .lightbox-nav { width: 44px; height: 44px; font-size: 1.6rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } }
+.lightbox-stage { position: relative; display: inline-flex; align-items: center; justify-content: center; max-width: 92vw; max-height: 90vh; }
+.lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: #fff; font-size: 1.9rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding-bottom: 4px; transition: background 0.15s; z-index: 2; }
+.lightbox-nav:hover { background: rgba(0,0,0,0.72); }
+.lightbox-prev { left: 12px; }
+.lightbox-next { right: 12px; }
+.lightbox-count { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: #fff; padding: 3px 10px; border-radius: 999px; font-family: var(--font-mono), monospace; font-size: 0.72rem; letter-spacing: 0.06em; }
+@media (max-width: 560px) { .lightbox-nav { width: 40px; height: 40px; font-size: 1.5rem; } .lightbox-prev { left: 6px; } .lightbox-next { right: 6px; } }
 
 /* ===================== RANKED LISTS ===================== */
 .cat-toplink { display: inline-flex; align-items: center; gap: 6px; margin-top: 20px; font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 8px 16px; text-decoration: none; }

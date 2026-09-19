@@ -74,46 +74,38 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
             ✕
           </button>
 
-          {visible.length > 1 && (
-            <button
-              className="lightbox-nav lightbox-prev"
-              type="button"
-              aria-label="Previous image"
-              onClick={(e) => {
-                e.stopPropagation();
-                go(-1);
-              }}
-            >
-              ‹
-            </button>
-          )}
+          <div className="lightbox-stage" onClick={(e) => e.stopPropagation()}>
+            {visible.length > 1 && (
+              <button
+                className="lightbox-nav lightbox-prev"
+                type="button"
+                aria-label="Previous image"
+                onClick={() => go(-1)}
+              >
+                ‹
+              </button>
+            )}
 
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={secureImages[open]}
-            alt={`${name} work`}
-            onClick={(e) => e.stopPropagation()}
-          />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={secureImages[open]} alt={`${name} work`} />
 
-          {visible.length > 1 && (
-            <button
-              className="lightbox-nav lightbox-next"
-              type="button"
-              aria-label="Next image"
-              onClick={(e) => {
-                e.stopPropagation();
-                go(1);
-              }}
-            >
-              ›
-            </button>
-          )}
+            {visible.length > 1 && (
+              <button
+                className="lightbox-nav lightbox-next"
+                type="button"
+                aria-label="Next image"
+                onClick={() => go(1)}
+              >
+                ›
+              </button>
+            )}
 
-          {visible.length > 1 && pos >= 0 && (
-            <span className="lightbox-count" onClick={(e) => e.stopPropagation()}>
-              {pos + 1} / {visible.length}
-            </span>
-          )}
+            {visible.length > 1 && pos >= 0 && (
+              <span className="lightbox-count">
+                {pos + 1} / {visible.length}
+              </span>
+            )}
+          </div>
         </div>
       )}
     </>

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getSessionEmail } from "@/lib/auth";
 import { ownedSlugsForEmail } from "@/lib/owner";
 import { findVendorRecordIdBySlug, updateAirtableRecord } from "@/lib/airtable";
+import { refreshVendorSnapshot } from "@/lib/vendors";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Listing not found." }, { status: 404 });
     }
     await updateAirtableRecord(id, fields);
+    // Refresh the vendor snapshot now so the edit shows within seconds, instead
+    // of waiting up to ~2 min for the refresh-vendors cron. Best-effort.
+    try {
+      await refreshVendorSnapshot();
+    } catch (e) {
+      console.error("[oohsource] snapshot refresh after edit failed:", e);
+    }
     // Push the change to the public page immediately (otherwise ~60s ISR).
     revalidatePath(`/directory/${slug}`);
     return NextResponse.json({ ok: true });

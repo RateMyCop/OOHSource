@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { LISTS, rankVendors } from "@/lib/lists";
 import { getVendorsByCategory } from "@/lib/vendors";
 import { sendBadgeAwardEmail, emailConfigured } from "@/lib/email";
-import { isSuppressed } from "@/lib/outreach";
+import { isSuppressed, hasCampaignSent, recordCampaignSent } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+// Year-scoped campaign so the badge send re-runs next year but never
+// double-sends within a year (idempotent across retries/timeouts).
+const CAMPAIGN = `badge-${new Date().getUTCFullYear()}`;
 
 // Emails the top-N of each "Best of" list their award badge.
 //   GET            -> dry run: the exact plan (who would get emailed and why not).
@@ -19,7 +24,7 @@ function authed(req: Request): boolean {
   return Boolean(configured) && key === configured;
 }
 
-type Status = "ready" | "no-email" | "suppressed" | "duplicate";
+type Status = "ready" | "no-email" | "suppressed" | "duplicate" | "already-sent";
 type Row = {
   list: string;
   listTitle: string;
@@ -45,6 +50,7 @@ async function buildPlan(): Promise<Row[]> {
       if (!email) status = "no-email";
       else if (seen.has(email)) status = "duplicate";
       else if (await isSuppressed(email)) status = "suppressed";
+      else if (await hasCampaignSent(CAMPAIGN, email)) status = "already-sent";
       else {
         status = "ready";
         seen.add(email);
@@ -70,6 +76,7 @@ function totals(rows: Row[]) {
     noEmail: rows.filter((r) => r.status === "no-email").length,
     suppressed: rows.filter((r) => r.status === "suppressed").length,
     duplicate: rows.filter((r) => r.status === "duplicate").length,
+    alreadySent: rows.filter((r) => r.status === "already-sent").length,
   };
 }
 
@@ -123,6 +130,7 @@ export async function POST(req: Request) {
         year,
       });
       if (ok) {
+        await recordCampaignSent(CAMPAIGN, r.email);
         sent++;
         results.push({ ...r, sent: true });
       } else {

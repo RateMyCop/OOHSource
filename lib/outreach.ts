@@ -90,6 +90,35 @@ export async function listOutreachSent(): Promise<string[]> {
   }
 }
 
+// Per-campaign send marker. Unlike SENT_INDEX (shared across all outreach), this
+// is scoped to a named campaign so a NEW message can still reach addresses that
+// got an earlier drip — while staying idempotent within the campaign, so a
+// retry after a mid-run timeout never double-sends.
+export async function hasCampaignSent(
+  campaign: string,
+  email: string
+): Promise<boolean> {
+  const r = kv();
+  if (!r) return false;
+  try {
+    return (
+      (await r.sismember(`campaign:${campaign}:sent`, email.toLowerCase().trim())) ===
+      1
+    );
+  } catch {
+    return false;
+  }
+}
+
+export async function recordCampaignSent(
+  campaign: string,
+  email: string
+): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  await r.sadd(`campaign:${campaign}:sent`, email.toLowerCase().trim());
+}
+
 async function listIndexed(
   index: string,
   prefix: string

@@ -196,28 +196,97 @@ export async function resubscribe(email: string): Promise<void> {
   ]);
 }
 
-// Record that a vendor clicked through from their outreach email (arrived with
-// ?ref=email on their listing). Tracks visit count + last-seen per listing.
-export async function recordEmailVisit(slug: string): Promise<void> {
+// KV key scheme for click-through visits, namespaced by outreach source. The
+// original "claim your listing" drip used ?ref=email and the legacy keys; other
+// campaigns (e.g. the badge email, ?ref=badge-email) get their own namespace so
+// their engagement is counted separately.
+function visitKeys(source: string) {
+  if (source === "email") {
+    return {
+      n: (s: string) => `emvn:${s}`,
+      l: (s: string) => `emvl:${s}`,
+      idx: "emv:index",
+    };
+  }
+  const p = source.replace(/[^a-z0-9-]/gi, "");
+  return {
+    n: (s: string) => `emv:${p}:n:${s}`,
+    l: (s: string) => `emv:${p}:l:${s}`,
+    idx: `emv:${p}:index`,
+  };
+}
+
+// Record that a vendor clicked through from an outreach email (arrived with a
+// ?ref on their listing). Tracks count + last-seen per listing, per source.
+export async function recordEmailVisit(
+  slug: string,
+  source = "email"
+): Promise<void> {
   const r = kv();
   if (!r) return;
   const at = new Date().toISOString();
-  await r.incr(`emvn:${slug}`);
-  await r.set(`emvl:${slug}`, at);
-  await r.sadd("emv:index", slug);
+  const k = visitKeys(source);
+  await r.incr(k.n(slug));
+  await r.set(k.l(slug), at);
+  await r.sadd(k.idx, slug);
 }
 
-export async function listEmailVisits(): Promise<
-  { slug: string; count: number; last: string | null }[]
+export async function listEmailVisits(
+  source = "email"
+): Promise<{ slug: string; count: number; last: string | null }[]> {
+  const r = kv();
+  if (!r) return [];
+  const k = visitKeys(source);
+  const slugs = (await r.smembers(k.idx)) as string[];
+  if (!slugs.length) return [];
+  const counts = (await r.mget<(number | null)[]>(...slugs.map((s) => k.n(s)))) || [];
+  const lasts = (await r.mget<(string | null)[]>(...slugs.map((s) => k.l(s)))) || [];
+  return slugs
+    .map((slug, i) => ({ slug, count: Number(counts[i] ?? 0), last: lasts[i] ?? null }))
+    .sort((a, b) => (b.last || "").localeCompare(a.last || ""));
+}
+
+// Record that a company's badge SVG was served to an EXTERNAL site — i.e. they
+// embedded it. `host` is the referring domain: the strongest "they engaged"
+// signal, because it means the badge (and the backlink) is live on their site.
+// Only external hosts are passed in (the badge route filters our own origin).
+export async function recordBadgeImpression(
+  slug: string,
+  host: string
+): Promise<void> {
+  const r = kv();
+  if (!r) return;
+  const at = new Date().toISOString();
+  await r.incr(`badge:n:${slug}`);
+  await r.set(`badge:l:${slug}`, at);
+  await r.sadd(`badge:hosts:${slug}`, host);
+  await r.sadd("badge:index", slug);
+}
+
+export async function listBadgeImpressions(): Promise<
+  { slug: string; count: number; last: string | null; hosts: string[] }[]
 > {
   const r = kv();
   if (!r) return [];
-  const slugs = (await r.smembers("emv:index")) as string[];
+  const slugs = (await r.smembers("badge:index")) as string[];
   if (!slugs.length) return [];
-  const counts = (await r.mget<(number | null)[]>(...slugs.map((s) => `emvn:${s}`))) || [];
-  const lasts = (await r.mget<(string | null)[]>(...slugs.map((s) => `emvl:${s}`))) || [];
+  const counts = (await r.mget<(number | null)[]>(...slugs.map((s) => `badge:n:${s}`))) || [];
+  const lasts = (await r.mget<(string | null)[]>(...slugs.map((s) => `badge:l:${s}`))) || [];
+  const hosts: string[][] = [];
+  for (const s of slugs) {
+    try {
+      hosts.push(((await r.smembers(`badge:hosts:${s}`)) as string[]) || []);
+    } catch {
+      hosts.push([]);
+    }
+  }
   return slugs
-    .map((slug, i) => ({ slug, count: Number(counts[i] ?? 0), last: lasts[i] ?? null }))
+    .map((slug, i) => ({
+      slug,
+      count: Number(counts[i] ?? 0),
+      last: lasts[i] ?? null,
+      hosts: hosts[i],
+    }))
     .sort((a, b) => (b.last || "").localeCompare(a.last || ""));
 }
 

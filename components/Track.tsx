@@ -35,8 +35,11 @@ export function TrackView({ slug }: { slug: string }) {
     fired.current = true;
     send(slug, "view");
     try {
-      if (new URLSearchParams(window.location.search).get("ref") === "email") {
-        const body = JSON.stringify({ slug });
+      // Attribute the click-through to its outreach source. "email" = the
+      // original claim drip; "badge-email" = the top-list award-badge campaign.
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (ref === "email" || ref === "badge-email") {
+        const body = JSON.stringify({ slug, source: ref });
         if (navigator.sendBeacon) {
           navigator.sendBeacon("/api/em-visit", new Blob([body], { type: "application/json" }));
         } else {

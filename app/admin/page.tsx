@@ -5,7 +5,7 @@ import { getSessionEmail, isAdmin } from "@/lib/auth";
 import { getAllVendors } from "@/lib/vendors";
 import { getAdminActivity } from "@/lib/stats";
 import { fetchClaims, fetchPendingVendors, fetchReports } from "@/lib/airtable";
-import { listBounces, listComplaints, listEmailVisits, listUnsubscribes } from "@/lib/outreach";
+import { listBounces, listComplaints, listEmailVisits, listBadgeImpressions, listUnsubscribes } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +24,12 @@ export default async function AdminPage() {
   const slugs = vendors.map((v) => v.slug);
   const nameBySlug = new Map(vendors.map((v) => [v.slug, v.name]));
 
-  const [activity, visited, unsubs, bounces, complaints, claims, submissions, reports] =
+  const [activity, visited, badgeVisited, badgeEmbeds, unsubs, bounces, complaints, claims, submissions, reports] =
     await Promise.all([
       getAdminActivity(slugs, 20),
       listEmailVisits().catch(() => []),
+      listEmailVisits("badge-email").catch(() => []),
+      listBadgeImpressions().catch(() => []),
       listUnsubscribes().catch(() => []),
       listBounces().catch(() => []),
       listComplaints().catch(() => []),
@@ -205,6 +207,53 @@ export default async function AdminPage() {
                 <tr key={v.slug}>
                   <td><Link href={`/directory/${v.slug}`}>{nameBySlug.get(v.slug)}</Link></td>
                   <td>{v.count}</td>
+                  <td>{v.last ? v.last.replace("T", " ").slice(0, 16) : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Clicked through from the badge email */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Clicked from badge email <span className="opt">— {badgeVisited.filter((v) => nameBySlug.has(v.slug)).length}</span>
+      </h2>
+      {badgeVisited.filter((v) => nameBySlug.has(v.slug)).length === 0 ? (
+        <p className="hint">No badge-email click-throughs yet.</p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead><tr><th>Company</th><th>Clicks</th><th>Last seen (UTC)</th></tr></thead>
+            <tbody>
+              {badgeVisited.filter((v) => nameBySlug.has(v.slug)).map((v) => (
+                <tr key={v.slug}>
+                  <td><Link href={`/directory/${v.slug}`}>{nameBySlug.get(v.slug)}</Link></td>
+                  <td>{v.count}</td>
+                  <td>{v.last ? v.last.replace("T", " ").slice(0, 16) : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Badge actually embedded on an external site */}
+      <h2 className="form-section" style={{ marginTop: 40 }}>
+        Badge embedded on their site <span className="opt">— {badgeEmbeds.filter((v) => nameBySlug.has(v.slug)).length}</span>
+      </h2>
+      {badgeEmbeds.filter((v) => nameBySlug.has(v.slug)).length === 0 ? (
+        <p className="hint">No external badge embeds detected yet.</p>
+      ) : (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <thead><tr><th>Company</th><th>Loads</th><th>On domain(s)</th><th>Last seen (UTC)</th></tr></thead>
+            <tbody>
+              {badgeEmbeds.filter((v) => nameBySlug.has(v.slug)).map((v) => (
+                <tr key={v.slug}>
+                  <td><Link href={`/directory/${v.slug}`}>{nameBySlug.get(v.slug)}</Link></td>
+                  <td>{v.count}</td>
+                  <td>{v.hosts.length ? v.hosts.join(", ") : "—"}</td>
                   <td>{v.last ? v.last.replace("T", " ").slice(0, 16) : "—"}</td>
                 </tr>
               ))}

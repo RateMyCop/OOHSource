@@ -1,7 +1,34 @@
 import { getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
 import { getList, rankOfVendor } from "@/lib/lists";
+import { recordBadgeImpression } from "@/lib/outreach";
 
-export const revalidate = 3600;
+// Dynamic so we can see the Referer on each load and record which external
+// sites have embedded the badge (the real "they engaged" signal). Cached
+// privately in the browser for perf, but NOT shared-cached, so external embeds
+// still reach the function often enough to capture their domain.
+export const dynamic = "force-dynamic";
+
+// The referring domain if the badge is embedded on an EXTERNAL site (not our own
+// pages, our email preview, or a mail image-proxy). Returns null otherwise.
+function externalHost(referer: string | null): string | null {
+  if (!referer) return null;
+  try {
+    const h = new URL(referer).hostname.toLowerCase().replace(/^www\./, "");
+    if (!h) return null;
+    if (
+      h.endsWith("oohsource.com") ||
+      h === "localhost" ||
+      h.endsWith(".vercel.app") ||
+      h.endsWith("googleusercontent.com") || // Gmail image proxy = an open, not an embed
+      h.endsWith("mail.google.com")
+    ) {
+      return null;
+    }
+    return h;
+  } catch {
+    return null;
+  }
+}
 
 const MONO =
   "ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace";
@@ -24,8 +51,9 @@ function svgResponse(svg: string) {
   return new Response(svg, {
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control":
-        "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      // Private (browser-only) cache: keeps the badge fast for repeat viewers
+      // without a shared CDN cache swallowing every impression.
+      "Cache-Control": "private, max-age=3600",
     },
   });
 }
@@ -102,6 +130,17 @@ export async function GET(
   if (!vendor) {
     return new Response("Not found", { status: 404 });
   }
+
+  // If this badge is rendering on an external site, log who embedded it.
+  const host = externalHost(req.headers.get("referer"));
+  if (host) {
+    try {
+      await recordBadgeImpression(vendor.slug, host);
+    } catch {
+      /* tracking must never break the image */
+    }
+  }
+
   const url = new URL(req.url);
   const dark = url.searchParams.get("theme") === "dark";
   const listSlug = url.searchParams.get("list");

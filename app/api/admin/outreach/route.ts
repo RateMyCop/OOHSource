@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { emailConfigured, sendOutreachEmail } from "@/lib/email";
-import { listEmailVisits, listUnsubscribes, resubscribe } from "@/lib/outreach";
+import {
+  listEmailVisits,
+  listBadgeImpressions,
+  listUnsubscribes,
+  resubscribe,
+} from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +17,19 @@ export async function GET(req: Request) {
   if (!configured || key !== configured) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  const [unsubscribes, visited] = await Promise.all([
+  const [unsubscribes, visited, badgeVisited, badgeEmbeds] = await Promise.all([
     listUnsubscribes(),
     listEmailVisits(),
+    listEmailVisits("badge-email"),
+    listBadgeImpressions(),
   ]);
-  return NextResponse.json({ ok: true, unsubscribes, visited });
+  return NextResponse.json({
+    ok: true,
+    unsubscribes,
+    visited,
+    badgeVisited,
+    badgeEmbeds,
+  });
 }
 
 // Admin-only outreach sender. Sends the "you're listed — claim your profile"

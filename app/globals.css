@@ -555,7 +555,7 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 @media (max-width: 820px) { .detail { grid-template-columns: 1fr; } }
 .detail h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin-bottom: 12px; }
 .detail .lead { color: var(--ink-2); font-size: 1.12rem; max-width: 60ch; }
-.detail-about { color: var(--ink-2); font-size: 1.05rem; line-height: 1.75; max-width: 64ch; margin-bottom: 4px; }
+.detail-about { color: var(--ink); font-size: 1.05rem; line-height: 1.75; max-width: 64ch; margin-bottom: 4px; }
 .detail-about p { margin-bottom: 1.1em; }
 .detail-about p:last-child { margin-bottom: 0; }
 .detail-hero { position: relative; margin: 0 0 26px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--paper-2); height: 340px; }

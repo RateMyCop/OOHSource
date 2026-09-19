@@ -11,13 +11,11 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { Reviews } from "@/components/Reviews";
 import { HeroImage } from "@/components/HeroImage";
 import { InfoTip } from "@/components/InfoTip";
-import { BadgeEmbed } from "@/components/BadgeEmbed";
-import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
 import { NativeReviews } from "@/components/NativeReviews";
 import { getPublishedReviews, aggregate } from "@/lib/reviews";
 import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
-import { SITE_URL, listForCategory, rankOfVendor } from "@/lib/lists";
+import { SITE_URL } from "@/lib/lists";
 import { FeatureButton } from "@/components/FeatureButton";
 import { TrackView, TrackedLink } from "@/components/Track";
 
@@ -128,13 +126,6 @@ export default async function VendorPage({
   // the internal-link graph stays dense (helps crawl/indexation) instead of
   // every page pointing at the same top two.
   const catVendors = await getVendorsByCategory(vendor.categorySlug);
-  // Does this company place on its category's "Best of" list? If so it can grab
-  // an award/rank badge (only real placers get one — see /badge/[slug]).
-  const list = listForCategory(vendor.categorySlug);
-  const listRank = list
-    ? rankOfVendor(catVendors, vendor.slug, list.limit)
-    : null;
-  const badgeYear = new Date().getUTCFullYear();
   const others = catVendors.filter((v) => v.slug !== vendor.slug);
   const related: typeof others = [];
   if (others.length) {
@@ -402,34 +393,6 @@ export default async function VendorPage({
             <div style={{ textAlign: "center", marginTop: 4 }}>
               <ReportIssue vendorName={vendor.name} vendorSlug={vendor.slug} />
             </div>
-          </div>
-          {list && listRank !== null && (
-            <div className="aside-card aside-card--award">
-              <span className="k" style={{ marginBottom: 2 }}>
-                Ranked #{listRank} · {list.badgeLabel}
-              </span>
-              <p className="badge-embed-intro">
-                {vendor.name} places <strong>#{listRank}</strong> in{" "}
-                <Link href={`/best/${list.slug}`}>{list.title}</Link>. Show it
-                off — embed your award badge.
-              </p>
-              <RankBadgeEmbed
-                slug={vendor.slug}
-                name={vendor.name}
-                listSlug={list.slug}
-                listTitle={list.title}
-                rank={listRank}
-                year={badgeYear}
-              />
-            </div>
-          )}
-          <div className="aside-card">
-            <span className="k" style={{ marginBottom: 2 }}>Show you&rsquo;re listed</span>
-            <p className="badge-embed-intro">
-              Add a free OOHsource badge to your website — it links back to this
-              profile.
-            </p>
-            <BadgeEmbed slug={vendor.slug} name={vendor.name} />
           </div>
           </div>
         </aside>

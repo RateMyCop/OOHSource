@@ -12,6 +12,7 @@ import { readAiVis, vendorAiVis } from "@/lib/aivis";
 import { Sparkline } from "@/components/Sparkline";
 import { ProfileStrength } from "@/components/ProfileStrength";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
+import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
@@ -237,7 +238,20 @@ async function RankingsPanel({ slug }: { slug: string }) {
   const catName = getCategory(vendor.categorySlug)?.name || "your category";
   const fr = list ? fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug) : null;
   const year = new Date().getUTCFullYear();
-  if (!list || !fr) return <p className="hint">No ranking list for this category yet.</p>;
+  if (!list || !fr) {
+    return (
+      <>
+        <p className="hint">No ranking list for this category yet.</p>
+        <div className="dash-section" style={{ marginTop: 20 }}>
+          <h3 className="dash-section-h">Show you&rsquo;re listed</h3>
+          <p className="badge-embed-intro">
+            Add a free OOHsource badge to your website — it links back to your profile.
+          </p>
+          <BadgeEmbed slug={slug} name={vendor.name} />
+        </div>
+      </>
+    );
+  }
   const inTop = fr.rank <= list.limit;
   return (
     <>
@@ -265,6 +279,14 @@ async function RankingsPanel({ slug }: { slug: string }) {
           <Link className="btn btn--primary btn--sm" href="/pricing">Get Featured →</Link>
         </div>
       )}
+
+      <div className="dash-section" style={{ marginTop: 26 }}>
+        <h3 className="dash-section-h">Show you&rsquo;re listed</h3>
+        <p className="badge-embed-intro">
+          Add a free OOHsource badge to your website — it links back to your profile.
+        </p>
+        <BadgeEmbed slug={slug} name={vendor.name} />
+      </div>
     </>
   );
 }

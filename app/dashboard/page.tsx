@@ -16,6 +16,7 @@ import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
 import { OwnerLeads, type OLead } from "@/components/OwnerLeads";
 import { listLeadsForSlug } from "@/lib/leads";
+import { listAudience } from "@/lib/audience";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
 import { AiVisibility } from "@/components/AiVisibility";
@@ -40,7 +41,7 @@ const TABS: Record<string, string> = {
   analytics: "Performance analytics",
   leads: "Leads",
   aivis: "AI visibility",
-  engagement: "Engagement",
+  engagement: "Audience & engagement",
 };
 
 function toORev(rows: Awaited<ReturnType<typeof listReviewsForSlug>>): ORev[] {
@@ -190,7 +191,10 @@ export default async function DashboardPage({
       {tab === "engagement" && (
         <div className="dash-panel">
           {await (async () => {
-            const stats = await getStats(activeSlug, 30);
+            const [stats, audience] = await Promise.all([getStats(activeSlug, 30), listAudience(activeSlug)]);
+            const cName = (code: string) => {
+              try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; } catch { return code; }
+            };
             return (
               <>
                 <div className="stat-tiles">
@@ -202,6 +206,34 @@ export default async function DashboardPage({
                   <span className="stat-label">Views · last 30 days</span>
                   <Sparkline data={stats.series.view} />
                 </div>
+
+                <h3 className="dash-section-h" style={{ marginTop: 30 }}>Where your views come from</h3>
+                {audience.referrers.length === 0 && audience.countries.length === 0 ? (
+                  <p className="hint">We&rsquo;ll show your top referring sites and visitor countries here as traffic comes in.</p>
+                ) : (
+                  <div className="aud-grid">
+                    <div className="aud-col">
+                      <span className="stat-label">Top referrers</span>
+                      {audience.referrers.length ? (
+                        <ul className="aud-list">
+                          {audience.referrers.map((r) => (
+                            <li key={r.key}><span>{r.key}</span><b>{r.count}</b></li>
+                          ))}
+                        </ul>
+                      ) : <p className="hint" style={{ margin: "6px 0 0" }}>Mostly direct visits so far.</p>}
+                    </div>
+                    <div className="aud-col">
+                      <span className="stat-label">Top countries</span>
+                      {audience.countries.length ? (
+                        <ul className="aud-list">
+                          {audience.countries.map((c) => (
+                            <li key={c.key}><span>{cName(c.key)}</span><b>{c.count}</b></li>
+                          ))}
+                        </ul>
+                      ) : <p className="hint" style={{ margin: "6px 0 0" }}>No country data yet.</p>}
+                    </div>
+                  </div>
+                )}
               </>
             );
           })()}
@@ -368,22 +400,44 @@ async function PackagesPanel({ slug }: { slug: string }) {
 
   return (
     <>
-      {isFeatured ? (
-        <div className="pkg-status">
-          <strong>★ You&rsquo;re Featured.</strong> Your listing sits at the top of {catName} and search results,
-          with the Featured &amp; Verified badges and homepage spotlight. Thanks for supporting OOHsource.
+      <div className="plans pkg-plans">
+        <div className={`plan${!isFeatured ? " plan--current" : ""}`}>
+          {!isFeatured && <span className="plan-current-flag">Your plan</span>}
+          <div className="plan-name">Free</div>
+          <div className="plan-price"><span className="amt">$0</span><span className="per">forever</span></div>
+          <p className="plan-sub">Everything you need to be found in the directory.</p>
+          <ul className="plist plan-list">
+            <li>Listing in your category</li>
+            <li>Description, contact &amp; socials</li>
+            <li>Google &amp; Yelp ratings</li>
+            <li>Hero image &amp; portfolio photos</li>
+            <li>Claim &amp; manage your listing</li>
+          </ul>
         </div>
-      ) : (
-        <div className="dash-upsell" style={{ marginBottom: 24 }}>
-          <div>
-            <strong>Go Featured — $50/yr.</strong>{" "}
-            {fr ? `You’re #${fr.rank} of ${fr.total} in ${catName}. ` : ""}
-            Featured pins you to the very top of your category and search, adds the Featured &amp; Verified badges,
-            and puts you in homepage &amp; &ldquo;Just added&rdquo; spotlights.
-          </div>
-          <FeatureButton slug={slug} label="★ Get Featured — $50/yr" />
+
+        <div className={`plan plan--featured${isFeatured ? " plan--current" : ""}`}>
+          <div className="plan-flag">Featured</div>
+          {isFeatured && <span className="plan-current-flag plan-current-flag--on">✓ Your plan</span>}
+          <div className="plan-name">Featured</div>
+          <div className="plan-price"><span className="amt">$50</span><span className="per">/ year</span></div>
+          <p className="plan-sub">Top placement and priority everywhere.</p>
+          {isFeatured ? (
+            <p className="plan-fine">You&rsquo;re Featured — top of {catName} and search{fr ? `, currently #${fr.rank} of ${fr.total}` : ""}. Renews annually; cancel anytime.</p>
+          ) : (
+            <div style={{ margin: "4px 0 8px" }}>
+              <FeatureButton slug={slug} label="★ Upgrade to Featured — $50/yr" />
+            </div>
+          )}
+          <ul className="plist plan-list">
+            <li>Everything in Free</li>
+            <li>Top of your category</li>
+            <li>Priority search ranking</li>
+            <li>Featured &amp; Verified badges</li>
+            <li>Homepage &amp; spotlight placement</li>
+          </ul>
         </div>
-      )}
+      </div>
+
       <PlanCompare />
     </>
   );

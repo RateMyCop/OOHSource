@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { kvConfigured } from "@/lib/kv";
 import { EVENT_SET, Ev, getStats, recordEvent } from "@/lib/stats";
+import { recordViewSource } from "@/lib/audience";
+
+// External referring domain, or "" for a direct visit / our own pages.
+function refHost(ref: string): string {
+  if (!ref) return "";
+  try {
+    const h = new URL(ref).hostname.toLowerCase().replace(/^www\./, "");
+    if (!h || h.endsWith("oohsource.com") || h === "localhost" || h.endsWith(".vercel.app")) return "";
+    return h.slice(0, 100);
+  } catch {
+    return "";
+  }
+}
 
 // Per-vendor event tracking.
 //
@@ -19,7 +32,7 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
 const noContent = () => new NextResponse(null, { status: 204 });
 
 export async function POST(req: Request) {
-  let body: { slug?: unknown; e?: unknown };
+  let body: { slug?: unknown; e?: unknown; ref?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -31,6 +44,14 @@ export async function POST(req: Request) {
 
   try {
     await recordEvent(slug, e as Ev);
+    // On a view, also record where it came from (referrer + country).
+    if (e === "view") {
+      const host = refHost(String(body?.ref ?? ""));
+      const country = (req.headers.get("x-vercel-ip-country") || "").toUpperCase();
+      if (host || /^[A-Z]{2}$/.test(country)) {
+        await recordViewSource(slug, host, /^[A-Z]{2}$/.test(country) ? country : "");
+      }
+    }
   } catch (err) {
     console.error("[track] write failed:", err);
   }

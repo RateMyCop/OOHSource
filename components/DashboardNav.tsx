@@ -60,7 +60,7 @@ export function DashboardNav({
     { label: "Performance Analytics", href: tab("analytics"), icon: "chart", match: () => activeTab === "analytics" },
     { label: "AI Visibility", href: tab("aivis"), icon: "spark", badge: "New", match: () => activeTab === "aivis" },
     { label: "Leads", href: tab("leads"), icon: "inbox", match: () => activeTab === "leads" },
-    { label: "Engagement", href: tab("engagement"), icon: "bulb", match: () => activeTab === "engagement" },
+    { label: "Audience", href: tab("engagement"), icon: "bulb", match: () => activeTab === "engagement" },
   ];
 
   const render = (it: Item) => {

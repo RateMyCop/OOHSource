@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 
 // Fire-and-forget beacon to /api/track. Uses sendBeacon so it survives the page
 // unloading (e.g. when the click navigates away); falls back to keepalive fetch.
-function send(slug: string, e: "view" | "website" | "email") {
+function send(slug: string, e: "view" | "website" | "email", ref?: string) {
   if (typeof navigator === "undefined") return;
   try {
-    const payload = JSON.stringify({ slug, e });
+    const payload = JSON.stringify(ref !== undefined ? { slug, e, ref } : { slug, e });
     if (navigator.sendBeacon) {
       navigator.sendBeacon(
         "/api/track",
@@ -33,7 +33,7 @@ export function TrackView({ slug }: { slug: string }) {
   useEffect(() => {
     if (fired.current) return;
     fired.current = true;
-    send(slug, "view");
+    send(slug, "view", typeof document !== "undefined" ? document.referrer : "");
     try {
       // Attribute the click-through to its outreach source. "email" = the
       // original claim drip; "badge-email" = the top-list award-badge campaign.

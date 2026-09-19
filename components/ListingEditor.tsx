@@ -22,10 +22,11 @@ export function ListingEditor(p: Props) {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [hero, setHero] = useState(p.heroImage);
+  const [heroPreview, setHeroPreview] = useState(""); // instant local preview while uploading
   const [images, setImages] = useState<string[]>(p.gallery);
+  const [pending, setPending] = useState<{ id: string; url: string }[]>([]); // optimistic gallery previews
   const [uploadMsg, setUploadMsg] = useState("");
   const [busyHero, setBusyHero] = useState(false);
-  const [busyGallery, setBusyGallery] = useState(false);
   const [overZone, setOverZone] = useState<"hero" | "gallery" | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [urlAdd, setUrlAdd] = useState("");
@@ -102,23 +103,37 @@ export function ListingEditor(p: Props) {
     const imgs = files.filter((f) => f.type.startsWith("image/"));
     if (!imgs.length) return;
     setUploadMsg("");
-    setBusyGallery(true);
-    try {
-      for (const file of imgs) {
-        if (images.length >= MAX_IMAGES) break;
-        const url = await uploadOne(file);
-        setImages((prev) => (prev.length >= MAX_IMAGES ? prev : [...prev, url]));
-      }
-    } catch (e) {
-      setUploadMsg(e instanceof Error ? e.message : "Upload failed.");
-    } finally {
-      setBusyGallery(false);
-    }
+    // Only take what fits, then show every thumbnail immediately and upload them
+    // all in parallel — no more one-at-a-time "Uploading…".
+    const slots = MAX_IMAGES - images.length - pending.length;
+    const batch = imgs.slice(0, Math.max(0, slots)).map((file) => ({
+      file,
+      id: Math.random().toString(36).slice(2),
+      url: URL.createObjectURL(file),
+    }));
+    if (!batch.length) return;
+    setPending((prev) => [...prev, ...batch.map(({ id, url }) => ({ id, url }))]);
+
+    await Promise.all(
+      batch.map(async ({ file, id, url }) => {
+        try {
+          const uploaded = await uploadOne(file);
+          setImages((prev) => (prev.length >= MAX_IMAGES ? prev : [...prev, uploaded]));
+        } catch (e) {
+          setUploadMsg(e instanceof Error ? e.message : "Upload failed.");
+        } finally {
+          setPending((prev) => prev.filter((x) => x.id !== id));
+          URL.revokeObjectURL(url);
+        }
+      })
+    );
   }
 
   async function setHeroFile(file: File) {
     if (!file.type.startsWith("image/")) return;
     setUploadMsg("");
+    const url = URL.createObjectURL(file);
+    setHeroPreview(url); // show it instantly
     setBusyHero(true);
     try {
       setHero(await uploadOne(file));
@@ -126,6 +141,8 @@ export function ListingEditor(p: Props) {
       setUploadMsg(e instanceof Error ? e.message : "Upload failed.");
     } finally {
       setBusyHero(false);
+      setHeroPreview("");
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -269,13 +286,16 @@ export function ListingEditor(p: Props) {
             e.target.value = "";
           }}
         />
-        {hero ? (
-          <div className="edit-hero-preview">
+        {hero || heroPreview ? (
+          <div className={`edit-hero-preview${heroPreview && !hero ? " is-uploading" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={hero} alt="Header preview" onError={(e) => (e.currentTarget.style.opacity = "0.3")} />
-            <button type="button" className="img-remove" onClick={() => setHero("")} aria-label="Remove header image">
-              ×
-            </button>
+            <img src={hero || heroPreview} alt="Header preview" onError={(e) => (e.currentTarget.style.opacity = "0.3")} />
+            {heroPreview && !hero && <span className="img-uploading">Uploading…</span>}
+            {hero && (
+              <button type="button" className="img-remove" onClick={() => setHero("")} aria-label="Remove header image">
+                ×
+              </button>
+            )}
           </div>
         ) : (
           <div
@@ -323,7 +343,7 @@ export function ListingEditor(p: Props) {
         }}
       />
 
-      {images.length > 0 && (
+      {(images.length > 0 || pending.length > 0) && (
         <div className="thumb-grid">
           {images.map((u, i) => (
             <div
@@ -346,6 +366,13 @@ export function ListingEditor(p: Props) {
               </button>
             </div>
           ))}
+          {pending.map((p2) => (
+            <div key={p2.id} className="thumb thumb--uploading" title="Uploading…">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p2.url} alt="Uploading" />
+              <span className="img-uploading">Uploading…</span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -364,7 +391,9 @@ export function ListingEditor(p: Props) {
             addGalleryFiles(Array.from(e.dataTransfer.files || []));
           }}
         >
-          {busyGallery ? "Uploading…" : "Drag images here, or click to upload photos"}
+          {pending.length > 0
+            ? `Uploading ${pending.length} photo${pending.length > 1 ? "s" : ""}…`
+            : "Drag images here, or click to upload photos"}
         </div>
       )}
 

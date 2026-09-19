@@ -891,6 +891,17 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .thumb-del:hover { background: var(--accent-strong); }
 .url-add { display: flex; gap: 8px; margin-top: 10px; }
 .url-add input { flex: 1; }
+/* Text inputs outside .field (image URL, review form, owner review reply) —
+   match the rounded field look instead of the sharp browser default. */
+.url-add input,
+.rev-form input, .rev-form textarea,
+.orev-invite textarea, .orev-reply textarea {
+  font-family: var(--font-body), serif; font-size: 0.95rem; color: var(--ink);
+  background: var(--paper-raise); border: 1px solid var(--line-strong);
+  border-radius: var(--radius); padding: 10px 12px;
+}
+.url-add input:focus, .rev-form input:focus, .rev-form textarea:focus,
+.orev-invite textarea:focus, .orev-reply textarea:focus { outline: none; border-color: var(--accent-strong); }
 
 /* Owner analytics panel */
 .an-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2); padding: 16px; box-shadow: var(--shadow); max-width: 780px; }

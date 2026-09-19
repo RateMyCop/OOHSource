@@ -83,13 +83,15 @@ export async function GET(req: Request) {
   // Run prompts with limited concurrency.
   const prompts: PromptResult[] = [];
   const counts: Record<string, number> = {};
+  const viaCounts: Record<string, number> = {};
   let ohsCitations = 0;
   const CONC = 4;
   let idx = 0;
   async function worker() {
     while (idx < PROMPTS.length) {
       const p = PROMPTS[idx++];
-      const hits = new Set<string>();
+      const hits = new Set<string>(); // company genuinely named/cited
+      const via = new Set<string>(); // company surfaced via its OOHsource profile
       let ohs = false;
       let answer = "";
       try {
@@ -97,15 +99,18 @@ export async function GET(req: Request) {
         answer = text.trim();
         const t = norm(text);
         const lurls = urls.map((u) => u.toLowerCase());
-        // OOHsource directory URLs -> the exact vendor cited via OOHsource.
         for (const u of lurls) {
+          // The company's own OOHsource profile was cited => OOHsource surfaced
+          // them (tracked separately from a direct company mention).
           const m = u.match(/oohsource\.com\/directory\/([a-z0-9-]+)/);
-          if (m && bySlug.has(m[1])) hits.add(m[1]);
+          if (m && bySlug.has(m[1])) via.add(m[1]);
+          // A direct company signal: their own website cited as a source.
           const host = regDom(u);
+          if (host === "oohsource.com") continue;
           const bySlugFromDom = domToSlug.get(host);
           if (bySlugFromDom) hits.add(bySlugFromDom);
         }
-        // Company names written into the answer.
+        // Company names written into the answer = a direct mention.
         for (const [n, slug] of nameToSlug) if (t.includes(n)) hits.add(slug);
         ohs = lurls.some((u) => u.includes("oohsource.com")) || t.includes("oohsource");
       } catch (e) {
@@ -113,7 +118,8 @@ export async function GET(req: Request) {
       }
       if (ohs) ohsCitations++;
       for (const slug of Array.from(hits)) counts[slug] = (counts[slug] || 0) + 1;
-      prompts[PROMPTS.indexOf(p)] = { id: p.id, q: p.q, cat: p.cat, mentioned: Array.from(hits), oohsource: ohs, answer: answer.slice(0, 800) || undefined };
+      for (const slug of Array.from(via)) viaCounts[slug] = (viaCounts[slug] || 0) + 1;
+      prompts[PROMPTS.indexOf(p)] = { id: p.id, q: p.q, cat: p.cat, mentioned: Array.from(hits), viaOohsource: Array.from(via), oohsource: ohs, answer: answer.slice(0, 800) || undefined };
     }
   }
   await Promise.all(Array.from({ length: CONC }, worker));
@@ -137,6 +143,7 @@ export async function GET(req: Request) {
     model: MODEL,
     totalVendors: vendors.length,
     counts,
+    viaCounts,
     cat,
     ohsCitations,
     prompts: prompts.filter(Boolean),

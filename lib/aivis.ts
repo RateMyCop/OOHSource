@@ -33,7 +33,8 @@ export type PromptResult = {
   id: string;
   q: string;
   cat: PromptCat;
-  mentioned: string[]; // vendor slugs named/cited in the AI answer
+  mentioned: string[]; // vendor slugs named directly / own site cited
+  viaOohsource?: string[]; // vendor slugs surfaced via their OOHsource profile
   oohsource: boolean; // did OOHsource / oohsource.com appear as a source?
   answer?: string; // a snippet of what the AI actually said
 };
@@ -49,7 +50,8 @@ export type AiVisLatest = {
   at: string; // ISO timestamp of the run
   model: string;
   totalVendors: number;
-  counts: Record<string, number>; // slug -> # prompts it was cited in (cited only)
+  counts: Record<string, number>; // slug -> # prompts it was named/cited in
+  viaCounts?: Record<string, number>; // slug -> # prompts surfaced via OOHsource
   cat: Record<string, { avg: number; top: number; cited: number; count: number }>;
   ohsCitations: number; // # prompts where OOHsource was cited
   prompts: PromptResult[];
@@ -127,8 +129,9 @@ export type VendorAiVis = {
   catAvg: number;
   catTop: number;
   ohsCitations: number;
+  viaOohsource: number; // # prompts where they were surfaced via OOHsource
   trend: number[]; // owner's citation count per historical run, oldest → newest
-  prompts: { q: string; mentioned: boolean; oohsource: boolean; answer?: string }[];
+  prompts: { q: string; mentioned: boolean; viaOohsource: boolean; oohsource: boolean; answer?: string }[];
 };
 
 // Combine the latest run (and optional history) into one vendor's view.
@@ -141,7 +144,7 @@ export function vendorAiVis(
     return {
       ran: false, at: null, citations: 0, band: "Needs Work", gauge: 0.08,
       rank: 0, totalVendors: 0, percentileTop: 100, catAvg: 0, catTop: 0,
-      ohsCitations: 0, trend: [], prompts: [],
+      ohsCitations: 0, viaOohsource: 0, trend: [], prompts: [],
     };
   }
   const citations = data.counts[vendor.slug] || 0;
@@ -158,9 +161,11 @@ export function vendorAiVis(
     .map((p) => ({
       q: p.q,
       mentioned: p.mentioned.includes(vendor.slug),
+      viaOohsource: (p.viaOohsource || []).includes(vendor.slug),
       oohsource: p.oohsource,
       answer: p.answer,
     }));
+  const viaOohsource = data.viaCounts?.[vendor.slug] || 0;
   const trend = history.map((h) => h.counts[vendor.slug] || 0);
   return {
     ran: true,
@@ -174,6 +179,7 @@ export function vendorAiVis(
     catAvg: Math.round(cs.avg * 10) / 10,
     catTop: cs.top,
     ohsCitations: data.ohsCitations,
+    viaOohsource,
     trend,
     prompts: relevant,
   };

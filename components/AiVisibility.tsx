@@ -49,10 +49,16 @@ export function AiVisibility({ vendor, data }: { vendor: Vendor; data: VendorAiV
       </div>
 
       <div className="aiv-stats">
-        <div className="aiv-stat"><span className="aiv-num">{data.citations}</span><span className="aiv-lab">Your AI citations</span></div>
+        <div className="aiv-stat"><span className="aiv-num">{data.citations}</span><span className="aiv-lab">Named by AI</span></div>
+        <div className="aiv-stat"><span className="aiv-num">{data.viaOohsource}</span><span className="aiv-lab">Surfaced via OOHsource</span></div>
         <div className="aiv-stat"><span className="aiv-num">{data.catAvg}</span><span className="aiv-lab">Category average</span></div>
-        <div className="aiv-stat"><span className="aiv-num">{data.catTop}</span><span className="aiv-lab">Top performer</span></div>
       </div>
+
+      {data.viaOohsource > 0 && (
+        <p className="aiv-via-note">
+          ✦ OOHsource surfaced your company in <strong>{data.viaOohsource}</strong> AI answer{data.viaOohsource !== 1 ? "s" : ""} — the AI cited your OOHsource listing when recommending companies. That&rsquo;s the value of being listed here.
+        </p>
+      )}
 
       <div className="aiv-score">
         <div className="aiv-gauge">
@@ -87,9 +93,16 @@ export function AiVisibility({ vendor, data }: { vendor: Vendor; data: VendorAiV
           <ul>
             {data.prompts.map((p, i) => (
               <li key={i}>
-                <span className={`aiv-flag ${p.mentioned ? "yes" : "no"}`}>{p.mentioned ? "✓ Mentioned" : "Not mentioned"}</span>
+                {p.mentioned ? (
+                  <span className="aiv-flag yes">✓ Named by AI</span>
+                ) : p.viaOohsource ? (
+                  <span className="aiv-flag via">✦ Via OOHsource</span>
+                ) : (
+                  <span className="aiv-flag no">Not mentioned</span>
+                )}
                 <span className="aiv-q">{p.q}</span>
-                {!p.mentioned && p.oohsource && <span className="aiv-note">OOHsource is cited here — a complete listing gets you named</span>}
+                {p.viaOohsource && !p.mentioned && <span className="aiv-note">OOHsource surfaced your listing here — the AI cited your directory profile.</span>}
+                {!p.mentioned && !p.viaOohsource && p.oohsource && <span className="aiv-note">OOHsource is cited here — complete your listing to get surfaced.</span>}
                 {p.answer && (
                   <details className="aiv-answer">
                     <summary>See what the AI said</summary>

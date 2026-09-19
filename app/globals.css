@@ -151,6 +151,9 @@ input, textarea { caret-color: var(--accent-strong); }
 .aiv-flag { flex: none; font-family: var(--font-mono), monospace; font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
 .aiv-flag.yes { color: #2c8a5a; background: color-mix(in srgb, #2c8a5a 12%, transparent); }
 .aiv-flag.no { color: var(--ink-3); background: var(--paper-2); border: 1px solid var(--line); }
+.aiv-flag.via { color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); }
+.aiv-via-note { margin: 14px 0 0; padding: 12px 16px; font-size: 0.9rem; line-height: 1.55; color: var(--ink-2); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); }
+.aiv-via-note strong { color: var(--ink); }
 .aiv-q { color: var(--ink); flex: 1; min-width: 200px; }
 .aiv-note { flex-basis: 100%; font-size: 0.8rem; color: var(--accent-strong); padding-left: 2px; }
 .aiv-trend-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }

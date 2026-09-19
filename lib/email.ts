@@ -110,6 +110,53 @@ export async function sendOutreachEmail(
   return true;
 }
 
+// "You ranked #N — here's your award badge" outreach. Sent to companies that
+// place on a /best list. Returns false (without sending) if unsubscribed.
+export async function sendBadgeAwardEmail(
+  to: string,
+  company: string,
+  slug: string,
+  opts: { listSlug: string; listTitle: string; badgeLabel: string; rank: number; year: number }
+): Promise<boolean> {
+  if (await isSuppressed(to)) return false;
+
+  const { listSlug, listTitle, badgeLabel, rank, year } = opts;
+  const profileUrl = `${SITE_URL}/directory/${slug}?ref=badge-email`;
+  const bestUrl = `${SITE_URL}/best/${listSlug}?ref=badge-email`;
+  const badgeImg = `${SITE_URL}/badge/${slug}?list=${listSlug}`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const safe = escapeHtml(company);
+  const safeList = escapeHtml(listTitle);
+  const badgeAlt = `${safe} — ranked #${rank} in ${safeList} on OOHsource ${year}`;
+
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">Hi ${safe},</p>
+    <p style="font-size: 16px; line-height: 1.6;">Good news &mdash; <strong>${safe}</strong> ranks <strong>#${rank}</strong> in <a href="${bestUrl}" style="color:#A9660E;">${safeList}</a> on <strong>OOHsource</strong>. The ranking is a transparent blend of verified Google &amp; Yelp ratings and market coverage &mdash; not pay-to-play.</p>
+    <p style="margin: 22px 0; text-align:center;">
+      <a href="${profileUrl}"><img src="${badgeImg}" alt="${badgeAlt}" width="270" height="96" style="border:0; max-width:100%;" /></a>
+    </p>
+    <p style="font-size: 16px; line-height: 1.6;">You&rsquo;re welcome to display this <strong>award badge</strong> on your site &mdash; it links back to the ranking, so it doubles as a trust mark and a backlink. Grab the one-line embed code (light or dark) from your listing:</p>
+    <p style="margin: 26px 0;">
+      <a href="${profileUrl}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Get your badge code &rarr;</a>
+    </p>
+    <p style="font-size: 15px; line-height: 1.6;">Best,<br />The OOHsource team</p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You&rsquo;re receiving this because ${safe} is listed in the OOHsource directory. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> to stop these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `${company} ranked #${rank} in ${badgeLabel} on OOHsource`,
+    html,
+    "hello@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+  );
+  await recordOutreachSent(to);
+  return true;
+}
+
 function wrap(bodyHtml: string): string {
   return `<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 28px 24px; color: #17191E;">
     <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 22px;">

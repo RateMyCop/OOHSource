@@ -49,9 +49,11 @@ export function NavLinks() {
         </Link>
       ))}
       <ThemeToggle />
-      <Link className="btn btn--primary btn--sm" href="/list-your-company">
-        List your company
-      </Link>
+      {!signedIn && (
+        <Link className="btn btn--primary btn--sm" href="/list-your-company">
+          List your company
+        </Link>
+      )}
     </nav>
   );
 }

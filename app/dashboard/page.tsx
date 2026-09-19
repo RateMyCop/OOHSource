@@ -17,6 +17,8 @@ import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
 import { AiVisibility } from "@/components/AiVisibility";
+import { PlanCompare } from "@/components/PlanCompare";
+import { FeatureButton } from "@/components/FeatureButton";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,7 @@ const TABS: Record<string, string> = {
   edit: "Edit profile",
   rankings: "Rankings & awards",
   reviews: "Reviews",
+  packages: "Packages",
   analytics: "Performance analytics",
   aivis: "AI visibility",
   engagement: "Engagement",
@@ -143,6 +146,12 @@ export default async function DashboardPage({
       {tab === "reviews" && (
         <div className="dash-panel">
           <OwnerReviews slug={activeSlug} reviews={toORev(await listReviewsForSlug(activeSlug))} />
+        </div>
+      )}
+
+      {tab === "packages" && (
+        <div className="dash-panel">
+          <PackagesPanel slug={activeSlug} />
         </div>
       )}
 
@@ -276,7 +285,7 @@ async function RankingsPanel({ slug }: { slug: string }) {
             <strong>Move to the top.</strong> You&rsquo;re #{fr.rank} of {fr.total} in {catName}. Featured pins you
             above every standard listing — top of the category and search, plus the Featured &amp; Verified badges.
           </div>
-          <Link className="btn btn--primary btn--sm" href="/pricing">Get Featured →</Link>
+          <Link className="btn btn--primary btn--sm" href={`/dashboard?tab=packages&slug=${slug}`}>See Packages →</Link>
         </div>
       )}
 
@@ -287,6 +296,37 @@ async function RankingsPanel({ slug }: { slug: string }) {
         </p>
         <BadgeEmbed slug={slug} name={vendor.name} />
       </div>
+    </>
+  );
+}
+
+async function PackagesPanel({ slug }: { slug: string }) {
+  const vendor = await getVendorBySlug(slug);
+  if (!vendor) return null;
+  const list = listForCategory(vendor.categorySlug);
+  const catName = getCategory(vendor.categorySlug)?.name || "your category";
+  const fr = list ? fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug) : null;
+  const isFeatured = vendor.tier === "Featured";
+
+  return (
+    <>
+      {isFeatured ? (
+        <div className="pkg-status">
+          <strong>★ You&rsquo;re Featured.</strong> Your listing sits at the top of {catName} and search results,
+          with the Featured &amp; Verified badges and homepage spotlight. Thanks for supporting OOHsource.
+        </div>
+      ) : (
+        <div className="dash-upsell" style={{ marginBottom: 24 }}>
+          <div>
+            <strong>Go Featured — $50/yr.</strong>{" "}
+            {fr ? `You’re #${fr.rank} of ${fr.total} in ${catName}. ` : ""}
+            Featured pins you to the very top of your category and search, adds the Featured &amp; Verified badges,
+            and puts you in homepage &amp; &ldquo;Just added&rdquo; spotlights.
+          </div>
+          <FeatureButton slug={slug} label="★ Get Featured — $50/yr" />
+        </div>
+      )}
+      <PlanCompare />
     </>
   );
 }

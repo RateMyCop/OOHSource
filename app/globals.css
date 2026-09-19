@@ -867,6 +867,8 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .dash-upsell { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; font-size: 0.9rem; color: var(--ink-2); line-height: 1.5; }
 .dash-upsell strong { color: var(--ink); }
 .dash-upsell .btn { margin-left: auto; white-space: nowrap; }
+.pkg-status { background: rgba(63, 157, 106, 0.1); border: 1px solid rgba(63, 157, 106, 0.4); border-radius: var(--radius); padding: 16px 18px; color: var(--ink-2); line-height: 1.55; margin-bottom: 24px; }
+.pkg-status strong { color: var(--ink); }
 
 @media (max-width: 860px) {
   .dash-shell { flex-direction: column; gap: 10px; padding-top: 18px; }

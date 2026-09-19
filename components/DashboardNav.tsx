@@ -53,7 +53,7 @@ export function DashboardNav({
     { label: "Edit Profile", href: tab("edit"), icon: "store", match: () => activeTab === "edit" },
     { label: "Rankings & Awards", href: tab("rankings"), icon: "star", match: () => activeTab === "rankings" },
     { label: "Reviews", href: tab("reviews"), icon: "chat", match: () => activeTab === "reviews" },
-    { label: "Packages", href: "/pricing", icon: "tag" },
+    { label: "Packages", href: tab("packages"), icon: "tag", match: () => activeTab === "packages" },
   ];
   const performance: Item[] = [
     { label: "Performance Analytics", href: tab("analytics"), icon: "chart", match: () => activeTab === "analytics" },

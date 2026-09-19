@@ -13,6 +13,8 @@ import { HeroImage } from "@/components/HeroImage";
 import { InfoTip } from "@/components/InfoTip";
 import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
+import { NativeReviews } from "@/components/NativeReviews";
+import { getPublishedReviews, aggregate } from "@/lib/reviews";
 import { Gallery } from "@/components/Gallery";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL, listForCategory, rankOfVendor } from "@/lib/lists";
@@ -104,14 +106,21 @@ export async function generateMetadata({
 
 export default async function VendorPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams?: { review?: string };
 }) {
   // resolveVendorForPage() only reports a real 404 when the vendor is absent
   // from authoritative Airtable data; during a degraded fallback it throws
   // rather than let Next cache a 404 for a listing that likely exists.
   const vendor = await resolveVendorForPage(params.slug);
   if (!vendor) notFound();
+
+  // Native OOHsource reviews (build-safe cached read).
+  const reviews = await getPublishedReviews(params.slug);
+  const reviewAgg = aggregate(reviews);
+  const reviewInvited = searchParams?.review === "1";
 
   const category = getCategory(vendor.categorySlug);
   // Cross-link 6 peers in the same category, chosen as a rotating window from
@@ -157,7 +166,27 @@ export default async function VendorPage({
       ? { address: { "@type": "PostalAddress", streetAddress: vendor.address } }
       : {}),
     ...(sameAs.length ? { sameAs } : {}),
-    ...(vendor.googleRating && vendor.googleReviews
+    ...(reviewAgg.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: reviewAgg.average,
+            reviewCount: reviewAgg.count,
+            bestRating: 5,
+          },
+          review: reviews.slice(0, 20).map((r) => ({
+            "@type": "Review",
+            reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+            author: {
+              "@type": r.company ? "Organization" : "Person",
+              name: r.company || r.name,
+            },
+            ...(r.title ? { name: r.title } : {}),
+            reviewBody: r.body,
+            datePublished: r.created.slice(0, 10),
+          })),
+        }
+      : vendor.googleRating && vendor.googleReviews
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
@@ -283,6 +312,16 @@ export default async function VendorPage({
               </div>
             </div>
           )}
+
+          <div className="detail-section">
+            <NativeReviews
+              slug={vendor.slug}
+              reviews={reviews}
+              agg={reviewAgg}
+              defaultOpen={reviewInvited}
+              source={reviewInvited ? "invited" : "direct"}
+            />
+          </div>
 
           {related.length > 0 && (
             <div className="detail-section">

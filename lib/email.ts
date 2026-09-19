@@ -157,6 +157,43 @@ export async function sendBadgeAwardEmail(
   return true;
 }
 
+// Owner-initiated "please review us" invite, sent from hello@ to the owner's
+// own client. Honors unsubscribes but is not deduped against the marketing set
+// (a client may legitimately be invited by more than one company).
+export async function sendReviewInvite(
+  to: string,
+  company: string,
+  slug: string,
+  clientName?: string
+): Promise<boolean> {
+  if (await isSuppressed(to)) return false;
+  const reviewUrl = `${SITE_URL}/directory/${slug}?review=1#write-review`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const safe = escapeHtml(company);
+  const hi = clientName ? `Hi ${escapeHtml(clientName)},` : "Hi,";
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">${hi}</p>
+    <p style="font-size: 16px; line-height: 1.6;"><strong>${safe}</strong> would love your feedback. If you&rsquo;ve worked with them, would you take a minute to leave a short review on <strong>OOHsource</strong>, the out-of-home advertising directory?</p>
+    <p style="margin: 26px 0;">
+      <a href="${reviewUrl}" style="background:#6b5124; color:#fbf7ee; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Write a review &rarr;</a>
+    </p>
+    <p style="font-size: 14px; line-height: 1.6; color:#4a4c52;">It takes about a minute and helps other buyers choose with confidence.</p>
+    <p style="font-size: 15px; line-height: 1.6;">Thank you,<br />The OOHsource team</p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;">You received this because ${safe} asked us to invite you. <a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a>.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `${company} would like your review`,
+    html,
+    "hello@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+  );
+  return true;
+}
+
 function wrap(bodyHtml: string): string {
   return `<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 28px 24px; color: #17191E;">
     <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 22px;">

@@ -6,6 +6,7 @@ import { getAllVendors } from "@/lib/vendors";
 import { getAdminActivity } from "@/lib/stats";
 import { fetchClaims, fetchPendingVendors, fetchReports } from "@/lib/airtable";
 import { listBounces, listComplaints, listEmailVisits, listBadgeImpressions, listUnsubscribes } from "@/lib/outreach";
+import { listPendingReviews } from "@/lib/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function AdminPage() {
   const slugs = vendors.map((v) => v.slug);
   const nameBySlug = new Map(vendors.map((v) => [v.slug, v.name]));
 
-  const [activity, visited, badgeVisited, badgeEmbeds, unsubs, bounces, complaints, claims, submissions, reports] =
+  const [activity, visited, badgeVisited, badgeEmbeds, unsubs, bounces, complaints, claims, submissions, reports, pendingReviews] =
     await Promise.all([
       getAdminActivity(slugs, 20),
       listEmailVisits().catch(() => []),
@@ -36,6 +37,7 @@ export default async function AdminPage() {
       fetchClaims(100).catch(() => []),
       fetchPendingVendors(100).catch(() => []),
       fetchReports(50).catch(() => []),
+      listPendingReviews().catch(() => []),
     ]);
 
   const featured = vendors.filter((v) => v.tier === "Featured").length;
@@ -189,6 +191,45 @@ export default async function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Reviews to moderate */}
+      <h2 id="reviews" className="form-section" style={{ marginTop: 40 }}>
+        Reviews to moderate <span className="opt">— {pendingReviews.length}</span>
+      </h2>
+      {pendingReviews.length === 0 ? (
+        <p className="hint">No reviews waiting.</p>
+      ) : (
+        <div>
+          {pendingReviews.map((r) => (
+            <div key={r.id} className="adm-rev">
+              <div className="adm-rev-top">
+                <span className="rev-stars">
+                  {"★★★★★".slice(0, r.rating)}
+                  <span className="rev-stars-off">{"★★★★★".slice(r.rating)}</span>
+                </span>
+                <span className="hint">
+                  {r.name}{r.company ? ` (${r.company})` : ""} →{" "}
+                  <Link href={`/directory/${r.slug}`}>{nameBySlug.get(r.slug) || r.slug}</Link>
+                </span>
+              </div>
+              {r.title && <strong style={{ display: "block", marginTop: 6 }}>{r.title}</strong>}
+              <p className="rev-body" style={{ margin: "6px 0" }}>{r.body}</p>
+              <div className="adm-rev-actions">
+                <form action="/api/admin/reviews" method="post">
+                  <input type="hidden" name="id" value={r.id} />
+                  <input type="hidden" name="action" value="publish" />
+                  <button type="submit" className="btn btn--primary btn--sm">Publish</button>
+                </form>
+                <form action="/api/admin/reviews" method="post">
+                  <input type="hidden" name="id" value={r.id} />
+                  <input type="hidden" name="action" value="reject" />
+                  <button type="submit" className="btn btn--ghost btn--sm">Reject</button>
+                </form>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

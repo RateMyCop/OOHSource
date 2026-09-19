@@ -10,6 +10,8 @@ import { listForCategory, fullRankOfVendor } from "@/lib/lists";
 import { Sparkline } from "@/components/Sparkline";
 import { ProfileStrength } from "@/components/ProfileStrength";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
+import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
+import { listReviewsForSlug } from "@/lib/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -30,16 +32,29 @@ export default async function DashboardPage() {
     vendor: NonNullable<Awaited<ReturnType<typeof getVendorBySlug>>>;
     stats: Awaited<ReturnType<typeof getStats>>;
     ranking: { listSlug: string; listTitle: string; limit: number; rank: number; total: number; inTop: boolean } | null;
+    reviews: ORev[];
   }[] = [];
   let loadError = false;
   try {
     const slugs = await ownedSlugsForEmail(email);
     const items = await Promise.all(
       slugs.map(async (slug) => {
-        const [vendor, stats] = await Promise.all([
+        const [vendor, stats, rawReviews] = await Promise.all([
           getVendorBySlug(slug),
           getStats(slug, 30),
+          listReviewsForSlug(slug),
         ]);
+        const reviews: ORev[] = rawReviews.map((r) => ({
+          id: r.id,
+          name: r.name,
+          company: r.company,
+          rating: r.rating,
+          title: r.title,
+          body: r.body,
+          status: r.status,
+          created: r.created,
+          response: r.response,
+        }));
         let ranking = null as (typeof live)[number]["ranking"];
         if (vendor) {
           const list = listForCategory(vendor.categorySlug);
@@ -57,7 +72,7 @@ export default async function DashboardPage() {
             }
           }
         }
-        return { slug, vendor, stats, ranking };
+        return { slug, vendor, stats, ranking, reviews };
       })
     );
     live = items.filter((it): it is (typeof live)[number] => Boolean(it.vendor));
@@ -95,7 +110,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="dash-grid">
-          {live.map(({ slug, vendor, stats, ranking }) => {
+          {live.map(({ slug, vendor, stats, ranking, reviews }) => {
             const v30 = sum(stats.series.view);
             const w30 = sum(stats.series.website);
             const e30 = sum(stats.series.email);
@@ -186,6 +201,18 @@ export default async function DashboardPage() {
                     <span className="stat-label">Views · last 30 days</span>
                     <Sparkline data={stats.series.view} />
                   </div>
+                </div>
+
+                {/* Reviews */}
+                <div id="reviews" className="dash-section">
+                  <h3 className="dash-section-h">
+                    Reviews
+                    {reviews.filter((r) => r.status === "published").length > 0 &&
+                      ` · ${reviews.filter((r) => r.status === "published").length} published`}
+                    {reviews.filter((r) => r.status === "pending").length > 0 &&
+                      ` · ${reviews.filter((r) => r.status === "pending").length} pending`}
+                  </h3>
+                  <OwnerReviews slug={slug} reviews={reviews} />
                 </div>
 
                 <div className="dash-card-foot">

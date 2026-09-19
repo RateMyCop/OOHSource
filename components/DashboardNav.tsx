@@ -48,7 +48,7 @@ export function DashboardNav({
     { label: "Dashboard", href: "/dashboard", icon: "grid", match: (p) => p === "/dashboard" },
     { label: "Edit Profile", href: `${manage}#editor`, icon: "store", match: (p) => p.startsWith("/dashboard/") },
     { label: "Rankings & Awards", href: "/dashboard#rankings", icon: "star" },
-    { label: "Reviews", icon: "chat", badge: "Soon" },
+    { label: "Reviews", href: "/dashboard#reviews", icon: "chat" },
     { label: "Packages", href: "/pricing", icon: "tag" },
   ];
   const performance: Item[] = [

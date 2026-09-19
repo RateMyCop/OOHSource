@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 
 type Props = {
@@ -40,6 +40,26 @@ export function ListingEditor(p: Props) {
   const galleryInput = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-save plumbing. `latest` gives the debounced saver a live snapshot of
+  // the image state (which lives in React state, not the form).
+  const latest = useRef({ hero: p.heroImage, images: p.gallery });
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    latest.current = { hero, images };
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    scheduleSave(); // header/photos changed — persist automatically
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hero, images]);
+
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
+
   async function optimize() {
     setAiBusy(true);
     setAiErr("");
@@ -66,6 +86,7 @@ export function ListingEditor(p: Props) {
     if (descRef.current && aiDesc) descRef.current.value = aiDesc;
     setAiDesc("");
     setAiSuggestions(null);
+    scheduleSave(); // programmatic change — no blur fires, so save explicitly
   }
 
   async function uploadOne(file: File): Promise<string> {
@@ -129,17 +150,24 @@ export function ListingEditor(p: Props) {
     setUrlAdd("");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+  // Debounced auto-save: edits just stick, no Save button.
+  function scheduleSave() {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(saveNow, 700);
+  }
+
+  async function saveNow() {
+    const f = formRef.current;
+    if (!f) return;
+    const fd = new FormData(f);
     const payload = {
       slug: p.slug,
       website: fd.get("website"),
       phone: fd.get("phone"),
       address: fd.get("address"),
       description: fd.get("description"),
-      heroImage: hero,
-      gallery: images.join("\n"),
+      heroImage: latest.current.hero,
+      gallery: latest.current.images.join("\n"),
     };
     setStatus("saving");
     setErrorMsg("");
@@ -154,47 +182,45 @@ export function ListingEditor(p: Props) {
         throw new Error(d.error || "Couldn't save your changes.");
       }
       setStatus("saved");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
       setStatus("error");
     }
   }
 
-  const saving = status === "saving";
-
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="form-wrap">
-      {status === "saved" && (
-        <div className="form-ok show" role="status">
-          ✓ Saved. Your public listing updates within a few minutes.
-        </div>
-      )}
+    <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="form-wrap">
+      <div className="autosave" role="status" aria-live="polite" data-state={status}>
+        {status === "saving" && "Saving…"}
+        {status === "saved" && "✓ All changes saved — your public listing updates within a few minutes."}
+        {status === "error" && `⚠ ${errorMsg || "Couldn't save — we’ll retry on your next edit."}`}
+        {status === "idle" && "Changes save automatically as you edit."}
+      </div>
 
       <h2 className="form-section">Contact & links</h2>
 
       <div className="field">
         <label htmlFor="website">Website</label>
-        <input id="website" name="website" type="url" defaultValue={p.website} placeholder="https://" disabled={saving} />
+        <input id="website" name="website" type="url" defaultValue={p.website} placeholder="https://" onBlur={scheduleSave} />
       </div>
       <div className="field">
         <label htmlFor="phone">Phone</label>
-        <input id="phone" name="phone" type="tel" defaultValue={p.phone} disabled={saving} />
+        <input id="phone" name="phone" type="tel" defaultValue={p.phone} onBlur={scheduleSave} />
       </div>
       <div className="field">
         <label htmlFor="address">Address</label>
-        <input id="address" name="address" type="text" defaultValue={p.address} disabled={saving} />
+        <input id="address" name="address" type="text" defaultValue={p.address} onBlur={scheduleSave} />
       </div>
 
       <h2 className="form-section">About</h2>
       <div className="field">
         <div className="opt-row">
           <label htmlFor="description">Description</label>
-          <button type="button" className="opt-btn" onClick={optimize} disabled={saving || aiBusy}>
+          <button type="button" className="opt-btn" onClick={optimize} disabled={aiBusy}>
             {aiBusy ? "Analyzing…" : "✦ Improve with AI"}
           </button>
         </div>
-        <textarea id="description" name="description" rows={8} defaultValue={p.description} disabled={saving} ref={descRef} />
+        <textarea id="description" name="description" rows={8} defaultValue={p.description} onBlur={scheduleSave} ref={descRef} />
         <span className="hint">What you do, who you serve, and where.</span>
 
         {aiErr && <p className="opt-err">{aiErr}</p>}
@@ -223,7 +249,7 @@ export function ListingEditor(p: Props) {
                     Dismiss
                   </button>
                 </div>
-                <span className="hint">Review it, then Save changes below to publish.</span>
+                <span className="hint">Review it — applying it saves automatically.</span>
               </>
             )}
           </div>
@@ -354,7 +380,7 @@ export function ListingEditor(p: Props) {
             }
           }}
           placeholder="…or paste an image URL"
-          disabled={saving || images.length >= MAX_IMAGES}
+          disabled={images.length >= MAX_IMAGES}
         />
         <button type="button" className="btn btn--ghost btn--sm" onClick={addByUrl} disabled={images.length >= MAX_IMAGES}>
           Add
@@ -366,15 +392,6 @@ export function ListingEditor(p: Props) {
         </div>
       )}
 
-      {status === "error" && (
-        <div className="report-error" role="alert" style={{ margin: "18px 0" }}>
-          {errorMsg}
-        </div>
-      )}
-
-      <button className="btn btn--primary" type="submit" disabled={saving} style={{ marginTop: 26 }}>
-        {saving ? "Saving…" : "Save changes"}
-      </button>
     </form>
   );
 }

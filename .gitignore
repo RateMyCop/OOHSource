@@ -37,3 +37,6 @@ next-env.d.ts
 .impeccable/
 imp-install.log
 impeccable-detect.log
+
+.vercel
+.env*

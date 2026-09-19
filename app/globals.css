@@ -745,6 +745,12 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .spark { display: block; }
 .dash-card-foot { display: flex; gap: 10px; margin-top: 2px; flex-wrap: wrap; }
 
+/* Auto-save status (listing editor) */
+.autosave { font-family: var(--font-mono), monospace; font-size: 0.74rem; letter-spacing: 0.02em; color: var(--ink-3); padding: 8px 12px; border-radius: var(--radius); background: var(--paper-2); border: 1px solid var(--line); margin-bottom: 22px; display: inline-block; transition: color 0.2s, border-color 0.2s; }
+.autosave[data-state="saving"] { color: var(--ink-2); }
+.autosave[data-state="saved"] { color: #3f9d6a; border-color: rgba(63, 157, 106, 0.4); }
+.autosave[data-state="error"] { color: #c0563d; border-color: rgba(192, 86, 61, 0.5); }
+
 /* ===== Owner dashboard shell (sidebar + main) ===== */
 .dash-shell { display: flex; gap: 30px; max-width: var(--wrap); margin: 0 auto; padding: 30px 24px 90px; align-items: flex-start; }
 .dash-main { flex: 1 1 auto; min-width: 0; }

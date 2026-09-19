@@ -61,7 +61,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com",
+  // Vercel Blob: the browser uploads owner images directly to the blob store.
+  "connect-src 'self' https://blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com",
   "frame-src 'self' https://checkout.stripe.com https://js.stripe.com",
   "upgrade-insecure-requests",
 ].join("; ");

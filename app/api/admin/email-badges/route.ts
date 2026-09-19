@@ -11,6 +11,9 @@ export const maxDuration = 60;
 // double-sends within a year (idempotent across retries/timeouts).
 const CAMPAIGN = `badge-${new Date().getUTCFullYear()}`;
 
+// Resend allows ~2 req/s; pace sends to stay under it.
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 // Emails the top-N of each "Best of" list their award badge.
 //   GET            -> dry run: the exact plan (who would get emailed and why not).
 //   POST ?send=1   -> actually sends. Auth: x-admin-key.
@@ -121,6 +124,7 @@ export async function POST(req: Request) {
       continue;
     }
     const list = LISTS.find((l) => l.slug === r.list)!;
+    await sleep(600); // throttle under Resend's ~2 req/s limit
     try {
       const ok = await sendBadgeAwardEmail(r.email, r.name, r.slug, {
         listSlug: list.slug,

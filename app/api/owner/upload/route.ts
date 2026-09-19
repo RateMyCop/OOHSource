@@ -1,71 +1,60 @@
 import { NextResponse } from "next/server";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 import { getSessionEmail } from "@/lib/auth";
 import { ownedSlugsForEmail } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
-// Client-upload token endpoint for owner image uploads. The browser uploads
-// directly to Vercel Blob; this route only authorizes and mints a scoped token,
-// so it stays fast and never streams the file through our function.
+const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+const MAX_BYTES = 8 * 1024 * 1024;
+
+// Server-side owner image upload. The browser shrinks the image and POSTs it
+// here (same-origin, no CSP/token/webhook dance); we authorize the owner and
+// store it in Vercel Blob. Returns { url }.
 export async function POST(req: Request) {
-  let body: HandleUploadBody;
+  const email = getSessionEmail();
+  if (!email) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
+
+  let form: FormData;
   try {
-    body = (await req.json()) as HandleUploadBody;
+    form = await req.formData();
   } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid upload." }, { status: 400 });
   }
 
+  const file = form.get("file");
+  const slug = String(form.get("slug") || "").trim();
+  if (!(file instanceof File) || !slug) {
+    return NextResponse.json({ error: "Missing file." }, { status: 400 });
+  }
+  if (!ALLOWED.has(file.type)) {
+    return NextResponse.json({ error: "Unsupported image type." }, { status: 400 });
+  }
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: "Image is too large (8 MB max)." }, { status: 413 });
+  }
+
+  const owned = await ownedSlugsForEmail(email);
+  if (!owned.includes(slug)) {
+    return NextResponse.json({ error: "You don't have access to this listing." }, { status: 403 });
+  }
+
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    return NextResponse.json({ error: "Image uploads aren't enabled yet." }, { status: 503 });
+  }
+
+  const safeName = (file.name || "image").replace(/[^a-z0-9._-]/gi, "_").slice(-60);
   try {
-    const json = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async (_pathname, clientPayload) => {
-        // Only a signed-in owner of the target listing may upload.
-        const email = getSessionEmail();
-        if (!email) throw new Error("Please sign in again.");
-        let slug = "";
-        try {
-          slug = String(JSON.parse(clientPayload || "{}").slug || "");
-        } catch {
-          /* leave slug empty -> rejected below */
-        }
-        const owned = await ownedSlugsForEmail(email);
-        if (!slug || !owned.includes(slug)) {
-          throw new Error("You don't have access to this listing.");
-        }
-        return {
-          access: "public",
-          allowedContentTypes: [
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif",
-            "image/avif",
-          ],
-          maximumSizeInBytes: 8 * 1024 * 1024, // 8 MB
-          addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ slug }),
-        };
-      },
-      onUploadCompleted: async () => {
-        // Nothing to do — the client appends the returned URL and saves via
-        // /api/owner/update. (This callback isn't reachable on localhost.)
-      },
+    const blob = await put(`${slug}/${safeName}`, file, {
+      access: "public",
+      token,
+      addRandomSuffix: true,
     });
-    return NextResponse.json(json);
+    return NextResponse.json({ url: blob.url });
   } catch (e) {
-    // Auth failures (owner check) surface their message; anything mentioning a
-    // token/store means Blob isn't wired up yet — nudge toward the URL fallback.
-    const msg = (e as Error).message || "Upload failed.";
-    const notConfigured = /token|blob_read_write|no store|store not found/i.test(msg);
-    return NextResponse.json(
-      {
-        error: notConfigured
-          ? "Image uploads aren't enabled yet. You can still add images by URL."
-          : msg,
-      },
-      { status: notConfigured ? 503 : 400 }
-    );
+    return NextResponse.json({ error: String((e as Error).message || "Upload failed.").slice(0, 200) }, { status: 500 });
   }
 }

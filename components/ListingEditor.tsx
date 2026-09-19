@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
 
 type Props = {
   slug: string;
@@ -16,6 +15,54 @@ type Props = {
 type Status = "idle" | "saving" | "saved" | "error";
 
 const MAX_IMAGES = 12;
+const MAX_DIM = 1600; // cap the longest edge
+const QUALITY = 0.82;
+
+function toBlobAsync(canvas: HTMLCanvasElement, type: string, q: number): Promise<Blob | null> {
+  return new Promise((res) => canvas.toBlob((b) => res(b), type, q));
+}
+
+// Downscale/compress an image in the browser before upload: cap the longest
+// edge at ~1600px and re-encode as WebP (falling back to JPEG). Keeps GIFs
+// untouched (to preserve animation) and returns the original if shrinking
+// wouldn't help.
+async function shrinkImage(file: File): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const { width, height } = bitmap;
+    const scale = Math.min(1, MAX_DIM / Math.max(width, height));
+    if (scale === 1 && file.size <= 1_000_000) {
+      bitmap.close?.();
+      return file;
+    }
+    const w = Math.round(width * scale);
+    const h = Math.round(height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close?.();
+      return file;
+    }
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+
+    let type = "image/webp";
+    let blob = await toBlobAsync(canvas, type, QUALITY);
+    if (!blob) {
+      type = "image/jpeg";
+      blob = await toBlobAsync(canvas, type, QUALITY);
+    }
+    if (!blob || blob.size >= file.size) return file;
+    const base = (file.name || "image").replace(/\.[^.]+$/, "");
+    const ext = type === "image/webp" ? "webp" : "jpg";
+    return new File([blob], `${base}.${ext}`, { type });
+  } catch {
+    return file;
+  }
+}
 
 export function ListingEditor(p: Props) {
   const [status, setStatus] = useState<Status>("idle");
@@ -91,12 +138,14 @@ export function ListingEditor(p: Props) {
   }
 
   async function uploadOne(file: File): Promise<string> {
-    const res = await upload(`${p.slug}/${file.name}`, file, {
-      access: "public",
-      handleUploadUrl: "/api/owner/upload",
-      clientPayload: JSON.stringify({ slug: p.slug }),
-    });
-    return res.url;
+    const shrunk = await shrinkImage(file);
+    const fd = new FormData();
+    fd.append("file", shrunk, shrunk.name);
+    fd.append("slug", p.slug);
+    const res = await fetch("/api/owner/upload", { method: "POST", body: fd });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.url) throw new Error(d.error || "Upload failed.");
+    return d.url as string;
   }
 
   async function addGalleryFiles(files: File[]) {

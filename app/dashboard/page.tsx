@@ -7,11 +7,15 @@ import { getVendorBySlug, getVendorsByCategory } from "@/lib/vendors";
 import { getCategory } from "@/lib/data";
 import { getStats } from "@/lib/stats";
 import { listForCategory, fullRankOfVendor } from "@/lib/lists";
+import { listReviewsForSlug } from "@/lib/reviews";
+import { readAiVis, vendorAiVis } from "@/lib/aivis";
 import { Sparkline } from "@/components/Sparkline";
 import { ProfileStrength } from "@/components/ProfileStrength";
 import { RankBadgeEmbed } from "@/components/RankBadgeEmbed";
 import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
-import { listReviewsForSlug } from "@/lib/reviews";
+import { ListingEditor } from "@/components/ListingEditor";
+import { Analytics } from "@/components/Analytics";
+import { AiVisibility } from "@/components/AiVisibility";
 
 export const dynamic = "force-dynamic";
 
@@ -22,211 +26,245 @@ export const metadata: Metadata = {
 
 const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
-export default async function DashboardPage() {
+const TABS: Record<string, string> = {
+  overview: "Dashboard",
+  edit: "Edit profile",
+  rankings: "Rankings & awards",
+  reviews: "Reviews",
+  analytics: "Performance analytics",
+  aivis: "AI visibility",
+  engagement: "Engagement",
+};
+
+function toORev(rows: Awaited<ReturnType<typeof listReviewsForSlug>>): ORev[] {
+  return rows.map((r) => ({
+    id: r.id, name: r.name, company: r.company, rating: r.rating,
+    title: r.title, body: r.body, status: r.status, created: r.created, response: r.response,
+  }));
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { tab?: string; slug?: string };
+}) {
   const email = getSessionEmail();
   if (!email) redirect("/login");
-  const year = new Date().getUTCFullYear();
 
-  let live: {
-    slug: string;
-    vendor: NonNullable<Awaited<ReturnType<typeof getVendorBySlug>>>;
-    stats: Awaited<ReturnType<typeof getStats>>;
-    ranking: { listSlug: string; listTitle: string; limit: number; rank: number; total: number; inTop: boolean } | null;
-    reviews: ORev[];
-  }[] = [];
+  const tab = searchParams?.tab && TABS[searchParams.tab] ? searchParams.tab : "overview";
+
+  let slugs: string[] = [];
   let loadError = false;
   try {
-    const slugs = await ownedSlugsForEmail(email);
-    const items = await Promise.all(
-      slugs.map(async (slug) => {
-        const [vendor, stats, rawReviews] = await Promise.all([
-          getVendorBySlug(slug),
-          getStats(slug, 30),
-          listReviewsForSlug(slug),
-        ]);
-        const reviews: ORev[] = rawReviews.map((r) => ({
-          id: r.id,
-          name: r.name,
-          company: r.company,
-          rating: r.rating,
-          title: r.title,
-          body: r.body,
-          status: r.status,
-          created: r.created,
-          response: r.response,
-        }));
-        let ranking = null as (typeof live)[number]["ranking"];
-        if (vendor) {
-          const list = listForCategory(vendor.categorySlug);
-          if (list) {
-            const fr = fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug);
-            if (fr) {
-              ranking = {
-                listSlug: list.slug,
-                listTitle: list.title,
-                limit: list.limit,
-                rank: fr.rank,
-                total: fr.total,
-                inTop: fr.rank <= list.limit,
-              };
-            }
-          }
-        }
-        return { slug, vendor, stats, ranking, reviews };
-      })
-    );
-    live = items.filter((it): it is (typeof live)[number] => Boolean(it.vendor));
-  } catch (e) {
-    console.error("[dashboard] load failed:", e);
+    slugs = await ownedSlugsForEmail(email);
+  } catch {
     loadError = true;
   }
+
+  if (loadError) {
+    return (
+      <section className="dash-page">
+        <div className="aside-card" style={{ maxWidth: 560 }}>
+          <p style={{ margin: 0 }}>Couldn&rsquo;t load your dashboard just now.</p>
+          <a className="btn btn--primary btn--sm" href="/dashboard" style={{ alignSelf: "flex-start" }}>Refresh</a>
+        </div>
+      </section>
+    );
+  }
+
+  if (slugs.length === 0) {
+    return (
+      <section className="dash-page">
+        <div className="dash-head"><h1>Your dashboard.</h1></div>
+        <div className="aside-card" style={{ marginTop: 24, maxWidth: 560 }}>
+          <p style={{ margin: 0 }}>No confirmed listings are linked to <strong>{email}</strong> yet.</p>
+          <p className="hint" style={{ margin: 0 }}>
+            Find your company in the <Link href="/directory">directory</Link> and click
+            &ldquo;Claim this listing.&rdquo;
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const activeSlug = searchParams?.slug && slugs.includes(searchParams.slug) ? searchParams.slug : slugs[0];
+  const vendor = await getVendorBySlug(activeSlug);
+  if (!vendor) redirect("/dashboard");
+
+  const withSlug = (t: string) => `/dashboard?tab=${t}${slugs.length > 1 ? `&slug=${activeSlug}` : ""}`;
 
   return (
     <section className="dash-page">
       <div className="dash-head">
         <div>
-          <h1 style={{ marginBottom: 6 }}>Your dashboard.</h1>
-          <p className="hint" style={{ margin: 0 }}>Signed in as {email}</p>
+          <h1 style={{ marginBottom: 6 }}>{TABS[tab]}</h1>
+          <p className="hint" style={{ margin: 0 }}>{vendor.name} · signed in as {email}</p>
         </div>
       </div>
 
-      {loadError ? (
-        <div className="aside-card" style={{ marginTop: 28, maxWidth: 560 }}>
-          <p style={{ margin: 0 }}>Couldn&rsquo;t load your dashboard just now.</p>
-          <p className="hint" style={{ margin: 0 }}>
-            This is usually a momentary hiccup — please refresh. If it keeps
-            happening, let us know.
-          </p>
-          <a className="btn btn--primary btn--sm" href="/dashboard" style={{ alignSelf: "flex-start" }}>Refresh</a>
-        </div>
-      ) : live.length === 0 ? (
-        <div className="aside-card" style={{ marginTop: 28, maxWidth: 560 }}>
-          <p style={{ margin: 0 }}>No confirmed listings are linked to <strong>{email}</strong> yet.</p>
-          <p className="hint" style={{ margin: 0 }}>
-            Find your company in the <Link href="/directory">directory</Link> and
-            click &ldquo;Claim this listing.&rdquo; Once your claim email is
-            confirmed and matches your company domain, it&rsquo;ll show up here.
-          </p>
-        </div>
-      ) : (
-        <div className="dash-grid">
-          {live.map(({ slug, vendor, stats, ranking, reviews }) => {
-            const v30 = sum(stats.series.view);
-            const w30 = sum(stats.series.website);
-            const e30 = sum(stats.series.email);
-            const catName = getCategory(vendor.categorySlug)?.name || "your category";
-            return (
-              <article key={slug} className="dash-card">
-                <div className="dash-card-head">
-                  <div>
-                    <h2 style={{ margin: 0 }}>{vendor.name}</h2>
-                    <span className="hint">{vendor.location}</span>
-                  </div>
-                  <div className="detail-badges" style={{ margin: 0 }}>
-                    {vendor.tier === "Featured" ? (
-                      <span className="badge badge--featured">Featured</span>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* 1 — Profile strength */}
-                <ProfileStrength vendor={vendor} slug={slug} />
-
-                {/* 2 — Rankings & awards */}
-                <div id="rankings" className="dash-section">
-                  <h3 className="dash-section-h">Rankings &amp; awards</h3>
-                  {ranking ? (
-                    ranking.inTop ? (
-                      <>
-                        <p className="dash-rank-line">
-                          You rank <strong className="dash-rank-num">#{ranking.rank}</strong> in{" "}
-                          <Link href={`/best/${ranking.listSlug}`}>{ranking.listTitle}</Link>
-                          {" "}— top {ranking.limit} of {ranking.total} in {catName}.
-                        </p>
-                        <RankBadgeEmbed
-                          slug={slug}
-                          name={vendor.name}
-                          listSlug={ranking.listSlug}
-                          listTitle={ranking.listTitle}
-                          rank={ranking.rank}
-                          year={year}
-                        />
-                      </>
-                    ) : (
-                      <p className="dash-rank-line">
-                        You&rsquo;re <strong className="dash-rank-num">#{ranking.rank}</strong> of {ranking.total} in {catName}.
-                        Reach the <Link href={`/best/${ranking.listSlug}`}>Top {ranking.limit}</Link> to unlock an
-                        embeddable award badge — climb by earning more verified reviews and widening your market coverage.
-                      </p>
-                    )
-                  ) : (
-                    <p className="hint">No ranking list for this category yet.</p>
-                  )}
-                </div>
-
-                {/* 3 — Data-driven Featured upsell */}
-                {vendor.tier !== "Featured" && ranking && (
-                  <div className="dash-upsell">
-                    <div>
-                      <strong>Move to the top.</strong> You&rsquo;re #{ranking.rank} of {ranking.total} in {catName}.
-                      Featured pins you above{" "}
-                      {ranking.rank > 1 ? `the ${ranking.rank - 1} ${ranking.rank - 1 === 1 ? "company" : "companies"} ranked above you` : "every standard listing"}
-                      {" "}— top of the category and search results, plus the Featured &amp; Verified badges.
-                    </div>
-                    <Link className="btn btn--primary btn--sm" href="/pricing">Get Featured →</Link>
-                  </div>
-                )}
-
-                {/* Engagement */}
-                <div id="engagement" className="dash-section">
-                  <h3 className="dash-section-h">Engagement · 30 days</h3>
-                  <div className="stat-tiles">
-                    <div className="stat-tile">
-                      <span className="stat-num">{v30}</span>
-                      <span className="stat-label">Views · 30d</span>
-                      <span className="stat-sub">{stats.totals.view} all-time</span>
-                    </div>
-                    <div className="stat-tile">
-                      <span className="stat-num">{w30}</span>
-                      <span className="stat-label">Website clicks · 30d</span>
-                      <span className="stat-sub">{stats.totals.website} all-time</span>
-                    </div>
-                    <div className="stat-tile">
-                      <span className="stat-num">{e30}</span>
-                      <span className="stat-label">Email clicks · 30d</span>
-                      <span className="stat-sub">{stats.totals.email} all-time</span>
-                    </div>
-                  </div>
-                  <div className="dash-spark">
-                    <span className="stat-label">Views · last 30 days</span>
-                    <Sparkline data={stats.series.view} />
-                  </div>
-                </div>
-
-                {/* Reviews */}
-                <div id="reviews" className="dash-section">
-                  <h3 className="dash-section-h">
-                    Reviews
-                    {reviews.filter((r) => r.status === "published").length > 0 &&
-                      ` · ${reviews.filter((r) => r.status === "published").length} published`}
-                    {reviews.filter((r) => r.status === "pending").length > 0 &&
-                      ` · ${reviews.filter((r) => r.status === "pending").length} pending`}
-                  </h3>
-                  <OwnerReviews slug={slug} reviews={reviews} />
-                </div>
-
-                <div className="dash-card-foot">
-                  <Link className="btn btn--primary btn--sm" href={`/dashboard/${slug}#editor`}>Edit listing</Link>
-                  <Link className="btn btn--ghost btn--sm" href={`/directory/${slug}`}>View</Link>
-                  {vendor.tier !== "Featured" && (
-                    <Link className="btn btn--ghost btn--sm" href="/pricing">Get Featured →</Link>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+      {slugs.length > 1 && tab !== "overview" && (
+        <div className="dash-switcher">
+          {await Promise.all(
+            slugs.map(async (s) => {
+              const v = await getVendorBySlug(s);
+              return (
+                <Link key={s} href={`/dashboard?tab=${tab}&slug=${s}`} className={`dash-switch${s === activeSlug ? " is-active" : ""}`}>
+                  {v?.name || s}
+                </Link>
+              );
+            })
+          )}
         </div>
       )}
+
+      {tab === "overview" && <OverviewPanel slugs={slugs} />}
+
+      {tab === "edit" && (
+        <div className="dash-panel">
+          <ListingEditor
+            slug={vendor.slug}
+            website={vendor.website || ""}
+            phone={vendor.phone || ""}
+            address={vendor.address || ""}
+            description={vendor.description || ""}
+            heroImage={vendor.heroImage || ""}
+            gallery={vendor.gallery || []}
+          />
+        </div>
+      )}
+
+      {tab === "rankings" && (
+        <div className="dash-panel">
+          <RankingsPanel slug={activeSlug} />
+        </div>
+      )}
+
+      {tab === "reviews" && (
+        <div className="dash-panel">
+          <OwnerReviews slug={activeSlug} reviews={toORev(await listReviewsForSlug(activeSlug))} />
+        </div>
+      )}
+
+      {tab === "analytics" && (
+        <div className="dash-panel">
+          {await (async () => {
+            const stats = await getStats(activeSlug, 90);
+            return <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />;
+          })()}
+        </div>
+      )}
+
+      {tab === "aivis" && (
+        <div className="dash-panel">
+          <AiVisibility vendor={vendor} data={vendorAiVis(vendor, await readAiVis())} />
+        </div>
+      )}
+
+      {tab === "engagement" && (
+        <div className="dash-panel">
+          {await (async () => {
+            const stats = await getStats(activeSlug, 30);
+            return (
+              <>
+                <div className="stat-tiles">
+                  <div className="stat-tile"><span className="stat-num">{sum(stats.series.view)}</span><span className="stat-label">Views · 30d</span><span className="stat-sub">{stats.totals.view} all-time</span></div>
+                  <div className="stat-tile"><span className="stat-num">{sum(stats.series.website)}</span><span className="stat-label">Website clicks · 30d</span><span className="stat-sub">{stats.totals.website} all-time</span></div>
+                  <div className="stat-tile"><span className="stat-num">{sum(stats.series.email)}</span><span className="stat-label">Email clicks · 30d</span><span className="stat-sub">{stats.totals.email} all-time</span></div>
+                </div>
+                <div className="dash-spark" style={{ marginTop: 18 }}>
+                  <span className="stat-label">Views · last 30 days</span>
+                  <Sparkline data={stats.series.view} />
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {tab === "edit" && null}
     </section>
+  );
+}
+
+// ---- Panels ----
+
+async function OverviewPanel({ slugs }: { slugs: string[] }) {
+  const cards = await Promise.all(
+    slugs.map(async (slug) => {
+      const [vendor, stats] = await Promise.all([getVendorBySlug(slug), getStats(slug, 30)]);
+      if (!vendor) return null;
+      const list = listForCategory(vendor.categorySlug);
+      const fr = list ? fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug) : null;
+      const catName = getCategory(vendor.categorySlug)?.name || "your category";
+      return { slug, vendor, stats, fr, list, catName };
+    })
+  );
+  return (
+    <div className="dash-grid">
+      {cards.filter(Boolean).map((c) => {
+        const { slug, vendor, stats, fr, catName } = c!;
+        return (
+          <article key={slug} className="dash-card">
+            <div className="dash-card-head">
+              <div><h2 style={{ margin: 0 }}>{vendor.name}</h2><span className="hint">{vendor.location}</span></div>
+              {vendor.tier === "Featured" && <span className="badge badge--featured">Featured</span>}
+            </div>
+            <ProfileStrength vendor={vendor} slug={slug} />
+            <div className="stat-tiles">
+              <div className="stat-tile"><span className="stat-num">{sum(stats.series.view)}</span><span className="stat-label">Views · 30d</span></div>
+              <div className="stat-tile"><span className="stat-num">{sum(stats.series.website) + sum(stats.series.email)}</span><span className="stat-label">Clicks · 30d</span></div>
+              <div className="stat-tile"><span className="stat-num">{fr ? `#${fr.rank}` : "—"}</span><span className="stat-label">Rank in {catName}</span></div>
+            </div>
+            <div className="dash-card-foot">
+              <Link className="btn btn--primary btn--sm" href={`/dashboard?tab=edit&slug=${slug}`}>Edit profile</Link>
+              <Link className="btn btn--ghost btn--sm" href={`/dashboard?tab=reviews&slug=${slug}`}>Reviews</Link>
+              <Link className="btn btn--ghost btn--sm" href={`/directory/${slug}`}>View</Link>
+            </div>
+          </article>
+        );
+      })}
+      <p className="hint" style={{ gridColumn: "1 / -1", margin: "4px 0 0" }}>
+        Use the tabs on the left to edit your profile, manage reviews, see rankings and analytics.
+      </p>
+    </div>
+  );
+}
+
+async function RankingsPanel({ slug }: { slug: string }) {
+  const vendor = await getVendorBySlug(slug);
+  if (!vendor) return null;
+  const list = listForCategory(vendor.categorySlug);
+  const catName = getCategory(vendor.categorySlug)?.name || "your category";
+  const fr = list ? fullRankOfVendor(await getVendorsByCategory(vendor.categorySlug), slug) : null;
+  const year = new Date().getUTCFullYear();
+  if (!list || !fr) return <p className="hint">No ranking list for this category yet.</p>;
+  const inTop = fr.rank <= list.limit;
+  return (
+    <>
+      {inTop ? (
+        <>
+          <p className="dash-rank-line">
+            You rank <strong className="dash-rank-num">#{fr.rank}</strong> in{" "}
+            <Link href={`/best/${list.slug}`}>{list.title}</Link> — top {list.limit} of {fr.total} in {catName}.
+          </p>
+          <RankBadgeEmbed slug={slug} name={vendor.name} listSlug={list.slug} listTitle={list.title} rank={fr.rank} year={year} />
+        </>
+      ) : (
+        <p className="dash-rank-line">
+          You&rsquo;re <strong className="dash-rank-num">#{fr.rank}</strong> of {fr.total} in {catName}. Reach the{" "}
+          <Link href={`/best/${list.slug}`}>Top {list.limit}</Link> to unlock an embeddable award badge — climb by
+          earning more verified reviews and widening your market coverage.
+        </p>
+      )}
+      {vendor.tier !== "Featured" && (
+        <div className="dash-upsell" style={{ marginTop: 18 }}>
+          <div>
+            <strong>Move to the top.</strong> You&rsquo;re #{fr.rank} of {fr.total} in {catName}. Featured pins you
+            above every standard listing — top of the category and search, plus the Featured &amp; Verified badges.
+          </div>
+          <Link className="btn btn--primary btn--sm" href="/pricing">Get Featured →</Link>
+        </div>
+      )}
+    </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 type Item = {
   label: string;
@@ -42,19 +42,23 @@ export function DashboardNav({
   admin: boolean;
 }) {
   const path = usePathname();
-  const manage = primarySlug ? `/dashboard/${primarySlug}` : "/dashboard";
+  const params = useSearchParams();
+  void primarySlug;
+  // The dashboard is a single route with tab panels selected by ?tab=.
+  const activeTab = (path === "/dashboard" && (params.get("tab") || "overview")) || "";
+  const tab = (t: string) => `/dashboard?tab=${t}`;
 
   const overview: Item[] = [
-    { label: "Dashboard", href: "/dashboard", icon: "grid", match: (p) => p === "/dashboard" },
-    { label: "Edit Profile", href: `${manage}#editor`, icon: "store", match: (p) => p.startsWith("/dashboard/") },
-    { label: "Rankings & Awards", href: "/dashboard#rankings", icon: "star" },
-    { label: "Reviews", href: "/dashboard#reviews", icon: "chat" },
+    { label: "Dashboard", href: tab("overview"), icon: "grid", match: () => activeTab === "overview" },
+    { label: "Edit Profile", href: tab("edit"), icon: "store", match: () => activeTab === "edit" },
+    { label: "Rankings & Awards", href: tab("rankings"), icon: "star", match: () => activeTab === "rankings" },
+    { label: "Reviews", href: tab("reviews"), icon: "chat", match: () => activeTab === "reviews" },
     { label: "Packages", href: "/pricing", icon: "tag" },
   ];
   const performance: Item[] = [
-    { label: "Performance Analytics", href: `${manage}#analytics`, icon: "chart" },
-    { label: "AI Visibility", href: `${manage}#aivis`, icon: "spark", badge: "New" },
-    { label: "Engagement", href: "/dashboard#engagement", icon: "bulb" },
+    { label: "Performance Analytics", href: tab("analytics"), icon: "chart", match: () => activeTab === "analytics" },
+    { label: "AI Visibility", href: tab("aivis"), icon: "spark", badge: "New", match: () => activeTab === "aivis" },
+    { label: "Engagement", href: tab("engagement"), icon: "bulb", match: () => activeTab === "engagement" },
   ];
 
   const render = (it: Item) => {

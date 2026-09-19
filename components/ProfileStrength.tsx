@@ -22,7 +22,7 @@ export function ProfileStrength({ vendor, slug }: { vendor: Vendor; slug: string
   const list = items(vendor);
   const percent = list.filter((i) => i.done).reduce((s, i) => s + i.weight, 0);
   const missing = list.filter((i) => !i.done);
-  const editHref = `/dashboard/${slug}#editor`;
+  const editHref = `/dashboard?tab=edit&slug=${slug}`;
   const tone = percent >= 90 ? "hi" : percent >= 60 ? "mid" : "lo";
 
   return (

@@ -19,7 +19,7 @@
   --shadow: 0 1px 2px rgba(26, 27, 30, 0.05), 0 12px 32px -18px rgba(26, 27, 30, 0.22);
 
   --wrap: 1180px;
-  --radius: 3px;
+  --radius: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -802,6 +802,13 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .autosave[data-state="saving"] { color: var(--ink-2); }
 .autosave[data-state="saved"] { color: #3f9d6a; border-color: rgba(63, 157, 106, 0.4); }
 .autosave[data-state="error"] { color: #c0563d; border-color: rgba(192, 86, 61, 0.5); }
+
+/* Dashboard tab panel + listing switcher */
+.dash-panel { margin-top: 6px; max-width: 760px; }
+.dash-switcher { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
+.dash-switch { font-size: 0.85rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); }
+.dash-switch:hover { border-color: var(--line-strong); color: var(--ink); }
+.dash-switch.is-active { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
 
 /* ===== Owner dashboard shell (sidebar + main) ===== */
 .dash-shell { display: flex; gap: 30px; max-width: var(--wrap); margin: 0 auto; padding: 30px 24px 90px; align-items: flex-start; }

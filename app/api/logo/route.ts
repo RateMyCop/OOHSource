@@ -59,9 +59,15 @@ export async function GET(req: Request) {
     }
   }
 
-  // No usable logo — 404 (short cache); the client shows a themed monogram.
-  return new Response("no logo", {
-    status: 404,
-    headers: { "Cache-Control": "public, max-age=3600" },
+  // No usable favicon — return a neutral monogram (200) instead of a 404, so
+  // crawlers don't see broken internal resources and the card still shows a mark.
+  const letter = ((explicit || domain).replace(/^www\./, "").trim()[0] || "?").toUpperCase();
+  const safe = letter.replace(/[<>&"]/g, "");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="logo placeholder"><text x="64" y="66" font-family="ui-sans-serif,system-ui,Segoe UI,Arial,sans-serif" font-size="66" font-weight="700" fill="#987a41" text-anchor="middle" dominant-baseline="central">${safe}</text></svg>`;
+  return new Response(svg, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800",
+    },
   });
 }

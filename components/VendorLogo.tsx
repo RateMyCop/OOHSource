@@ -53,7 +53,7 @@ export function VendorLogo({
     <img
       className="vlogo"
       src={sources[idx]}
-      alt=""
+      alt={name ? `${name} logo` : "Company logo"}
       width={size}
       height={size}
       loading="lazy"

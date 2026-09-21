@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/lists";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Browse OOH by Format — Billboards, Transit, DOOH & More",
+  title: "OOH Formats — Billboards, Transit, DOOH & More",
   description:
     "Explore out-of-home advertising by format — digital billboards, transit, street furniture, place-based, wheat pasting and more — and find the companies that operate each.",
   alternates: { canonical: `${SITE_URL}/formats` },

@@ -45,7 +45,7 @@ function toDirectoryVendor(v: Vendor): DirectoryVendor {
 }
 
 export const metadata: Metadata = {
-  title: "Directory",
+  title: "OOH Directory — Search 1,000+ OOH Companies",
   description:
     "Search the global out-of-home directory by category, format, and market. Media owners, agencies, printers, installers, and OOH technology.",
   alternates: { canonical: `${SITE_URL}/directory` },

@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  title: "Contact OOHsource — Listings, Featured & Press",
   description:
     "Get in touch with OOHsource — claim or correct a listing, ask about Featured placement, press, or partnerships. We reply within one business day.",
   alternates: { canonical: `${SITE_URL}/contact` },

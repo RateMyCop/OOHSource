@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About OOHsource — The Out-of-Home Directory",
   description:
     "OOHsource is the open, vetted directory of the out-of-home advertising industry — media owners, agencies, printers, installers, and technology. Founded by Gino Sesto to keep it accurate, neutral, and public.",
   alternates: { canonical: `${SITE_URL}/about` },

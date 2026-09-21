@@ -6,6 +6,7 @@ import { getVendorsByCategory } from "@/lib/vendors";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
+import { JsonLd } from "@/components/JsonLd";
 
 export const revalidate = 60;
 
@@ -26,7 +27,9 @@ export function generateMetadata({
   const category = getCategory(params.category as CategorySlug);
   if (!category) return { title: "Not found" };
   return {
-    title: category.name,
+    // "Media Owners & Operators — OOH Companies | OOHsource" lands in the
+    // 40–60 character band for every category name.
+    title: `${category.name} — OOH Companies`,
     description: `Browse ${category.name.toLowerCase()} in the global out-of-home directory. ${category.blurb}`,
     alternates: { canonical: `${SITE_URL}/category/${category.slug}` },
   };
@@ -52,8 +55,36 @@ export default async function CategoryPage({
   );
   const list = listForCategory(category.slug);
 
+  // Same rich-result pair the /formats pages emit: a ranked ItemList of the
+  // top companies plus breadcrumbs. Category pages were the only hub pages
+  // with no structured data at all.
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${category.name} — OOH companies`,
+    description: category.blurb,
+    numberOfItems: vendors.length,
+    itemListElement: vendors.slice(0, 25).map((v, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE_URL}/directory/${v.slug}`,
+      name: v.name,
+    })),
+  };
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Directory", item: `${SITE_URL}/directory` },
+      { "@type": "ListItem", position: 3, name: category.name },
+    ],
+  };
+
   return (
     <section className="wrap">
+      <JsonLd data={itemList} />
+      <JsonLd data={breadcrumb} />
       <div className="page-head">
         <div className="crumb">
           <Link href="/">Home</Link>

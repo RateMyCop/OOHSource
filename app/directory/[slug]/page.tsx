@@ -74,14 +74,33 @@ export async function generateMetadata({
   // enrich short/empty-subcategory names with the category and HQ city so they
   // stop landing in the "title too short" bucket.
   const TITLE_CAP = 48;
-  const role = (vendor.subcategory || getCategory(vendor.categorySlug)?.name || "").trim();
+  const categoryName = (getCategory(vendor.categorySlug)?.name || "").trim();
   const city = (vendor.location.split(",")[0] || "").trim();
+  // Names that carry a long parenthetical ("Acme (formerly Foo Corp, LLC)")
+  // blow past the cap on their own; drop the parenthetical for the tag only.
   let title = vendor.name.trim();
-  if (role && title.length + 3 + role.length <= TITLE_CAP) title += ` — ${role}`;
+  if (title.length > TITLE_CAP) {
+    const bare = title.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+    if (bare.length >= 3) title = bare;
+  }
+  // Prefer the specific subcategory; when that is too long to fit, fall back
+  // to the category name rather than dropping the role entirely (which left
+  // titles like "Orb in Dublin").
+  const roles = [(vendor.subcategory || "").trim(), categoryName].filter(Boolean);
+  const role = roles.find((r) => title.length + 3 + r.length <= TITLE_CAP);
+  if (role) title += ` — ${role}`;
   if (city && city.length <= 22 && title.length + 4 + city.length <= TITLE_CAP) {
     title += ` in ${city}`;
   }
-  const description = metaSnippet(vendor.description, 155);
+  // Listings with no description yet still need a meta description; build a
+  // factual one from the fields we do have.
+  const fallbackDescription = [
+    `${vendor.name} is ${/^[aeiou]/i.test(roles[0] || "") ? "an" : "a"} ${(
+      roles[0] || "out-of-home company"
+    ).toLowerCase()}${vendor.location ? ` based in ${vendor.location}` : ""}.`,
+    "Website, contact details, reviews and more on OOHsource, the global out-of-home advertising directory.",
+  ].join(" ");
+  const description = metaSnippet(vendor.description || fallbackDescription, 155);
   const images = vendor.heroImage ? [vendor.heroImage] : undefined;
   return {
     title,

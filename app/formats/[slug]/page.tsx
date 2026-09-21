@@ -20,8 +20,11 @@ export function generateMetadata({
 }): Metadata {
   const f = getFormatType(params.slug);
   if (!f) return { title: "Not found" };
+  // Keep the built part under ~48 chars so the " | OOHsource" suffix lands the
+  // whole tag under 60; long format names drop the generic tail.
+  const full = `${f.name} Companies — OOH Directory`;
   return {
-    title: `${f.name} Companies — OOH Directory`,
+    title: full.length <= 48 ? full : `${f.name} Companies`,
     description: f.blurb,
     alternates: { canonical: `${SITE_URL}/formats/${f.slug}` },
   };

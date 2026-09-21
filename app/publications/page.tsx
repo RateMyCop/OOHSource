@@ -6,7 +6,7 @@ import { SuggestEdit } from "@/components/SuggestEdit";
 import { SITE_URL } from "@/lib/lists";
 
 export const metadata: Metadata = {
-  title: "OOH Industry Media — Publications, Podcasts & Associations",
+  title: "OOH Industry Media — Publications & Podcasts",
   description:
     "The trade press, news sites, newsletters, podcasts, associations, and measurement bodies of the out-of-home advertising industry — one curated place to follow OOH.",
   alternates: { canonical: `${SITE_URL}/publications` },

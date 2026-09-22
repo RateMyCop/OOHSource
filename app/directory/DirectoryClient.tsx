@@ -24,29 +24,36 @@ const SORTS: { key: SortKey; label: string }[] = [
 export function DirectoryClient({
   vendors,
   categories,
-  initialQuery = "",
-  initialCategories = [],
-  initialFormats = [],
-  initialVerified = false,
-  initialSort = "",
 }: {
   vendors: DirectoryVendor[];
   categories: Category[];
-  initialQuery?: string;
-  initialCategories?: string[];
-  initialFormats?: string[];
-  initialVerified?: boolean;
-  initialSort?: string;
 }) {
-  const [query, setQuery] = useState(initialQuery);
-  const [cats, setCats] = useState<Set<string>>(() => new Set(initialCategories));
-  const [formats, setFormats] = useState<Set<string>>(
-    () => new Set(initialFormats)
-  );
-  const [verifiedOnly, setVerifiedOnly] = useState(initialVerified);
-  const [sort, setSort] = useState<SortKey>(
-    SORTS.some((s) => s.key === initialSort) ? (initialSort as SortKey) : "featured"
-  );
+  const [query, setQuery] = useState("");
+  const [cats, setCats] = useState<Set<string>>(() => new Set());
+  const [formats, setFormats] = useState<Set<string>>(() => new Set());
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("featured");
+
+  // Seed filters from the URL (?q/category/format/verified/sort) on mount.
+  // Reading the params CLIENT-SIDE (not from server searchParams) is what keeps
+  // this page statically generated and edge-cached — reading searchParams on the
+  // server would force a dynamic re-render of the whole list on every request.
+  // A deep-linked filter applies a tick after first paint; the full list is
+  // always in the static HTML for crawlers.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const csv = (v: string | null) =>
+      (v || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const q = p.get("q");
+    if (q) setQuery(q);
+    const c = csv(p.get("category"));
+    if (c.length) setCats(new Set(c));
+    const f = csv(p.get("format"));
+    if (f.length) setFormats(new Set(f));
+    if (p.get("verified") === "1") setVerifiedOnly(true);
+    const s = p.get("sort");
+    if (s && SORTS.some((x) => x.key === s)) setSort(s as SortKey);
+  }, []);
 
   function toggle(set: Set<string>, value: string): Set<string> {
     const next = new Set(set);

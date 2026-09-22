@@ -51,26 +51,12 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/directory` },
 };
 
-export default async function DirectoryPage({
-  searchParams,
-}: {
-  searchParams: {
-    q?: string;
-    category?: string;
-    format?: string;
-    verified?: string;
-    sort?: string;
-  };
-}) {
+// No searchParams here on purpose: reading them would force this ~880KB page to
+// render dynamically on every request. The client seeds filters from the URL
+// itself (see DirectoryClient), so this page stays statically generated and is
+// served straight from the edge cache.
+export default async function DirectoryPage() {
   const vendors = (await getAllVendors()).map(toDirectoryVendor);
-  const csv = (v?: string) =>
-    typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : [];
-  const initialQuery = typeof searchParams.q === "string" ? searchParams.q : "";
-  const initialCategories = csv(searchParams.category);
-  const initialFormats = csv(searchParams.format);
-  const initialVerified = searchParams.verified === "1";
-  const initialSort =
-    typeof searchParams.sort === "string" ? searchParams.sort : "";
 
   return (
     <>
@@ -87,15 +73,7 @@ export default async function DirectoryPage({
         </p>
       </section>
       <div className="wrap">
-        <DirectoryClient
-          vendors={vendors}
-          categories={CATEGORIES}
-          initialQuery={initialQuery}
-          initialCategories={initialCategories}
-          initialFormats={initialFormats}
-          initialVerified={initialVerified}
-          initialSort={initialSort}
-        />
+        <DirectoryClient vendors={vendors} categories={CATEGORIES} />
       </div>
     </>
   );

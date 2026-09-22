@@ -59,11 +59,15 @@ export function HeroSearchCard() {
         <Link className="chip" href="/directory?q=billboards">
           Billboards
         </Link>
-        {city && (
-          <Link className="chip on" href={`/directory?q=${encodeURIComponent(city)}`}>
-            {city}
-          </Link>
-        )}
+        {/* Always rendered so its space is reserved from first paint — it just
+            relabels to the resolved city once /api/geo returns, instead of
+            popping in and shifting the row (which hurt CLS on desktop). */}
+        <Link
+          className="chip on"
+          href={city ? `/directory?q=${encodeURIComponent(city)}` : "/directory"}
+        >
+          {city || "Near me"}
+        </Link>
         <Link className="chip" href="/directory?verified=1">
           Verified only
         </Link>

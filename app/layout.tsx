@@ -8,23 +8,28 @@ import { Footer } from "@/components/Footer";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+// display: "optional" (not "swap") to kill font-swap layout shift (CLS). Each
+// font ships a size-adjusted fallback via next/font, so the page renders in that
+// close-matching fallback immediately and only upgrades to the brand font if it
+// arrives within the ~100ms block window (typical on a warm connection) — no
+// mid-view reflow. Cold first visits may briefly show the fallback.
 const display = Archivo({
   subsets: ["latin"],
   weight: ["600", "700", "800"],
   variable: "--font-display",
-  display: "swap",
+  display: "optional",
 });
 const body = Newsreader({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-body",
-  display: "swap",
+  display: "optional",
 });
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-mono",
-  display: "swap",
+  display: "optional",
 });
 
 export const metadata: Metadata = {

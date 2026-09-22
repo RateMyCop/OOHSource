@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { imgProxy } from "@/lib/img";
 
 // Portfolio gallery with a click-to-enlarge lightbox that steps through images
 // like a carousel (arrows, keyboard ←/→, wraps around). Hotlinked vendor images
@@ -54,7 +55,7 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={src}
+              src={imgProxy(src, 500)}
               alt={`${name} work`}
               loading="lazy"
               onError={() => setBroken((b) => ({ ...b, [i]: true }))}
@@ -87,7 +88,7 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
             )}
 
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={secureImages[open]} alt={`${name} work`} />
+            <img src={imgProxy(secureImages[open], 1600)} alt={`${name} work`} />
 
             {visible.length > 1 && (
               <button

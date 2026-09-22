@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { imgProxy } from "@/lib/img";
 
 // Banner image atop a vendor detail page. Rendered as a plain <img> (not
 // next/image) so owner-supplied URLs from any host work without needing each
@@ -15,7 +16,7 @@ export function HeroImage({ src, alt }: { src: string; alt: string }) {
     <div className="detail-hero">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={secure}
+        src={imgProxy(secure, 1280)}
         alt={alt}
         loading="lazy"
         decoding="async"

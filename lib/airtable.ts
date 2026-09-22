@@ -454,7 +454,14 @@ export type ClaimFull = {
 };
 
 // All claims (most recent first), with record ids so admin can approve them.
-export async function fetchClaims(max = 100): Promise<ClaimFull[]> {
+// `revalidate` (seconds) opts into Next's fetch cache instead of no-store, so a
+// statically-generated/ISR page (the homepage's "Recently Added") can read
+// claims without forcing itself dynamic. Admin callers omit it and get fresh
+// data (no-store).
+export async function fetchClaims(
+  max = 100,
+  opts?: { revalidate?: number }
+): Promise<ClaimFull[]> {
   if (!TOKEN || !BASE_ID) return [];
   const url = new URL(
     `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(CLAIMS_TABLE)}`
@@ -462,7 +469,9 @@ export async function fetchClaims(max = 100): Promise<ClaimFull[]> {
   url.searchParams.set("pageSize", String(Math.min(max, 100)));
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${TOKEN}` },
-    cache: "no-store",
+    ...(typeof opts?.revalidate === "number"
+      ? { next: { revalidate: opts.revalidate } }
+      : { cache: "no-store" as const }),
   });
   if (!res.ok) {
     throw new Error(`Airtable claims list failed ${res.status}: ${await res.text()}`);

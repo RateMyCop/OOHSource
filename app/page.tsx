@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { CATEGORIES } from "@/lib/data";
 import { FORMATS } from "@/lib/types";
 import { getAllVendors } from "@/lib/vendors";
 import { fetchClaims } from "@/lib/airtable";
 import { SITE_URL } from "@/lib/lists";
 import { JsonLd } from "@/components/JsonLd";
+import { HeroSearchCard } from "@/components/HeroSearchCard";
+
+// ISR: render statically and refresh every 5 min so the live company count and
+// "Recently Added" stay current without rendering dynamically on every request.
+// Visitor-city personalization is handled client-side (see HeroSearchCard).
+export const revalidate = 300;
 
 const websiteLd = {
   "@context": "https://schema.org",
@@ -50,13 +55,6 @@ const RECENT_FALLBACK: RecentItem[] = [
 ];
 
 export default async function HomePage() {
-  // Personalize the hero search from the visitor's approximate city (Vercel edge
-  // geolocation, derived from IP — no permission prompt, no cookie). Falls back
-  // gracefully in dev / when unavailable.
-  const rawCity = headers().get("x-vercel-ip-city");
-  const city = rawCity ? decodeURIComponent(rawCity.replace(/\+/g, " ")) : "";
-  const searchCity = city || "your area";
-
   // Live directory size — a credibility signal, kept accurate as it grows.
   const vendors = await getAllVendors();
   const vendorCount = vendors.length;
@@ -67,7 +65,7 @@ export default async function HomePage() {
   let recent: RecentItem[] = [];
   try {
     const seen = new Set<string>();
-    for (const c of await fetchClaims(50)) {
+    for (const c of await fetchClaims(50, { revalidate: 300 })) {
       const status = c.status.toLowerCase();
       const authorized =
         APPROVED.has(status) || (status === "email confirmed" && c.domainMatch);
@@ -123,48 +121,7 @@ export default async function HomePage() {
           </div>
 
           <div className="hero-visual">
-            <div className="searchcard">
-              <div className="searchcard-top">
-                <span className="dot" />
-                <span className="dot" />
-                <span className="dot" />
-                <span className="cap">oohsource.com / search</span>
-              </div>
-              <form className="searchfield" action="/directory">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.2-3.2" />
-                </svg>
-                <input
-                  type="text"
-                  name="q"
-                  className="searchfield-input"
-                  placeholder={`Large-format printers in ${searchCity}…`}
-                  aria-label="Search the directory"
-                />
-                <button type="submit" className="searchfield-go" aria-label="Search">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </button>
-              </form>
-              <div className="chips">
-                <Link className="chip on" href="/category/printing-production">
-                  Printing &amp; Production
-                </Link>
-                <Link className="chip" href="/directory?q=billboards">
-                  Billboards
-                </Link>
-                {city && (
-                  <Link className="chip on" href={`/directory?q=${encodeURIComponent(city)}`}>
-                    {city}
-                  </Link>
-                )}
-                <Link className="chip" href="/directory?verified=1">
-                  Verified only
-                </Link>
-              </div>
-            </div>
+            <HeroSearchCard />
 
             <div className="searchcard searchcard--results">
               <div className="searchcard-top">

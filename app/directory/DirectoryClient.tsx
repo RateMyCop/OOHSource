@@ -176,7 +176,7 @@ export function DirectoryClient({
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-      <aside className={`filters${filtersOpen ? " is-open" : ""}`} id="dir-filters">
+      <div className={`filters${filtersOpen ? " is-open" : ""}`} id="dir-filters">
         <div className="filter-group">
           <span className="fh">Search</span>
           <div className="searchbox">
@@ -242,7 +242,7 @@ export function DirectoryClient({
             ✕ Clear all filters
           </button>
         )}
-      </aside>
+      </div>
 
       <div>
         <div className="results-top">

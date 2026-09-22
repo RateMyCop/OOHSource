@@ -81,7 +81,7 @@ export function DashboardNav({
   };
 
   return (
-    <aside className="dnav">
+    <div className="dnav">
       <div className="dnav-brand">{companyName || "Your dashboard"}</div>
 
       <div className="dnav-group">
@@ -100,6 +100,6 @@ export function DashboardNav({
           <button type="submit" className="dnav-signout">Sign out</button>
         </form>
       </div>
-    </aside>
+    </div>
   );
 }

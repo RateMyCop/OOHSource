@@ -346,7 +346,7 @@ export default async function VendorPage({
           )}
         </div>
 
-        <aside>
+        <div className="detail-aside">
           <div className="aside-stack">
           <div className="aside-card">
             <div className="aside-row">
@@ -416,7 +416,7 @@ export default async function VendorPage({
             </div>
           </div>
           </div>
-        </aside>
+        </div>
       </div>
     </section>
   );

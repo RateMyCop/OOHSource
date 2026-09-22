@@ -51,7 +51,7 @@ export default function ContactPage() {
           <ContactForm />
         </div>
 
-        <aside className="contact-aside">
+        <div className="contact-aside">
           <div className="aside-card">
             <span className="k">Email us</span>
             <a className="contact-email" href={`mailto:${CONTACT_EMAIL}`}>
@@ -89,7 +89,7 @@ export default function ContactPage() {
               data accurate — tell us if anything looks off.
             </p>
           </div>
-        </aside>
+        </div>
       </div>
     </section>
   );

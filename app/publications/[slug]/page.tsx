@@ -24,6 +24,16 @@ const SCHEMA_TYPE: Record<PubType, string> = {
   Measurement: "Organization",
 };
 
+// Plural noun used in the "More OOH …" related-links heading.
+const TYPE_LABEL: Record<PubType, string> = {
+  Publication: "publications",
+  News: "news outlets",
+  Newsletter: "newsletters",
+  Podcast: "podcasts",
+  Association: "associations",
+  Measurement: "measurement bodies",
+};
+
 // Split a long block into a couple of readable paragraphs on sentence bounds.
 function paras(text: string): string[] {
   const s = (text || "")
@@ -63,6 +73,34 @@ export default function PublicationPage({
 }) {
   const p = getPublication(params.slug);
   if (!p) notFound();
+
+  // Related industry-media cross-links on two axes — same type and shared
+  // topic — so every listing collects inbound internal links from several
+  // directions (helps crawl/indexation; no thin stub is left orphaned). Each
+  // axis takes a rotating window seeded from this publication's position so
+  // links spread evenly across the set instead of all pointing at the same few.
+  const pubIdx = Math.max(0, PUBLICATIONS.findIndex((x) => x.slug === p.slug));
+  const pubWindow = <T,>(list: T[], count: number): T[] => {
+    if (!list.length) return [];
+    const start = ((pubIdx % list.length) + list.length) % list.length;
+    const out: T[] = [];
+    for (let i = 0; i < Math.min(count, list.length); i++) {
+      out.push(list[(start + i) % list.length]);
+    }
+    return out;
+  };
+  const sameType = pubWindow(
+    PUBLICATIONS.filter((x) => x.type === p.type && x.slug !== p.slug),
+    6
+  );
+  const shown = new Set<string>([p.slug, ...sameType.map((x) => x.slug)]);
+  const primaryTopic = p.topics[0] || "";
+  const sameTopic = primaryTopic
+    ? pubWindow(
+        PUBLICATIONS.filter((x) => !shown.has(x.slug) && x.topics.includes(primaryTopic)),
+        8
+      )
+    : [];
 
   const ld = {
     "@context": "https://schema.org",
@@ -144,6 +182,34 @@ export default function PublicationPage({
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {sameType.length >= 2 && (
+        <div className="detail-section" style={{ borderTop: "1px solid var(--line)", marginTop: 34 }}>
+          <h2>More OOH {TYPE_LABEL[p.type]}</h2>
+          <ul className="rel-links">
+            {sameType.map((x) => (
+              <li key={x.slug}>
+                <Link href={`/publications/${x.slug}`}>{x.name}</Link>
+                <span className="rel-meta">{x.location || x.cadence}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {sameTopic.length >= 2 && (
+        <div className="detail-section" style={{ borderTop: "1px solid var(--line)", marginTop: 34 }}>
+          <h2>Also covering {primaryTopic}</h2>
+          <ul className="rel-links">
+            {sameTopic.map((x) => (
+              <li key={x.slug}>
+                <Link href={`/publications/${x.slug}`}>{x.name}</Link>
+                <span className="rel-meta">{x.type}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

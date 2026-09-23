@@ -611,6 +611,12 @@ a.badge--verified.badge--link:hover .v { background: var(--paper-raise); }
 .detail-section { border-top: 1px solid var(--line); padding: 24px 0; }
 .detail-section h2 { font-size: 1.15rem; margin-bottom: 14px; }
 .spec-list { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Compact related-vendor link lists (same-city / shared-format cross-links). */
+.rel-links { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 24px; }
+.rel-links li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rel-links a { font-family: var(--font-display), sans-serif; font-weight: 600; color: var(--ink); text-decoration: none; }
+.rel-links a:hover { color: var(--accent-strong); text-decoration: underline; }
+.rel-links .rel-meta { flex: none; max-width: 45%; font-size: 0.78rem; color: var(--ink-3); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .aside-stack { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
 .aside-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .aside-card--award { border-color: var(--accent); box-shadow: inset 0 2px 0 var(--accent); }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCategory } from "@/lib/data";
-import { getAllVendors, getVendorBySlug, getVendorsByCategory, resolveVendorForPage } from "@/lib/vendors";
+import { getAllVendors, getVendorBySlug, resolveVendorForPage } from "@/lib/vendors";
 import { VendorCard } from "@/components/VendorCard";
 import { ReportIssue } from "@/components/ReportIssue";
 import { VendorLogo } from "@/components/VendorLogo";
@@ -141,19 +141,52 @@ export default async function VendorPage({
   const reviewInvited = searchParams?.review === "1";
 
   const category = getCategory(vendor.categorySlug);
-  // Cross-link 6 peers in the same category, chosen as a rotating window from
-  // this vendor's position — so different listings link to different peers and
-  // the internal-link graph stays dense (helps crawl/indexation) instead of
-  // every page pointing at the same top two.
-  const catVendors = await getVendorsByCategory(vendor.categorySlug);
-  const others = catVendors.filter((v) => v.slug !== vendor.slug);
-  const related: typeof others = [];
-  if (others.length) {
-    const start = Math.max(0, catVendors.findIndex((v) => v.slug === vendor.slug)) % others.length;
-    for (let i = 0; i < Math.min(6, others.length); i++) {
-      related.push(others[(start + i) % others.length]);
+
+  // Related-vendor cross-links. We link peers on THREE axes — same category,
+  // same city, and shared format — so every listing collects inbound links from
+  // several directions and the internal-link graph stays dense (helps crawl and
+  // indexation; no profile is left with only one inbound link). Each axis takes
+  // a rotating window seeded from this vendor's position, so different profiles
+  // surface different peers instead of all pointing at the same top few.
+  const allVendors = await getAllVendors();
+  const anchorIdx = Math.max(0, allVendors.findIndex((v) => v.slug === vendor.slug));
+  const windowFrom = <T,>(list: T[], count: number): T[] => {
+    if (!list.length) return [];
+    const start = ((anchorIdx % list.length) + list.length) % list.length;
+    const out: T[] = [];
+    for (let i = 0; i < Math.min(count, list.length); i++) {
+      out.push(list[(start + i) % list.length]);
     }
-  }
+    return out;
+  };
+
+  // 1) Same category — shown as full cards (existing behavior).
+  const related = windowFrom(
+    allVendors.filter((v) => v.categorySlug === vendor.categorySlug && v.slug !== vendor.slug),
+    6
+  );
+  const shown = new Set<string>([vendor.slug, ...related.map((v) => v.slug)]);
+
+  // 2) Same city — a geographic axis. Skip vague/non-city locations.
+  const cityKey = (s: string) => (s.split(",")[0] || "").trim().toLowerCase();
+  const cityName = (vendor.location.split(",")[0] || "").trim();
+  const GENERIC_CITY = new Set(["", "worldwide", "global", "united states", "usa", "national", "n/a"]);
+  const cityPeers = GENERIC_CITY.has(cityName.toLowerCase())
+    ? []
+    : windowFrom(
+        allVendors.filter((v) => !shown.has(v.slug) && cityKey(v.location) === cityName.toLowerCase()),
+        8
+      );
+  cityPeers.forEach((v) => shown.add(v.slug));
+
+  // 3) Shared primary format — a service axis.
+  const primaryFormat = vendor.formats[0] || "";
+  const formatPeers = primaryFormat
+    ? windowFrom(
+        allVendors.filter((v) => !shown.has(v.slug) && v.formats.includes(primaryFormat)),
+        8
+      )
+    : [];
 
   const sameAs = [
     vendor.linkedin,
@@ -342,6 +375,36 @@ export default async function VendorPage({
                   <VendorCard key={v.slug} vendor={v} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {cityPeers.length >= 2 && (
+            <div className="detail-section">
+              <h2>Other OOH companies in {cityName}</h2>
+              <ul className="rel-links">
+                {cityPeers.map((v) => (
+                  <li key={v.slug}>
+                    <Link href={`/directory/${v.slug}`}>{v.name}</Link>
+                    <span className="rel-meta">
+                      {v.subcategory || getCategory(v.categorySlug)?.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {formatPeers.length >= 2 && (
+            <div className="detail-section">
+              <h2>Also offering {primaryFormat}</h2>
+              <ul className="rel-links">
+                {formatPeers.map((v) => (
+                  <li key={v.slug}>
+                    <Link href={`/directory/${v.slug}`}>{v.name}</Link>
+                    <span className="rel-meta">{v.location}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

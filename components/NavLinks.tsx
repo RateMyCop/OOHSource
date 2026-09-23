@@ -5,14 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
-const LINKS: { href: string; label: string; pill?: string }[] = [
+const LINKS: { href: string; label: string }[] = [
   { href: "/directory", label: "Directory" },
   { href: "/best", label: "Best of" },
   { href: "/agencies", label: "Agencies" },
   { href: "/vendors", label: "Vendors" },
-  // The industry media directory (publications, podcasts, associations).
-  // Marked Beta while the listings are still being filled in.
-  { href: "/publications", label: "Media", pill: "Beta" },
   { href: "/pricing", label: "Pricing" },
 ];
 
@@ -41,7 +38,7 @@ export function NavLinks() {
 
   return (
     <nav className="nav-links" aria-label="Primary">
-      {[...LINKS, auth].map((l: { href: string; label: string; pill?: string }) => (
+      {[...LINKS, auth].map((l) => (
         <Link
           key={l.href}
           className="navlink"
@@ -49,7 +46,6 @@ export function NavLinks() {
           aria-current={isActive(l.href) ? "page" : undefined}
         >
           {l.label}
-          {l.pill && <span className="pill-new">{l.pill}</span>}
         </Link>
       ))}
       <ThemeToggle />

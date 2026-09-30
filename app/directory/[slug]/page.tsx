@@ -160,11 +160,32 @@ export default async function VendorPage({
     return out;
   };
 
-  // 1) Same category — shown as full cards (existing behavior).
-  const related = windowFrom(
+  // 1) Closest peers — shown as full cards. Prefer vendors in the SAME
+  // subcategory (true peers, e.g. the wheat-pasting / street-poster cluster)
+  // so sister and directly-comparable companies surface here instead of random
+  // members of a broad category; then fill any remaining slots from the wider
+  // category so the row is always full.
+  const subKey = (vendor.subcategory || "").trim().toLowerCase();
+  const subPeers = subKey
+    ? windowFrom(
+        allVendors.filter(
+          (v) => v.slug !== vendor.slug && (v.subcategory || "").trim().toLowerCase() === subKey
+        ),
+        6
+      )
+    : [];
+  const catPeers = windowFrom(
     allVendors.filter((v) => v.categorySlug === vendor.categorySlug && v.slug !== vendor.slug),
     6
   );
+  const related: typeof catPeers = [];
+  const relSeen = new Set<string>([vendor.slug]);
+  for (const v of [...subPeers, ...catPeers]) {
+    if (relSeen.has(v.slug)) continue;
+    relSeen.add(v.slug);
+    related.push(v);
+    if (related.length === 6) break;
+  }
   const shown = new Set<string>([vendor.slug, ...related.map((v) => v.slug)]);
 
   // 2) Same city — a geographic axis. Skip vague/non-city locations.

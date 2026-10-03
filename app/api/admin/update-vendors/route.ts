@@ -6,8 +6,11 @@ import {
   createAirtableRecords,
   deleteAirtableRecords,
 } from "@/lib/airtable";
+import { refreshVendorSnapshot } from "@/lib/vendors";
 
 export const dynamic = "force-dynamic";
+// Snapshot refresh paginates Airtable, so give the write endpoints headroom.
+export const maxDuration = 60;
 
 // GET returns a lightweight vendor list (slug, name, website, current hero) so
 // tooling can scrape/enrich. Auth via the same ADMIN_KEY header.
@@ -62,6 +65,8 @@ export async function DELETE(req: Request) {
       else notFound.push(slug);
     }
     const deleted = ids.length ? await deleteAirtableRecords(ids) : 0;
+    // Rebuild the snapshot so deleted listings drop out of the live site at once.
+    if (deleted) await refreshVendorSnapshot();
     return NextResponse.json({ ok: true, deleted, notFound });
   } catch (e) {
     return NextResponse.json({ error: String(e).slice(0, 300) }, { status: 500 });
@@ -119,6 +124,10 @@ export async function POST(req: Request) {
 
     await updateAirtableRecords(updates);
     const created = creates.length ? await createAirtableRecords(creates) : 0;
+
+    // Rebuild the snapshot immediately so new/updated listings are live right
+    // away — closes the add-then-crawl window that caused transient 404s.
+    if (updates.length || created) await refreshVendorSnapshot();
 
     return NextResponse.json({
       ok: true,

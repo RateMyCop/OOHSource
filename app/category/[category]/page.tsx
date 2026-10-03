@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CATEGORIES, getCategory } from "@/lib/data";
 import { getVendorsByCategory } from "@/lib/vendors";
+import { CATEGORY_CONTENT } from "@/lib/category-content";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
@@ -26,11 +27,14 @@ export function generateMetadata({
 }): Metadata {
   const category = getCategory(params.category as CategorySlug);
   if (!category) return { title: "Not found" };
+  const content = CATEGORY_CONTENT[category.slug];
   return {
-    // "Media Owners & Operators — OOH Companies | OOHsource" lands in the
-    // 40–60 character band for every category name.
-    title: `${category.name} — OOH Companies`,
-    description: `Browse ${category.name.toLowerCase()} in the global out-of-home directory. ${category.blurb}`,
+    // Keyword-targeted title/description per category (the terms these hubs
+    // actually pull impressions for), falling back to the generic form.
+    title: content?.seoTitle ?? `${category.name} — OOH Companies`,
+    description:
+      content?.seoDescription ??
+      `Browse ${category.name.toLowerCase()} in the global out-of-home directory. ${category.blurb}`,
     alternates: { canonical: `${SITE_URL}/category/${category.slug}` },
   };
 }
@@ -54,6 +58,7 @@ export default async function CategoryPage({
       a.name.localeCompare(b.name)
   );
   const list = listForCategory(category.slug);
+  const content = CATEGORY_CONTENT[category.slug];
 
   // Same rich-result pair the /formats pages emit: a ranked ItemList of the
   // top companies plus breadcrumbs. Category pages were the only hub pages
@@ -80,11 +85,23 @@ export default async function CategoryPage({
       { "@type": "ListItem", position: 3, name: category.name },
     ],
   };
+  const faqLd = content
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: content.faqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }
+    : null;
 
   return (
     <section className="wrap">
       <JsonLd data={itemList} />
       <JsonLd data={breadcrumb} />
+      {faqLd && <JsonLd data={faqLd} />}
       <div className="page-head">
         <div className="crumb">
           <Link href="/">Home</Link>
@@ -93,8 +110,15 @@ export default async function CategoryPage({
           <span>/</span>
           <span>{category.name}</span>
         </div>
-        <h1>{category.name}</h1>
+        <h1>{content?.heading ?? category.name}</h1>
         <p className="lede">{category.blurb}</p>
+        {content && (
+          <div className="hub-intro">
+            {content.intro.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
+        )}
         <div className="formats" style={{ marginTop: 20 }}>
           <span className="lab">Includes</span>
           {category.subcategories.map((s) => (
@@ -152,6 +176,18 @@ export default async function CategoryPage({
               </div>
             )}
           </>
+        )}
+
+        {content && (
+          <div className="hub-faq">
+            <h2>Frequently asked questions</h2>
+            {content.faqs.map((f, i) => (
+              <details key={i} className="hub-faq-item">
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
         )}
       </div>
     </section>

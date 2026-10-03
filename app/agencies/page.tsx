@@ -11,7 +11,10 @@ export const metadata: Metadata = {
   title: "OOH Agencies & Media Buyers",
   description:
     "The specialists who plan and buy out-of-home on behalf of brands — OOH agencies, media planning & buying, and programmatic DOOH partners.",
-  alternates: { canonical: `${SITE_URL}/agencies` },
+  // This hub lists the same companies as /category/agencies-buyers. Canonicalize
+  // to the category page so the two don't compete for the same agency head terms
+  // — the category page is the content-rich, better-ranking target.
+  alternates: { canonical: `${SITE_URL}/category/agencies-buyers` },
 };
 
 export default async function AgenciesHub() {
@@ -36,6 +39,22 @@ export default async function AgenciesHub() {
           The specialists who plan and buy out-of-home on behalf of brands — find
           a partner to run your campaign end to end.
         </p>
+        <div className="hub-intro">
+          <p>
+            An out-of-home advertising agency plans and buys OOH for brands:
+            strategy, market and format selection, negotiation with media owners,
+            and campaign execution. A media buying agency works across every media
+            owner to build the best plan for your brief and budget — covering OOH
+            specialist agencies, media planning and buying, and programmatic DOOH.
+          </p>
+          <p>
+            Browse the agencies below or see the full ranked list in the{" "}
+            <Link href="/category/agencies-buyers">
+              agencies &amp; buyers directory
+            </Link>
+            .
+          </p>
+        </div>
         <div className="formats" style={{ marginTop: 20 }}>
           <span className="lab">Includes</span>
           {subcats.map((s) => (

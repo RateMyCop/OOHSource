@@ -5,8 +5,10 @@ import {
   updateAirtableRecords,
   createAirtableRecords,
   deleteAirtableRecords,
+  vendorFromFields,
 } from "@/lib/airtable";
 import { refreshVendorSnapshot } from "@/lib/vendors";
+import type { Vendor } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 // Snapshot refresh paginates Airtable, so give the write endpoints headroom.
@@ -126,8 +128,16 @@ export async function POST(req: Request) {
     const created = creates.length ? await createAirtableRecords(creates) : 0;
 
     // Rebuild the snapshot immediately so new/updated listings are live right
-    // away — closes the add-then-crawl window that caused transient 404s.
-    if (updates.length || created) await refreshVendorSnapshot();
+    // away — closes the add-then-crawl window that caused transient 404s. The
+    // just-created, Published records are folded in directly (as `extra`) so a
+    // new listing is in the snapshot even before Airtable's list API catches up.
+    if (updates.length || created) {
+      const fresh: Vendor[] = creates
+        .filter((f) => String(f.Status ?? "").toLowerCase() === "published")
+        .map((f) => vendorFromFields(f))
+        .filter((v): v is Vendor => Boolean(v));
+      await refreshVendorSnapshot(fresh);
+    }
 
     return NextResponse.json({
       ok: true,

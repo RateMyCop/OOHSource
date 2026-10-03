@@ -81,6 +81,13 @@ function toArray(v: unknown): string[] {
   return [];
 }
 
+// Public wrapper so other modules (e.g. the admin write path) can convert a
+// set of Airtable field values into the Vendor shape the snapshot stores,
+// without re-reading Airtable.
+export function vendorFromFields(fields: Record<string, unknown>): Vendor | null {
+  return mapRecord(fields);
+}
+
 function mapRecord(fields: Record<string, unknown>): Vendor | null {
   const name = (fields.Name ?? fields.name) as string | undefined;
   if (!name) return null;

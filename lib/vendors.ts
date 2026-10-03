@@ -89,11 +89,23 @@ async function writeSnapshot(vendors: Vendor[]): Promise<void> {
 
 // Refresh the snapshot from Airtable. Called by the cron so renders never have
 // to paginate Airtable themselves. Returns the number of vendors written.
-export async function refreshVendorSnapshot(): Promise<number> {
+//
+// `extra` lets a caller fold in vendors that may not be in Airtable's list
+// response yet — Airtable's list API lags a few seconds after a create, so a
+// plain re-fetch right after adding a listing can miss it. The admin write path
+// passes the just-created vendors here so new listings land in the snapshot
+// immediately (keyed by slug; an extra only fills a gap, never overwrites the
+// authoritative Airtable row).
+export async function refreshVendorSnapshot(extra: Vendor[] = []): Promise<number> {
   if (!airtableConfigured()) return 0;
   const vendors = await fetchAirtableVendors();
-  if (vendors.length > 0) await writeSnapshot(vendors);
-  return vendors.length;
+  const bySlug = new Map(vendors.map((v) => [v.slug, v]));
+  for (const v of extra) {
+    if (v && v.slug && !bySlug.has(v.slug)) bySlug.set(v.slug, v);
+  }
+  const merged = Array.from(bySlug.values());
+  if (merged.length > 0) await writeSnapshot(merged);
+  return merged.length;
 }
 
 export type VendorSource = "airtable" | "snapshot" | "seed";

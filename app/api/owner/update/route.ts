@@ -4,6 +4,7 @@ import { getSessionEmail } from "@/lib/auth";
 import { ownedSlugsForEmail } from "@/lib/owner";
 import { findVendorRecordIdBySlug, updateAirtableRecord } from "@/lib/airtable";
 import { refreshVendorSnapshot } from "@/lib/vendors";
+import { CATEGORIES } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,25 @@ export async function POST(req: Request) {
   // Optional contact fields — empty is allowed (clears the value).
   fields.Phone = String(body.phone ?? "").trim();
   fields.Address = String(body.address ?? "").trim();
+
+  // Location (the "City, Country" the listing shows as based in) — only
+  // overwrite when non-empty so a blank submit can't wipe it. Previously this
+  // wasn't editable by owners, which left people stuck with a wrong city.
+  const location = String(body.location ?? "").trim();
+  if (location) fields.Location = location.slice(0, 120);
+
+  // Category — validated against the known set; stored as the display name
+  // (mapRecord maps it back to a slug). Subcategory is free-text role.
+  const categorySlug = String(body.category ?? "").trim();
+  if (categorySlug) {
+    const cat = CATEGORIES.find((c) => c.slug === categorySlug);
+    if (!cat) {
+      return NextResponse.json({ error: "Unknown category." }, { status: 400 });
+    }
+    fields.Category = cat.name;
+  }
+  const subcategory = String(body.subcategory ?? "").trim();
+  if (subcategory) fields.Subcategory = subcategory.slice(0, 120);
 
   // Description: only overwrite when non-empty, to avoid an accidental wipe.
   const description = String(body.description ?? "").trim();

@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CATEGORIES } from "@/lib/data";
 
 type Props = {
   slug: string;
   website: string;
   phone: string;
   address: string;
+  location: string;
+  category: string; // category slug
+  subcategory: string;
   description: string;
   heroImage: string;
   gallery: string[];
@@ -231,6 +235,9 @@ export function ListingEditor(p: Props) {
       website: fd.get("website"),
       phone: fd.get("phone"),
       address: fd.get("address"),
+      location: fd.get("location"),
+      category: fd.get("category"),
+      subcategory: fd.get("subcategory"),
       description: fd.get("description"),
       heroImage: latest.current.hero,
       gallery: latest.current.images.join("\n"),
@@ -261,6 +268,28 @@ export function ListingEditor(p: Props) {
         {status === "saved" && "✓ All changes saved — your public listing updates within a few minutes."}
         {status === "error" && `⚠ ${errorMsg || "Couldn't save — we’ll retry on your next edit."}`}
         {status === "idle" && "Changes save automatically as you edit."}
+      </div>
+
+      <h2 className="form-section">Location & category</h2>
+      <div className="field">
+        <label htmlFor="location">Based in</label>
+        <input id="location" name="location" type="text" defaultValue={p.location} placeholder="City, Country" onBlur={scheduleSave} />
+        <span className="hint">Where your company is based, e.g. “Atlanta, USA”.</span>
+      </div>
+      <div className="field">
+        <label htmlFor="category">Category</label>
+        <select id="category" name="category" defaultValue={p.category} onChange={scheduleSave}>
+          {CATEGORIES.map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="subcategory">Role</label>
+        <input id="subcategory" name="subcategory" type="text" defaultValue={p.subcategory} placeholder="e.g. Billboard operator" onBlur={scheduleSave} />
+        <span className="hint">A short phrase for what you do, shown under your name.</span>
       </div>
 
       <h2 className="form-section">Contact & links</h2>

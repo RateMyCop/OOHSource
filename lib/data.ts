@@ -55,6 +55,7 @@ export const CATEGORIES: Category[] = [
     subcategories: [
       "DOOH ad tech (SSP/DSP)",
       "Measurement & attribution",
+      "Verification & proof-of-performance",
       "Audience data & planning",
       "Screen CMS",
     ],

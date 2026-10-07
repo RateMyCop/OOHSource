@@ -134,6 +134,9 @@ export default async function DashboardPage({
             website={vendor.website || ""}
             phone={vendor.phone || ""}
             address={vendor.address || ""}
+            location={vendor.location || ""}
+            category={vendor.categorySlug || ""}
+            subcategory={vendor.subcategory || ""}
             description={vendor.description || ""}
             heroImage={vendor.heroImage || ""}
             gallery={vendor.gallery || []}

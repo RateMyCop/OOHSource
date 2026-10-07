@@ -494,3 +494,54 @@ export async function sendFeaturedNudge(
   );
   return true;
 }
+
+// Behavioral upsell: a listing that actually got traffic this week. Leads with
+// the owner's real numbers (far higher intent than a generic nudge), then the
+// Featured pitch. Suppression-aware; returns false if opted out.
+export async function sendBehavioralNudge(
+  to: string,
+  company: string,
+  views: number,
+  contacts: number
+): Promise<boolean> {
+  if (await isSuppressed(to)) return false;
+  const dash = `${SITE_URL}/dashboard?tab=packages`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
+  const who = company ? escapeHtml(company) : "your listing";
+  const viewLine = `${views.toLocaleString()} ${views === 1 ? "person" : "people"} viewed`;
+  const contactBit =
+    contacts > 0
+      ? ` and <strong>${contacts.toLocaleString()} ${
+          contacts === 1 ? "buyer took a contact action" : "buyers took a contact action"
+        }</strong> (clicked your website or email)`
+      : "";
+  const html = wrap(`
+    <p style="font-size: 16px; line-height: 1.6;">Hi there,</p>
+    <p style="font-size: 16px; line-height: 1.6;">Quick heads-up on <strong>${who}</strong>: in the last 7 days, <strong>${viewLine}</strong> your OOHsource listing${contactBit}.</p>
+    <p style="font-size: 16px; line-height: 1.6;">That&rsquo;s real buyer demand finding you &mdash; and it&rsquo;s on the <strong>free</strong> listing. <strong>Featured</strong> puts ${who} at the <strong>top of your category</strong>, where listings get seen and clicked several times more often.</p>
+    <ul style="font-size: 15px; line-height: 1.7; padding-left: 20px;">
+      <li>Top placement in your category &mdash; above the free listings</li>
+      <li>The <strong>Featured</strong> &amp; <strong>Verified</strong> badges</li>
+      <li>Priority everywhere buyers &mdash; and AI assistants &mdash; look</li>
+    </ul>
+    <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>. Turn it on in a couple of clicks:</p>
+    <p style="margin: 26px 0;">
+      <a href="${dash}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Go Featured &rarr;</a>
+    </p>
+    <p style="font-size: 15px; line-height: 1.6;">No pressure &mdash; your free listing stays live either way.</p>
+    <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;"><a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> from these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `${views.toLocaleString()} ${views === 1 ? "person" : "people"} viewed ${
+      company || "your OOHsource listing"
+    } this week`,
+    html,
+    "hello@oohsource.com",
+    {
+      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+  );
+  return true;
+}

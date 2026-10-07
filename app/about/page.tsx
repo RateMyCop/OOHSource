@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "About OOHsource — The Out-of-Home Directory",
   description:
-    "OOHsource is the open, vetted directory of the out-of-home advertising industry — media owners, agencies, printers, installers, and technology. Founded by Gino Sesto to keep it accurate, neutral, and public.",
+    "OOHsource is the open, vetted directory of the out-of-home advertising industry — media owners, agencies, printers, installers, and technology. Founded by Bettina Ho to keep it accurate, neutral, and public.",
   alternates: { canonical: `${SITE_URL}/about` },
 };
 
@@ -28,7 +28,7 @@ export default async function AboutPage() {
       url: SITE_URL,
       description:
         "The open, vetted directory of the global out-of-home advertising industry.",
-      founder: { "@type": "Person", name: "Gino Sesto" },
+      founder: { "@type": "Person", name: "Bettina Ho" },
     },
   };
 
@@ -119,7 +119,7 @@ export default async function AboutPage() {
         <h2>Who runs OOHsource</h2>
         <p className="method-lead">
           OOHsource is an independent directory founded by{" "}
-          <strong>Gino Sesto</strong>. It isn&rsquo;t owned by a media company or
+          <strong>Bettina Ho</strong>. It isn&rsquo;t owned by a media company or
           an agency holding group — which is exactly what lets it stay neutral.
         </p>
         <p className="method-note">

@@ -24,7 +24,7 @@ export default function ContactPage() {
       name: "OOHsource",
       url: SITE_URL,
       email: CONTACT_EMAIL,
-      founder: { "@type": "Person", name: "Gino Sesto" },
+      founder: { "@type": "Person", name: "Bettina Ho" },
     },
   };
 
@@ -85,7 +85,7 @@ export default function ContactPage() {
             <span className="k">Who runs OOHsource</span>
             <p className="badge-embed-intro" style={{ marginTop: 8 }}>
               OOHsource is an independent directory founded by{" "}
-              <strong>Gino Sesto</strong>. We keep the listings neutral and the
+              <strong>Bettina Ho</strong>. We keep the listings neutral and the
               data accurate — tell us if anything looks off.
             </p>
           </div>

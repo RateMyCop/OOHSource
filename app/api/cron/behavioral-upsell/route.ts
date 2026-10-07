@@ -30,9 +30,12 @@ export async function GET(req: Request) {
   const minContacts = url.searchParams.has("minContacts")
     ? Number(url.searchParams.get("minContacts"))
     : undefined;
+  const days = url.searchParams.has("days")
+    ? Number(url.searchParams.get("days"))
+    : undefined;
 
   try {
-    const result = await runBehavioralUpsell({ dry, onlyEmail, minViews, minContacts });
+    const result = await runBehavioralUpsell({ dry, onlyEmail, minViews, minContacts, days });
     return NextResponse.json({ ok: true, dry, ...result });
   } catch (e) {
     return NextResponse.json(

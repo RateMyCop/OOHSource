@@ -35,18 +35,19 @@ export type BehavioralRunResult = {
 const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
 // For one owner, find their best FREE listing that cleared the activity bar in
-// the last WINDOW_DAYS. Returns null if none qualify.
+// the last `days`. Returns null if none qualify.
 async function bestActiveFreeListing(
   email: string,
   slugs: string[],
   minViews: number,
-  minContacts: number
+  minContacts: number,
+  days: number
 ): Promise<BehavioralCandidate | null> {
   let best: BehavioralCandidate | null = null;
   for (const slug of slugs) {
     const vendor = await getVendorBySlug(slug);
     if (!vendor || vendor.tier === "Featured") continue; // only nudge free listings
-    const stats = await getStats(slug, WINDOW_DAYS);
+    const stats = await getStats(slug, days);
     const views = sum(stats.series.view);
     const contacts = sum(stats.series.website) + sum(stats.series.email);
     if (views < minViews && contacts < minContacts) continue; // not enough activity
@@ -64,10 +65,12 @@ export async function runBehavioralUpsell(
     onlyEmail?: string;
     minViews?: number;
     minContacts?: number;
+    days?: number;
   } = {}
 ): Promise<BehavioralRunResult> {
   const minViews = opts.minViews ?? DEFAULT_MIN_VIEWS;
   const minContacts = opts.minContacts ?? DEFAULT_MIN_CONTACTS;
+  const days = Math.min(120, Math.max(1, opts.days ?? WINDOW_DAYS));
   const only = opts.onlyEmail?.toLowerCase().trim();
 
   const owners = await listAllOwners();
@@ -81,7 +84,7 @@ export async function runBehavioralUpsell(
 
   for (const [email, slugs] of Array.from(owners.entries())) {
     if (only && email !== only) continue;
-    const cand = await bestActiveFreeListing(email, slugs, minViews, minContacts);
+    const cand = await bestActiveFreeListing(email, slugs, minViews, minContacts, days);
     if (!cand) continue;
     eligible++;
 

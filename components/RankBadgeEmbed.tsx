@@ -29,7 +29,7 @@ export function RankBadgeEmbed({
   const badgeUrl = `${ORIGIN}/badge/${slug}?list=${listSlug}${
     dark ? "&theme=dark" : ""
   }`;
-  const linkUrl = `${ORIGIN}/best/${listSlug}?ref=badge`;
+  const linkUrl = `${ORIGIN}/best/${listSlug}#ref=badge`;
   const alt = `${name} — ranked #${rank} in ${listTitle} on OOHsource ${year}`;
   const snippet = `<a href="${linkUrl}" target="_blank" rel="noopener">
   <img src="${badgeUrl}" alt="${alt}" width="270" height="96" loading="lazy" />

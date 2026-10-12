@@ -37,7 +37,12 @@ export function TrackView({ slug }: { slug: string }) {
     try {
       // Attribute the click-through to its outreach source. "email" = the
       // original claim drip; "badge-email" = the top-list award-badge campaign.
-      const ref = new URLSearchParams(window.location.search).get("ref");
+      // Read from the hash fragment (new, non-crawlable `#ref=...`) or the query
+      // string (legacy `?ref=...` links still in the wild) — the fragment keeps
+      // outreach/badge links from creating duplicate URLs for search engines.
+      const ref =
+        new URLSearchParams(window.location.hash.replace(/^#/, "")).get("ref") ||
+        new URLSearchParams(window.location.search).get("ref");
       if (ref === "email" || ref === "badge-email") {
         const body = JSON.stringify({ slug, source: ref });
         if (navigator.sendBeacon) {

@@ -80,8 +80,9 @@ export async function sendOutreachEmail(
 ): Promise<boolean> {
   if (await isSuppressed(to)) return false;
 
-  // ?ref=email lets us attribute which emailed vendors actually clicked through.
-  const listingUrl = `${SITE_URL}/directory/${slug}?ref=email`;
+  // #ref=email attributes click-throughs client-side (see Track.tsx) without
+  // adding a crawlable query-param URL that search engines treat as a duplicate.
+  const listingUrl = `${SITE_URL}/directory/${slug}#ref=email`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
   const safe = escapeHtml(company);
   const html = wrap(`
@@ -122,8 +123,8 @@ export async function sendBadgeAwardEmail(
   if (await isSuppressed(to)) return false;
 
   const { listSlug, listTitle, badgeLabel, rank, year } = opts;
-  const profileUrl = `${SITE_URL}/directory/${slug}?ref=badge-email`;
-  const bestUrl = `${SITE_URL}/best/${listSlug}?ref=badge-email`;
+  const profileUrl = `${SITE_URL}/directory/${slug}#ref=badge-email`;
+  const bestUrl = `${SITE_URL}/best/${listSlug}#ref=badge-email`;
   const badgeImg = `${SITE_URL}/badge/${slug}?list=${listSlug}`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
   const safe = escapeHtml(company);

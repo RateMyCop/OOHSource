@@ -10,7 +10,7 @@ export function BadgeEmbed({ slug, name }: { slug: string; name: string }) {
   const [copied, setCopied] = useState(false);
 
   const badgeUrl = `${ORIGIN}/badge/${slug}${dark ? "?theme=dark" : ""}`;
-  const profileUrl = `${ORIGIN}/directory/${slug}?ref=badge`;
+  const profileUrl = `${ORIGIN}/directory/${slug}#ref=badge`;
   const alt = `${name} — on OOHsource, the global out-of-home directory`;
   const snippet = `<a href="${profileUrl}" target="_blank" rel="noopener">
   <img src="${badgeUrl}" alt="${alt}" width="214" height="66" loading="lazy" />

@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { fetchVendorIdMap, updateAirtableRecords } from "@/lib/airtable";
+import { activateBoost, deactivateBoost, describePageKey } from "@/lib/boosts";
 
 export const dynamic = "force-dynamic";
+
+// A boost's active window: the annual period plus a grace margin, re-extended
+// on every successful renewal invoice and cleared when the subscription ends.
+const BOOST_TTL_MS = 400 * 24 * 60 * 60 * 1000;
 
 async function setTier(
   slug: string,
@@ -47,11 +52,37 @@ export async function POST(req: Request) {
       const slug = String(
         s.client_reference_id || s.metadata?.slug || ""
       ).trim();
-      if (slug) await setTier(slug, "Featured", true);
+      const pageKey = String(s.metadata?.pageKey || "").trim();
+      if (s.metadata?.kind === "boost") {
+        // Per-page Boost — pin the listing to #1 on that page (don't touch Tier).
+        if (slug && describePageKey(pageKey)) {
+          await activateBoost(slug, pageKey, Date.now() + BOOST_TTL_MS);
+        }
+      } else if (slug) {
+        await setTier(slug, "Featured", true);
+      }
+    } else if (event.type === "invoice.payment_succeeded") {
+      // Renewal: re-extend an active boost's window so it never lapses while paid.
+      const inv = event.data.object as Stripe.Invoice & {
+        subscription_details?: { metadata?: Record<string, string> };
+      };
+      const meta = inv.subscription_details?.metadata || {};
+      if (meta.kind === "boost") {
+        const slug = String(meta.slug || "").trim();
+        const pageKey = String(meta.pageKey || "").trim();
+        if (slug && describePageKey(pageKey)) {
+          await activateBoost(slug, pageKey, Date.now() + BOOST_TTL_MS);
+        }
+      }
     } else if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as Stripe.Subscription;
       const slug = String(sub.metadata?.slug || "").trim();
-      if (slug) await setTier(slug, "Free");
+      const pageKey = String(sub.metadata?.pageKey || "").trim();
+      if (sub.metadata?.kind === "boost") {
+        if (slug && pageKey) await deactivateBoost(slug, pageKey);
+      } else if (slug) {
+        await setTier(slug, "Free");
+      }
     }
   } catch (e) {
     console.error("[oohsource] stripe webhook handler error:", e);

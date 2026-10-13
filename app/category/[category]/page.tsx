@@ -7,6 +7,7 @@ import { CATEGORY_CONTENT } from "@/lib/category-content";
 import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
+import { boostedSlugsForPage, categoryPageKey } from "@/lib/boosts";
 import { JsonLd } from "@/components/JsonLd";
 
 export const revalidate = 60;
@@ -51,12 +52,21 @@ export default async function CategoryPage({
   // then by the transparent rating-weighted score, then name. This makes the
   // rank numbers on the cards meaningful rather than merely alphabetical.
   const TIER_RANK: Record<string, number> = { Featured: 0, Free: 1 };
-  const vendors = [...(await getVendorsByCategory(category.slug))].sort(
+  const ranked = [...(await getVendorsByCategory(category.slug))].sort(
     (a, b) =>
       TIER_RANK[a.tier] - TIER_RANK[b.tier] ||
       vendorScore(b) - vendorScore(a) ||
       a.name.localeCompare(b.name)
   );
+  // Paid "Boost" placements pin to the very top of this specific page, above
+  // even other Featured listings (and are flagged "Sponsored" on their card).
+  const boosted = await boostedSlugsForPage(categoryPageKey(category.slug));
+  const vendors = boosted.size
+    ? [
+        ...ranked.filter((v) => boosted.has(v.slug)),
+        ...ranked.filter((v) => !boosted.has(v.slug)),
+      ]
+    : ranked;
   const list = listForCategory(category.slug);
   const content = CATEGORY_CONTENT[category.slug];
 
@@ -162,7 +172,12 @@ export default async function CategoryPage({
                 for the largest categories. */}
             <div className="vgrid">
               {vendors.slice(0, CARD_CAP).map((v, i) => (
-                <VendorCard key={v.slug} vendor={v} rank={i + 1} />
+                <VendorCard
+                  key={v.slug}
+                  vendor={v}
+                  rank={i + 1}
+                  sponsored={boosted.has(v.slug)}
+                />
               ))}
             </div>
             {vendors.length > CARD_CAP && (

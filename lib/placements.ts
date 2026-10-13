@@ -14,6 +14,8 @@ export type Placement = {
   rank: number; // 1-based position on that page
   total: number; // how many listings rank on that surface
   topList: boolean; // part of a curated Top-N "Best of" list
+  pageKey: string | null; // boost key ("category:…" / "format:…"), null if not boostable
+  boostable: boolean; // can a paid #1 Boost be bought for this page?
 };
 
 // Category-page order: Featured first, then rating-weighted score, then name —
@@ -52,6 +54,8 @@ export async function getListingPlacements(slug: string): Promise<Placement[]> {
         rank: cr.rank,
         total: cr.total,
         topList: false,
+        pageKey: `category:${category.slug}`,
+        boostable: true,
       });
     }
   }
@@ -68,6 +72,9 @@ export async function getListingPlacements(slug: string): Promise<Placement[]> {
         rank: r,
         total: Math.min(list.limit, catVendors.length),
         topList: true,
+        // "Best of" lists stay merit-ranked — not for sale.
+        pageKey: null,
+        boostable: false,
       });
     }
   }
@@ -84,6 +91,8 @@ export async function getListingPlacements(slug: string): Promise<Placement[]> {
         rank: i + 1,
         total: fv.length,
         topList: false,
+        pageKey: `format:${ft.slug}`,
+        boostable: true,
       });
     }
   }

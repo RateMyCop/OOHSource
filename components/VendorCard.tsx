@@ -29,13 +29,24 @@ function compactCount(n: number): string {
   return String(n);
 }
 
-export function VendorCard({ vendor, rank }: { vendor: CardVendor; rank?: number }) {
+export function VendorCard({
+  vendor,
+  rank,
+  sponsored = false,
+}: {
+  vendor: CardVendor;
+  rank?: number;
+  sponsored?: boolean;
+}) {
   const review = bestRating(vendor);
   const formats = vendor.formats.slice(0, 2);
   const extraFormats = vendor.formats.length - formats.length;
 
   return (
-    <Link href={`/directory/${vendor.slug}`} className={`vcard tier-${vendor.tier}`}>
+    <Link
+      href={`/directory/${vendor.slug}`}
+      className={`vcard tier-${vendor.tier}${sponsored ? " vcard--sponsored" : ""}`}
+    >
       <div className="vcard-top">
         <div className="vcard-lead">
           {typeof rank === "number" && (
@@ -50,6 +61,11 @@ export function VendorCard({ vendor, rank }: { vendor: CardVendor; rank?: number
           </div>
         </div>
         <div className="vcard-badges">
+          {sponsored && (
+            <span className="badge badge--sponsored" title="Paid placement">
+              Sponsored
+            </span>
+          )}
           {vendor.tier === "Featured" && (
             <span className="badge badge--featured">Featured</span>
           )}

@@ -6,6 +6,7 @@ import { FORMAT_TYPES, getFormatType, vendorsForFormat } from "@/lib/formats";
 import { VendorCard } from "@/components/VendorCard";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
+import { boostedSlugsForPage, formatPageKey } from "@/lib/boosts";
 
 export const revalidate = 60;
 
@@ -38,7 +39,16 @@ export default async function FormatPage({
   const format = getFormatType(params.slug);
   if (!format) notFound();
 
-  const vendors = vendorsForFormat(await getAllVendors(), format);
+  const matched = vendorsForFormat(await getAllVendors(), format);
+  // Paid "Boost" placements pin to the top of this specific format page (above
+  // Featured), flagged "Sponsored" on their card.
+  const boosted = await boostedSlugsForPage(formatPageKey(format.slug));
+  const vendors = boosted.size
+    ? [
+        ...matched.filter((v) => boosted.has(v.slug)),
+        ...matched.filter((v) => !boosted.has(v.slug)),
+      ]
+    : matched;
 
   const itemList = {
     "@context": "https://schema.org",
@@ -89,7 +99,7 @@ export default async function FormatPage({
           </p>
           <div className="vgrid">
             {vendors.map((v) => (
-              <VendorCard key={v.slug} vendor={v} />
+              <VendorCard key={v.slug} vendor={v} sponsored={boosted.has(v.slug)} />
             ))}
           </div>
         </>

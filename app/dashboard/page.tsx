@@ -17,6 +17,8 @@ import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
 import { OwnerLeads, type OLead } from "@/components/OwnerLeads";
 import { listLeadsForSlug } from "@/lib/leads";
 import { getListingPlacements } from "@/lib/placements";
+import { boostsForVendor } from "@/lib/boosts";
+import { BoostButton } from "@/components/BoostButton";
 import { listAudience } from "@/lib/audience";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
@@ -177,11 +179,13 @@ export default async function DashboardPage({
       {tab === "analytics" && (
         <div className="dash-panel">
           {await (async () => {
-            const [stats, placements] = await Promise.all([
+            const [stats, placements, myBoosts] = await Promise.all([
               getStats(activeSlug, 90),
               getListingPlacements(activeSlug),
+              boostsForVendor(activeSlug),
             ]);
             const isFeatured = vendor.tier === "Featured";
+            const boostedKeys = new Set(Object.keys(myBoosts));
             return (
               <>
                 <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />
@@ -193,9 +197,9 @@ export default async function DashboardPage({
                   <>
                     <p className="hint" style={{ marginTop: 2 }}>
                       Your position on every page buyers browse.{" "}
-                      {isFeatured
-                        ? "You’re Featured — pinned to the top of your category."
-                        : "Featured pins you to the top of each one."}
+                      <strong>Boost</strong> locks the #1 slot on any single
+                      page — above everyone, even other Featured listings — for
+                      $99/yr.
                     </p>
                     <div className="perf-table-wrap">
                       <table className="perf-table">
@@ -225,13 +229,22 @@ export default async function DashboardPage({
                                 )}
                               </td>
                               <td>
-                                {!isFeatured && (p.kind === "Format" || p.rank > 1) && (
-                                  <Link href="/dashboard?tab=packages" className="perf-boost">
-                                    Increase position &uarr;
-                                  </Link>
-                                )}
-                                {isFeatured && (p.kind === "Format" || p.rank === 1) && (
-                                  <span className="perf-at-top">★ Top spot</span>
+                                {p.boostable && p.pageKey ? (
+                                  boostedKeys.has(p.pageKey) ? (
+                                    <span className="perf-at-top">★ #1 · Boosted</span>
+                                  ) : (
+                                    <BoostButton
+                                      slug={activeSlug}
+                                      pageKey={p.pageKey}
+                                      label={
+                                        p.kind !== "Format" && p.rank === 1
+                                          ? "Lock #1 spot"
+                                          : "Boost to #1 ↑"
+                                      }
+                                    />
+                                  )
+                                ) : (
+                                  <span className="perf-merit">Merit-ranked</span>
                                 )}
                               </td>
                             </tr>

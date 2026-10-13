@@ -215,16 +215,24 @@ export default async function DashboardPage({
                               </td>
                               <td><span className="perf-kind">{p.kind}</span></td>
                               <td className="perf-rank">
-                                #{p.rank}<span className="perf-of"> of {p.total}</span>
-                                {p.topList && <span className="perf-top">Top&nbsp;10</span>}
+                                {p.kind === "Format" ? (
+                                  <span className="perf-listed">Listed</span>
+                                ) : (
+                                  <>
+                                    #{p.rank}<span className="perf-of"> of {p.total}</span>
+                                    {p.topList && <span className="perf-top">Top&nbsp;10</span>}
+                                  </>
+                                )}
                               </td>
                               <td>
-                                {!isFeatured && p.rank > 1 && (
+                                {!isFeatured && (p.kind === "Format" || p.rank > 1) && (
                                   <Link href="/dashboard?tab=packages" className="perf-boost">
                                     Increase position &uarr;
                                   </Link>
                                 )}
-                                {isFeatured && p.rank === 1 && <span className="perf-at-top">★ Top spot</span>}
+                                {isFeatured && (p.kind === "Format" || p.rank === 1) && (
+                                  <span className="perf-at-top">★ Top spot</span>
+                                )}
                               </td>
                             </tr>
                           ))}

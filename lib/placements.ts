@@ -88,7 +88,15 @@ export async function getListingPlacements(slug: string): Promise<Placement[]> {
     }
   }
 
-  // Best positions first; ties keep category/best (pushed earlier) ahead of formats.
-  placements.sort((a, b) => a.rank - b.rank);
+  // Category first, then the Best-of list, then format pages (which aren't shown
+  // as numbered lists to buyers); within a kind, better positions first.
+  const kindOrder: Record<Placement["kind"], number> = {
+    Category: 0,
+    "Best list": 1,
+    Format: 2,
+  };
+  placements.sort(
+    (a, b) => kindOrder[a.kind] - kindOrder[b.kind] || a.rank - b.rank
+  );
   return placements;
 }

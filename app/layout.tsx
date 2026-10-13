@@ -94,6 +94,20 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <Analytics />
+        {/* In-house live chat → dt-inbox (DASH TWO dashboard Messenger),
+            brand key "oohs". Must be a real server-rendered <script> because
+            widget.js reads its config from document.currentScript. */}
+        <script
+          src="https://dt-inbox.vercel.app/widget.js"
+          data-key="oohs"
+          data-name="OOHsource"
+          data-color="#1a1b1e"
+          data-greeting="Hi! Questions about getting listed or advertising on OOHsource? Ask away — real person, not a bot."
+          data-online-msg="We’re online — ask us anything about OOHsource."
+          data-teaser-msg="Questions about your listing? We’re here — not a bot."
+          data-auto-open="15000"
+          defer
+        />
       </body>
       {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
     </html>

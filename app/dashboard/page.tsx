@@ -16,6 +16,7 @@ import { BadgeEmbed } from "@/components/BadgeEmbed";
 import { OwnerReviews, type ORev } from "@/components/OwnerReviews";
 import { OwnerLeads, type OLead } from "@/components/OwnerLeads";
 import { listLeadsForSlug } from "@/lib/leads";
+import { getListingPlacements } from "@/lib/placements";
 import { listAudience } from "@/lib/audience";
 import { ListingEditor } from "@/components/ListingEditor";
 import { Analytics } from "@/components/Analytics";
@@ -176,8 +177,64 @@ export default async function DashboardPage({
       {tab === "analytics" && (
         <div className="dash-panel">
           {await (async () => {
-            const stats = await getStats(activeSlug, 90);
-            return <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />;
+            const [stats, placements] = await Promise.all([
+              getStats(activeSlug, 90),
+              getListingPlacements(activeSlug),
+            ]);
+            const isFeatured = vendor.tier === "Featured";
+            return (
+              <>
+                <Analytics dates={stats.dates} series={stats.series} totalsAllTime={stats.totals} />
+
+                <h3 className="dash-section-h" style={{ marginTop: 30 }}>Where you appear on OOHsource</h3>
+                {placements.length === 0 ? (
+                  <p className="hint">As your listing is categorized and ranked, the pages you appear on will show here.</p>
+                ) : (
+                  <>
+                    <p className="hint" style={{ marginTop: 2 }}>
+                      Your position on every page buyers browse.{" "}
+                      {isFeatured
+                        ? "You’re Featured — pinned to the top of your category."
+                        : "Featured pins you to the top of each one."}
+                    </p>
+                    <div className="perf-table-wrap">
+                      <table className="perf-table">
+                        <thead>
+                          <tr>
+                            <th>Page</th>
+                            <th>Type</th>
+                            <th>Your position</th>
+                            <th aria-label="action" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {placements.map((p) => (
+                            <tr key={`${p.kind}:${p.url}`}>
+                              <td>
+                                <a href={p.url} target="_blank" rel="noopener noreferrer">{p.page}</a>
+                              </td>
+                              <td><span className="perf-kind">{p.kind}</span></td>
+                              <td className="perf-rank">
+                                #{p.rank}<span className="perf-of"> of {p.total}</span>
+                                {p.topList && <span className="perf-top">Top&nbsp;10</span>}
+                              </td>
+                              <td>
+                                {!isFeatured && p.rank > 1 && (
+                                  <Link href="/dashboard?tab=packages" className="perf-boost">
+                                    Increase position &uarr;
+                                  </Link>
+                                )}
+                                {isFeatured && p.rank === 1 && <span className="perf-at-top">★ Top spot</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </>
+            );
           })()}
         </div>
       )}

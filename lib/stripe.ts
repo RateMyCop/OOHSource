@@ -9,9 +9,9 @@ export const stripe = key ? new Stripe(key) : null;
 export const FEATURED_PRICE_CENTS = 5000; // $50.00
 export const FEATURED_INTERVAL = "year" as const;
 
-// Per-page "Boost" pricing (annual subscription): guarantees the #1 slot on ONE
-// specific category or format page, above even other Featured listings. Priced
-// above Featured because it's a single high-intent page locked to one company.
+// Per-page "Boost" pricing (monthly subscription): guarantees the #1 slot on
+// ONE specific category or format page, above even other Featured listings.
+// Low monthly price to make locking a single high-intent page an easy yes.
 // Change here to adjust the price for every boost checkout.
-export const BOOST_PRICE_CENTS = 9900; // $99.00/yr per page
-export const BOOST_INTERVAL = "year" as const;
+export const BOOST_PRICE_CENTS = 900; // $9.00/mo per page
+export const BOOST_INTERVAL = "month" as const;

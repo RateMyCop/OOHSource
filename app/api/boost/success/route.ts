@@ -4,9 +4,9 @@ import { activateBoost, describePageKey } from "@/lib/boosts";
 
 export const dynamic = "force-dynamic";
 
-// Roughly the annual period plus a grace margin; the webhook extends this on
+// One monthly billing cycle plus a grace margin; the webhook extends this on
 // each renewal (invoice.payment_succeeded) and clears it on cancellation.
-const BOOST_TTL_MS = 400 * 24 * 60 * 60 * 1000;
+const BOOST_TTL_MS = 40 * 24 * 60 * 60 * 1000;
 
 // Post-checkout confirmation for a Boost. Stripe redirects here; we verify the
 // session is paid server-side and activate the #1 pin for that page, then send

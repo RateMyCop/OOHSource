@@ -57,7 +57,7 @@ export async function POST(req: Request) {
             recurring: { interval: BOOST_INTERVAL },
             product_data: {
               name: `OOHsource Boost — ${vendor.name} · ${page.label}`,
-              description: `Guaranteed #1 placement on the ${page.label} ${page.kind} page (billed annually).`,
+              description: `Guaranteed #1 placement on the ${page.label} ${page.kind} page (billed monthly).`,
             },
           },
         },

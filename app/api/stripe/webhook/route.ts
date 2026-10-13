@@ -6,9 +6,9 @@ import { activateBoost, deactivateBoost, describePageKey } from "@/lib/boosts";
 
 export const dynamic = "force-dynamic";
 
-// A boost's active window: the annual period plus a grace margin, re-extended
+// A boost's active window: one monthly cycle plus a grace margin, re-extended
 // on every successful renewal invoice and cleared when the subscription ends.
-const BOOST_TTL_MS = 400 * 24 * 60 * 60 * 1000;
+const BOOST_TTL_MS = 40 * 24 * 60 * 60 * 1000;
 
 async function setTier(
   slug: string,

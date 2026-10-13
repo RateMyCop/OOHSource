@@ -199,7 +199,7 @@ export default async function DashboardPage({
                       Your position on every page buyers browse.{" "}
                       <strong>Boost</strong> locks the #1 slot on any single
                       page — above everyone, even other Featured listings — for
-                      $99/yr.
+                      $9/mo.
                     </p>
                     <div className="perf-table-wrap">
                       <table className="perf-table">

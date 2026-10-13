@@ -57,12 +57,14 @@ const csp = [
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self' https://checkout.stripe.com",
-  "script-src 'self' 'unsafe-inline' https://*.googletagmanager.com",
+  // dt-inbox.vercel.app: our in-house live-chat widget script.
+  "script-src 'self' 'unsafe-inline' https://*.googletagmanager.com https://dt-inbox.vercel.app",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   // Vercel Blob: the browser uploads owner images directly to the blob store.
-  "connect-src 'self' https://blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com",
+  // dt-inbox.vercel.app: the chat widget posts/polls visitor messages + media.
+  "connect-src 'self' https://blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com https://dt-inbox.vercel.app",
   "frame-src 'self' https://checkout.stripe.com https://js.stripe.com",
   "upgrade-insecure-requests",
 ].join("; ");

@@ -102,9 +102,10 @@ export default function RootLayout({
           data-key="oohs"
           data-name="OOHsource"
           data-color="#1a1b1e"
-          data-greeting="Hi! Questions about getting listed or advertising on OOHsource? Ask away — real person, not a bot."
-          data-online-msg="We’re online — ask us anything about OOHsource."
-          data-teaser-msg="Questions about your listing? We’re here — not a bot."
+          data-online-label="Bettina is online now"
+          data-greeting="Hi, I’m Bettina! Questions about getting listed or advertising on OOHsource? Ask away — real person, not a bot."
+          data-online-msg="Bettina here — ask me anything about OOHsource."
+          data-teaser-msg="Questions about your listing? I’m here — not a bot. — Bettina"
           data-auto-open="15000"
           defer
         />

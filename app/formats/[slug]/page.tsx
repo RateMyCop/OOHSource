@@ -7,6 +7,7 @@ import { VendorCard } from "@/components/VendorCard";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/lists";
 import { boostedSlugsForPage, formatPageKey } from "@/lib/boosts";
+import { BoostPagePrompt } from "@/components/BoostPagePrompt";
 
 export const revalidate = 60;
 
@@ -102,6 +103,7 @@ export default async function FormatPage({
               <VendorCard key={v.slug} vendor={v} sponsored={boosted.has(v.slug)} />
             ))}
           </div>
+          <BoostPagePrompt label={format.name} />
         </>
       ) : (
         <p className="hint">

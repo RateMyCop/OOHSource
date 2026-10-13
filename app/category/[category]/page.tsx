@@ -8,6 +8,7 @@ import { CategorySlug } from "@/lib/types";
 import { VendorCard } from "@/components/VendorCard";
 import { listForCategory, vendorScore, SITE_URL } from "@/lib/lists";
 import { boostedSlugsForPage, categoryPageKey } from "@/lib/boosts";
+import { BoostPagePrompt } from "@/components/BoostPagePrompt";
 import { JsonLd } from "@/components/JsonLd";
 
 export const revalidate = 60;
@@ -192,6 +193,8 @@ export default async function CategoryPage({
             )}
           </>
         )}
+
+        {vendors.length > 0 && <BoostPagePrompt label={category.name} />}
 
         {content && (
           <div className="hub-faq">

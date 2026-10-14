@@ -358,23 +358,10 @@ export async function sendClaimVerificationEmail(
 const VERIFY_NUDGE_TTL = 180 * 24 * 3600; // don't re-nudge the same owner for ~6 months
 const VERIFY_NUDGE_DELAY_MS = 2 * 24 * 3600 * 1000; // deliver in ~2 days
 
-export async function scheduleVerifiedUpgradeNudge(
-  to: string,
-  company: string
-): Promise<boolean> {
-  if (!to || (await isSuppressed(to))) return false;
-
-  // One-time gate on a SHARED key with the pricing-page nudge, so an owner
-  // never gets more than one Featured nudge across either trigger.
-  const r = kv();
-  if (r) {
-    const first = await r.set(`featnudge:${to.toLowerCase()}`, "1", {
-      nx: true,
-      ex: VERIFY_NUDGE_TTL,
-    });
-    if (!first) return false;
-  }
-
+// Builds the exact verified→Featured nudge (subject/html/headers). Single
+// source of truth so the real scheduled send and the admin test send are
+// byte-identical.
+function buildVerifiedUpgradeEmail(to: string, company: string) {
   const dash = `${SITE_URL}/dashboard`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?t=${makeUnsubToken(to)}`;
   const who = company ? escapeHtml(company) : "your company";
@@ -393,10 +380,34 @@ export async function scheduleVerifiedUpgradeNudge(
     </p>
     <p style="font-size: 15px; line-height: 1.6;">No pressure — your verified free listing stays exactly as it is either way.</p>
     <p style="font-size: 12px; color: #9AA0A8; line-height: 1.5;"><a href="${unsubUrl}" style="color:#9AA0A8;">Unsubscribe</a> from these emails.<br />OOHsource &middot; P.O. Box 3787, Alpine, WY 83128</p>`);
-
   const subject = company
     ? `${company} is verified on OOHsource — here's what Featured adds`
     : `You're verified on OOHsource — here's what Featured adds`;
+  const headers = {
+    "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+  return { subject, html, headers };
+}
+
+export async function scheduleVerifiedUpgradeNudge(
+  to: string,
+  company: string
+): Promise<boolean> {
+  if (!to || (await isSuppressed(to))) return false;
+
+  // One-time gate on a SHARED key with the pricing-page nudge, so an owner
+  // never gets more than one Featured nudge across either trigger.
+  const r = kv();
+  if (r) {
+    const first = await r.set(`featnudge:${to.toLowerCase()}`, "1", {
+      nx: true,
+      ex: VERIFY_NUDGE_TTL,
+    });
+    if (!first) return false;
+  }
+
+  const { subject, html, headers } = buildVerifiedUpgradeEmail(to, company);
   const scheduledAt = new Date(Date.now() + VERIFY_NUDGE_DELAY_MS).toISOString();
 
   await sendEmailFrom(
@@ -405,11 +416,29 @@ export async function scheduleVerifiedUpgradeNudge(
     subject,
     html,
     "hello@oohsource.com",
-    {
-      "List-Unsubscribe": `<${unsubUrl}>, <mailto:hello@oohsource.com?subject=unsubscribe>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
+    headers,
     scheduledAt
+  );
+  return true;
+}
+
+// Admin TEST send of the verified→Featured nudge: the identical email, but
+// delivered immediately and WITHOUT the one-time gate, so it can be previewed
+// on demand without scheduling 2 days out or burning a real recipient's slot.
+// Still suppression-aware. Admin-only (see /api/admin/test-verify-nudge).
+export async function sendVerifiedUpgradeNudgeTest(
+  to: string,
+  company: string
+): Promise<boolean> {
+  if (!to || (await isSuppressed(to))) return false;
+  const { subject, html, headers } = buildVerifiedUpgradeEmail(to, company);
+  await sendEmailFrom(
+    OUTREACH_FROM,
+    to,
+    `[TEST] ${subject}`,
+    html,
+    "hello@oohsource.com",
+    headers
   );
   return true;
 }

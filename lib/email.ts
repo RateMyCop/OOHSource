@@ -373,7 +373,8 @@ function buildVerifiedUpgradeEmail(to: string, company: string) {
       <li>The <strong>Featured</strong> badge alongside your Verified badge</li>
       <li>Homepage &amp; spotlight placement in front of buyers</li>
     </ul>
-    <p style="font-size: 16px; line-height: 1.6;">OOHsource is the only major OOH directory that&rsquo;s fully public — which is why buyers <em>and</em> AI assistants (ChatGPT, Perplexity, Google&rsquo;s AI Overviews) can actually find and cite it. Featured puts ${who} first there.</p>
+    <p style="font-size: 16px; line-height: 1.6;"><strong>And the part most OOH directories can&rsquo;t offer:</strong> buyers increasingly ask AI &mdash; ChatGPT, Perplexity, Google&rsquo;s AI Overviews &mdash; &ldquo;who does out-of-home advertising?&rdquo; Those tools can only cite sources they can <strong>openly read on the web</strong>. Members-only association tools and gated directories don&rsquo;t surface there &mdash; which is why you almost never see them quoted. OOHsource is <strong>fully public and built to be read and cited</strong>, so it&rsquo;s the OOH source those answers can actually pull from.</p>
+    <p style="font-size: 16px; line-height: 1.6;"><strong>Featured</strong> puts ${who} at the <strong>top of that public list</strong> &mdash; first in front of buyers <em>and</em> the AI they ask.</p>
     <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>, and you can switch it on from your dashboard in a couple of clicks.</p>
     <p style="margin: 26px 0;">
       <a href="${dash}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">See Featured &rarr;</a>
@@ -554,6 +555,7 @@ export async function sendBehavioralNudge(
       <li>The <strong>Featured</strong> &amp; <strong>Verified</strong> badges</li>
       <li>Priority everywhere buyers &mdash; and AI assistants &mdash; look</li>
     </ul>
+    <p style="font-size: 16px; line-height: 1.6;">It compounds in <strong>AI search</strong>, too: when buyers ask ChatGPT or Perplexity for OOH companies, those tools can only cite directories they can <strong>openly read</strong> &mdash; not gated, members-only ones. OOHsource is fully public, so it&rsquo;s what they pull from, and Featured puts ${who} at the top of it.</p>
     <p style="font-size: 16px; line-height: 1.6;">It&rsquo;s <strong>$50/year</strong>. Turn it on in a couple of clicks:</p>
     <p style="margin: 26px 0;">
       <a href="${dash}" style="background:#D98A1F; color:#1B1206; text-decoration:none; font-weight:700; padding: 12px 22px; border-radius: 4px; display:inline-block;">Go Featured &rarr;</a>

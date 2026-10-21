@@ -116,5 +116,3 @@ export async function getIndustryNews(): Promise<NewsItem[]> {
 }
 
 export const NEWS_SOURCES = Array.from(new Set(FEEDS.map((f) => f.source)));
-
-// deploy-trigger check 20261021T152614Z

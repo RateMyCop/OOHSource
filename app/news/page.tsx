@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getIndustryNews, NEWS_SOURCES, type NewsItem } from "@/lib/news";
+import { getIndustryNews, NEWS_SOURCES } from "@/lib/news";
+import { NewsThumb } from "@/components/NewsThumb";
 import { SITE_URL } from "@/lib/lists";
 
 export const revalidate = 1800; // 30 min
@@ -22,33 +23,11 @@ function when(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// A deterministic accent tint for image-less cards, so the grid still reads as
-// a lively mosaic rather than empty boxes.
-function tintIndex(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h % 4;
-}
-
-function Thumb({ item, kind }: { item: NewsItem; kind: "hero" | "card" }) {
-  if (item.image) {
-    return (
-      <div className={`news-media news-media--${kind}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" />
-      </div>
-    );
-  }
-  return (
-    <div className={`news-media news-media--${kind} news-media--noimg`} data-tint={tintIndex(item.title)}>
-      <span className="news-media-kicker">{item.source}</span>
-    </div>
-  );
-}
-
 export default async function NewsPage() {
   const items = await getIndustryNews();
-  const [hero, ...rest] = items;
+  // Lead with a story that has a photo when possible, so the hero always lands.
+  const hero = items.find((i) => i.image) || items[0];
+  const rest = items.filter((i) => i !== hero);
 
   return (
     <section className="wrap" style={{ paddingBottom: 80 }}>
@@ -80,7 +59,7 @@ export default async function NewsPage() {
               rel="noopener noreferrer nofollow"
               className="news-hero"
             >
-              <Thumb item={hero} kind="hero" />
+              <NewsThumb image={hero.image} source={hero.source} title={hero.title} kind="hero" />
               <div className="news-hero-body">
                 <div className="news-kick">
                   <span className="news-src">{hero.source}</span>
@@ -102,7 +81,7 @@ export default async function NewsPage() {
                 rel="noopener noreferrer nofollow"
                 className="news-card"
               >
-                <Thumb item={n} kind="card" />
+                <NewsThumb image={n.image} source={n.source} title={n.title} kind="card" />
                 <div className="news-card-body">
                   <div className="news-kick">
                     <span className="news-src">{n.source}</span>

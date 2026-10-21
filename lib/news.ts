@@ -26,6 +26,13 @@ const FEEDS: { url: string; source: string }[] = [
   { url: "https://billboardinsider.com/feed/", source: "Billboard Insider" },
 ];
 
+// Hand-placed wordmark logos per publication (hosted locally) — preferred over
+// the feed's favicon so the source reads as a real logo, not a sticker.
+const SOURCE_LOGOS: Record<string, string> = {
+  "OOH Today": "/pub-logos/oohtoday.png",
+  "Billboard Insider": "/pub-logos/billboardinsider.png",
+};
+
 const REVALIDATE = 1800; // 30 min
 const PER_FEED = 12;
 const MAX_ITEMS = 48;
@@ -129,7 +136,7 @@ async function fetchFeed(url: string, source: string): Promise<NewsItem[]> {
     clearTimeout(t);
     if (!res.ok) return [];
     const xml = await res.text();
-    return parseFeed(xml, source, channelLogo(xml, url));
+    return parseFeed(xml, source, SOURCE_LOGOS[source] || channelLogo(xml, url));
   } catch {
     return [];
   }

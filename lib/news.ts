@@ -13,7 +13,8 @@ export type NewsItem = {
   source: string;
   date: string; // ISO, or "" if unknown
   excerpt: string;
-  image: string; // thumbnail URL, or "" if none found
+  image: string; // article thumbnail URL, or "" if none found
+  sourceLogo: string; // the publication's logo, used on image-less cards
 };
 
 // Curated OOH / DOOH industry publishers. Edit this list to add/remove sources.
@@ -69,7 +70,25 @@ function imageFrom(block: string): string {
   return /^https?:\/\//i.test(url) ? url : "";
 }
 
-function parseFeed(xml: string, source: string): NewsItem[] {
+// The publication's own logo, from the channel-level <image><url> (RSS) or
+// <logo>/<icon> (Atom). Falls back to the site's favicon via Google's service.
+function channelLogo(xml: string, feedUrl: string): string {
+  const head = xml.split(/<item[\s>]|<entry[\s>]/i)[0];
+  const m =
+    head.match(/<image>[\s\S]*?<url>\s*([^<\s]+)\s*<\/url>/i) ||
+    head.match(/<logo>\s*([^<\s]+)\s*<\/logo>/i) ||
+    head.match(/<icon>\s*([^<\s]+)\s*<\/icon>/i);
+  let u = m ? m[1].trim() : "";
+  if (u.startsWith("//")) u = "https:" + u;
+  if (/^https?:\/\//i.test(u)) return u;
+  try {
+    return `https://www.google.com/s2/favicons?sz=128&domain=${new URL(feedUrl).hostname}`;
+  } catch {
+    return "";
+  }
+}
+
+function parseFeed(xml: string, source: string, sourceLogo: string): NewsItem[] {
   const out: NewsItem[] = [];
   const isAtom = /<feed[\s>]/i.test(xml) && !/<rss[\s>]/i.test(xml);
   const blocks = xml.match(
@@ -91,7 +110,7 @@ function parseFeed(xml: string, source: string): NewsItem[] {
       tag(b, "description") || tag(b, "summary") || tag(b, "content:encoded") || tag(b, "content");
     const excerpt = decode(descSrc).slice(0, 220).replace(/\s+\S*$/, "") + "…";
     const image = imageFrom(b);
-    if (title && link) out.push({ title, link: link.trim(), source, date, excerpt, image });
+    if (title && link) out.push({ title, link: link.trim(), source, date, excerpt, image, sourceLogo });
   }
   return out;
 }
@@ -108,7 +127,7 @@ async function fetchFeed(url: string, source: string): Promise<NewsItem[]> {
     clearTimeout(t);
     if (!res.ok) return [];
     const xml = await res.text();
-    return parseFeed(xml, source);
+    return parseFeed(xml, source, channelLogo(xml, url));
   } catch {
     return [];
   }

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-// Renders a news thumbnail, falling back to a tinted headline tile when the
-// item has no image OR the image fails to load (publishers often hotlink-block),
-// so the grid never shows a broken-image icon.
+// News thumbnail with graceful fallbacks:
+//   article image  →  publication logo tile  →  tinted headline tile
+// so the grid never shows a broken-image icon and image-less stories still
+// read as branded cards.
 function tint(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -13,18 +14,21 @@ function tint(s: string): number {
 
 export function NewsThumb({
   image,
+  logo,
   source,
   title,
   kind,
 }: {
   image: string;
+  logo: string;
   source: string;
   title: string;
   kind: "hero" | "card";
 }) {
-  const [failed, setFailed] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
-  if (image && !failed) {
+  if (image && !imgFailed) {
     return (
       <div className={`news-media news-media--${kind}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -33,11 +37,30 @@ export function NewsThumb({
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setFailed(true)}
+          onError={() => setImgFailed(true)}
         />
       </div>
     );
   }
+
+  if (logo && !logoFailed) {
+    return (
+      <div
+        className={`news-media news-media--${kind} news-media--logo`}
+        data-tint={tint(title)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logo}
+          alt={source}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setLogoFailed(true)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`news-media news-media--${kind} news-media--noimg`}

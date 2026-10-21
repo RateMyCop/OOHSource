@@ -524,6 +524,9 @@ a.job-co:hover { color: var(--accent-strong); text-decoration: underline; }
 .news-media--noimg[data-tint="1"] { background: linear-gradient(135deg, #2b2f36, #4a5059); }
 .news-media--noimg[data-tint="2"] { background: linear-gradient(135deg, var(--accent), #b9894a); }
 .news-media--noimg[data-tint="3"] { background: linear-gradient(135deg, #3a3550, #635a86); }
+/* publication-logo tile (image-less stories) — logo centered on a clean card */
+.news-media--logo { display: flex; align-items: center; justify-content: center; background: #ffffff; padding: 18px; }
+.news-media--logo img { max-width: 72%; max-height: 58%; width: auto; height: auto; object-fit: contain; }
 
 /* featured lead story */
 .news-hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 26px; align-items: center; margin: 8px 0 34px; padding-bottom: 32px; border-bottom: 1px solid var(--line); text-decoration: none; }

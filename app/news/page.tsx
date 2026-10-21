@@ -59,7 +59,7 @@ export default async function NewsPage() {
               rel="noopener noreferrer nofollow"
               className="news-hero"
             >
-              <NewsThumb image={hero.image} source={hero.source} title={hero.title} kind="hero" />
+              <NewsThumb image={hero.image} logo={hero.sourceLogo} source={hero.source} title={hero.title} kind="hero" />
               <div className="news-hero-body">
                 <div className="news-kick">
                   <span className="news-src">{hero.source}</span>
@@ -81,7 +81,7 @@ export default async function NewsPage() {
                 rel="noopener noreferrer nofollow"
                 className="news-card"
               >
-                <NewsThumb image={n.image} source={n.source} title={n.title} kind="card" />
+                <NewsThumb image={n.image} logo={n.sourceLogo} source={n.source} title={n.title} kind="card" />
                 <div className="news-card-body">
                   <div className="news-kick">
                     <span className="news-src">{n.source}</span>

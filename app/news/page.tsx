@@ -13,16 +13,6 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/news` },
 };
 
-function when(iso: string): string {
-  if (!iso) return "";
-  const d = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(d / 86400000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 export default async function NewsPage() {
   const items = await getIndustryNews();
   // Lead with a story that has a photo when possible, so the hero always lands.
@@ -64,7 +54,6 @@ export default async function NewsPage() {
                 <div className="news-kick">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="news-srclogo" src={hero.sourceLogo} alt={hero.source} title={hero.source} loading="lazy" referrerPolicy="no-referrer" />
-                  {hero.date && <span className="news-date">{when(hero.date)}</span>}
                 </div>
                 <h2 className="news-hero-title">{hero.title}</h2>
                 {hero.excerpt && <p className="news-hero-excerpt">{hero.excerpt}</p>}
@@ -87,7 +76,6 @@ export default async function NewsPage() {
                   <div className="news-kick">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className="news-srclogo" src={n.sourceLogo} alt={n.source} title={n.source} loading="lazy" referrerPolicy="no-referrer" />
-                    {n.date && <span className="news-date">{when(n.date)}</span>}
                   </div>
                   <h3 className="news-card-title">{n.title}</h3>
                 </div>

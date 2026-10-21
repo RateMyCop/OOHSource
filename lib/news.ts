@@ -1,0 +1,118 @@
+// OOH-industry news aggregator. Pulls public RSS/Atom feeds from industry
+// publishers and shows headline + excerpt + an outbound link to the source.
+// We never republish full articles — every item links out to the publisher,
+// so this is a curated hub (fresh content + outbound authority), not a copy.
+//
+// Feeds are fetched with Next's CACHED fetch (revalidate), so /news is
+// build-safe and refreshes itself without a cron. Broken/slow feeds are
+// skipped, never fatal.
+
+export type NewsItem = {
+  title: string;
+  link: string;
+  source: string;
+  date: string; // ISO, or "" if unknown
+  excerpt: string;
+};
+
+// Curated OOH / DOOH industry publishers. Edit this list to add/remove sources.
+const FEEDS: { url: string; source: string }[] = [
+  { url: "https://oohtoday.com/feed/", source: "OOH Today" },
+  { url: "https://billboardinsider.com/feed/", source: "Billboard Insider" },
+  { url: "https://dailydooh.com/feed/", source: "Daily DOOH" },
+];
+
+const REVALIDATE = 1800; // 30 min
+const PER_FEED = 12;
+const MAX_ITEMS = 48;
+
+function decode(s: string): string {
+  return s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tag(block: string, name: string): string {
+  const m = block.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)<\\/${name}>`, "i"));
+  return m ? m[1] : "";
+}
+
+function atomLink(block: string): string {
+  // Prefer rel="alternate"; else first <link href>.
+  const alt = block.match(/<link[^>]*rel=["']alternate["'][^>]*href=["']([^"']+)["']/i);
+  if (alt) return alt[1];
+  const any = block.match(/<link[^>]*href=["']([^"']+)["']/i);
+  return any ? any[1] : "";
+}
+
+function parseFeed(xml: string, source: string): NewsItem[] {
+  const out: NewsItem[] = [];
+  const isAtom = /<feed[\s>]/i.test(xml) && !/<rss[\s>]/i.test(xml);
+  const blocks = xml.match(
+    isAtom ? /<entry[\s>][\s\S]*?<\/entry>/gi : /<item[\s>][\s\S]*?<\/item>/gi
+  );
+  if (!blocks) return out;
+  for (const b of blocks.slice(0, PER_FEED)) {
+    const title = decode(tag(b, "title"));
+    let link = isAtom ? atomLink(b) : decode(tag(b, "link"));
+    if (!link) {
+      const g = b.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i);
+      if (g && /^https?:/i.test(g[1].trim())) link = g[1].trim();
+    }
+    const rawDate =
+      tag(b, "pubDate") || tag(b, "updated") || tag(b, "published") || tag(b, "dc:date");
+    const d = rawDate ? new Date(rawDate.trim()) : null;
+    const date = d && !isNaN(d.getTime()) ? d.toISOString() : "";
+    const descSrc =
+      tag(b, "description") || tag(b, "summary") || tag(b, "content:encoded") || tag(b, "content");
+    const excerpt = decode(descSrc).slice(0, 220).replace(/\s+\S*$/, "") + "…";
+    if (title && link) out.push({ title, link: link.trim(), source, date, excerpt });
+  }
+  return out;
+}
+
+async function fetchFeed(url: string, source: string): Promise<NewsItem[]> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 7000);
+    const res = await fetch(url, {
+      headers: { "User-Agent": "OOHsourceBot/1.0 (+https://oohsource.com)", Accept: "application/rss+xml, application/xml, text/xml, */*" },
+      next: { revalidate: REVALIDATE },
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!res.ok) return [];
+    const xml = await res.text();
+    return parseFeed(xml, source);
+  } catch {
+    return [];
+  }
+}
+
+export async function getIndustryNews(): Promise<NewsItem[]> {
+  const batches = await Promise.all(FEEDS.map((f) => fetchFeed(f.url, f.source)));
+  const seen = new Set<string>();
+  const items: NewsItem[] = [];
+  for (const batch of batches) {
+    for (const it of batch) {
+      const key = it.link.replace(/[?#].*$/, "").toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push(it);
+    }
+  }
+  items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return items.slice(0, MAX_ITEMS);
+}
+
+export const NEWS_SOURCES = Array.from(new Set(FEEDS.map((f) => f.source)));

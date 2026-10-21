@@ -18,10 +18,12 @@ export type NewsItem = {
 };
 
 // Curated OOH / DOOH industry publishers. Edit this list to add/remove sources.
+// Only publishers that serve reliable https article images (so every card shows
+// a real photo). Daily DOOH was dropped — its thumbnails are http-only and
+// redirect/break over https, so they never render on our secure page.
 const FEEDS: { url: string; source: string }[] = [
   { url: "https://oohtoday.com/feed/", source: "OOH Today" },
   { url: "https://billboardinsider.com/feed/", source: "Billboard Insider" },
-  { url: "https://dailydooh.com/feed/", source: "Daily DOOH" },
 ];
 
 const REVALIDATE = 1800; // 30 min

@@ -133,6 +133,29 @@ async function fetchFeed(url: string, source: string): Promise<NewsItem[]> {
   }
 }
 
+// Confirms an image actually loads as an image over HTTPS (the URL the browser
+// will request on our secure page). Returns the usable https URL, or "" if it
+// 404s / redirects to HTML / is hotlink-blocked / http-only. This is what makes
+// "no displayable photo → drop the article" reliable.
+async function validImage(url: string): Promise<string> {
+  const https = url.replace(/^http:\/\//i, "https://");
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch(https, {
+      headers: { "User-Agent": "OOHsourceBot/1.0 (+https://oohsource.com)", Accept: "image/*", Range: "bytes=0-2048" },
+      redirect: "follow",
+      signal: ctrl.signal,
+      next: { revalidate: REVALIDATE },
+    });
+    clearTimeout(t);
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    return res.ok && ct.startsWith("image/") ? https : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function getIndustryNews(): Promise<NewsItem[]> {
   const batches = await Promise.all(FEEDS.map((f) => fetchFeed(f.url, f.source)));
   const seen = new Set<string>();
@@ -145,10 +168,19 @@ export async function getIndustryNews(): Promise<NewsItem[]> {
       items.push(it);
     }
   }
-  // Only show stories that have a real article image — no logo-only cards.
+  // Keep only stories whose article image genuinely loads over https — no
+  // logo-only cards, no broken/hotlink-blocked thumbnails.
   const withPics = items.filter((it) => it.image);
-  withPics.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  return withPics.slice(0, MAX_ITEMS);
+  const validated = (
+    await Promise.all(
+      withPics.map(async (it) => {
+        const good = await validImage(it.image);
+        return good ? { ...it, image: good } : null;
+      })
+    )
+  ).filter((x): x is NewsItem => x !== null);
+  validated.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return validated.slice(0, MAX_ITEMS);
 }
 
 export const NEWS_SOURCES = Array.from(new Set(FEEDS.map((f) => f.source)));

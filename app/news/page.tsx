@@ -59,10 +59,11 @@ export default async function NewsPage() {
               rel="noopener noreferrer nofollow"
               className="news-hero"
             >
-              <NewsThumb image={hero.image} logo={hero.sourceLogo} source={hero.source} title={hero.title} kind="hero" />
+              <NewsThumb image={hero.image} source={hero.source} title={hero.title} kind="hero" />
               <div className="news-hero-body">
                 <div className="news-kick">
-                  <span className="news-src">{hero.source}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="news-srclogo" src={hero.sourceLogo} alt={hero.source} title={hero.source} loading="lazy" referrerPolicy="no-referrer" />
                   {hero.date && <span className="news-date">{when(hero.date)}</span>}
                 </div>
                 <h2 className="news-hero-title">{hero.title}</h2>
@@ -81,10 +82,11 @@ export default async function NewsPage() {
                 rel="noopener noreferrer nofollow"
                 className="news-card"
               >
-                <NewsThumb image={n.image} logo={n.sourceLogo} source={n.source} title={n.title} kind="card" />
+                <NewsThumb image={n.image} source={n.source} title={n.title} kind="card" />
                 <div className="news-card-body">
                   <div className="news-kick">
-                    <span className="news-src">{n.source}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img className="news-srclogo" src={n.sourceLogo} alt={n.source} title={n.source} loading="lazy" referrerPolicy="no-referrer" />
                     {n.date && <span className="news-date">{when(n.date)}</span>}
                   </div>
                   <h3 className="news-card-title">{n.title}</h3>

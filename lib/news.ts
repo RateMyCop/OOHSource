@@ -145,8 +145,10 @@ export async function getIndustryNews(): Promise<NewsItem[]> {
       items.push(it);
     }
   }
-  items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  return items.slice(0, MAX_ITEMS);
+  // Only show stories that have a real article image — no logo-only cards.
+  const withPics = items.filter((it) => it.image);
+  withPics.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return withPics.slice(0, MAX_ITEMS);
 }
 
 export const NEWS_SOURCES = Array.from(new Set(FEEDS.map((f) => f.source)));

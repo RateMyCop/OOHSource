@@ -510,6 +510,8 @@ a.job-co:hover { color: var(--accent-strong); text-decoration: underline; }
 /* News aggregator — magazine grid */
 .news-kick { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .news-src { font-family: var(--font-mono), monospace; font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 600; color: var(--accent-strong); background: var(--accent-soft); border-radius: 999px; padding: 3px 9px; }
+.news-srclogo { height: 20px; width: auto; max-width: 132px; object-fit: contain; display: block; border-radius: 3px; }
+.news-hero .news-srclogo { height: 26px; }
 .news-date { font-size: 0.74rem; color: var(--ink-3); }
 .news-read { display: inline-block; margin-top: 12px; font-family: var(--font-display), sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--accent-strong); }
 

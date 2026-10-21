@@ -30,7 +30,6 @@ const FEEDS: { url: string; source: string }[] = [
 // the feed's favicon so the source reads as a real logo, not a sticker.
 const SOURCE_LOGOS: Record<string, string> = {
   "OOH Today": "/pub-logos/oohtoday.png",
-  "Billboard Insider": "/pub-logos/billboardinsider.png",
 };
 
 const REVALIDATE = 1800; // 30 min

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getIndustryNews, NEWS_SOURCES } from "@/lib/news";
+import { getIndustryNews, NEWS_SOURCES, type NewsItem } from "@/lib/news";
 import { SITE_URL } from "@/lib/lists";
 
 export const revalidate = 1800; // 30 min
@@ -22,8 +22,33 @@ function when(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+// A deterministic accent tint for image-less cards, so the grid still reads as
+// a lively mosaic rather than empty boxes.
+function tintIndex(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 4;
+}
+
+function Thumb({ item, kind }: { item: NewsItem; kind: "hero" | "card" }) {
+  if (item.image) {
+    return (
+      <div className={`news-media news-media--${kind}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" />
+      </div>
+    );
+  }
+  return (
+    <div className={`news-media news-media--${kind} news-media--noimg`} data-tint={tintIndex(item.title)}>
+      <span className="news-media-kicker">{item.source}</span>
+    </div>
+  );
+}
+
 export default async function NewsPage() {
   const items = await getIndustryNews();
+  const [hero, ...rest] = items;
 
   return (
     <section className="wrap" style={{ paddingBottom: 80 }}>
@@ -47,31 +72,51 @@ export default async function NewsPage() {
           <Link href="/directory">directory</Link> in the meantime.
         </p>
       ) : (
-        <ul className="news-list">
-          {items.map((n) => (
-            <li key={n.link} className="news-item">
-              <a href={n.link} target="_blank" rel="noopener noreferrer nofollow" className="news-link">
-                <h2 className="news-title">{n.title}</h2>
-              </a>
-              <div className="news-meta">
-                <span className="news-source">{n.source}</span>
-                {n.date && (
-                  <>
-                    <span className="job-dot">·</span>
-                    <span className="news-date">{when(n.date)}</span>
-                  </>
-                )}
+        <>
+          {hero && (
+            <a
+              href={hero.link}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="news-hero"
+            >
+              <Thumb item={hero} kind="hero" />
+              <div className="news-hero-body">
+                <div className="news-kick">
+                  <span className="news-src">{hero.source}</span>
+                  {hero.date && <span className="news-date">{when(hero.date)}</span>}
+                </div>
+                <h2 className="news-hero-title">{hero.title}</h2>
+                {hero.excerpt && <p className="news-hero-excerpt">{hero.excerpt}</p>}
+                <span className="news-read">Read on {hero.source} →</span>
               </div>
-              {n.excerpt && <p className="news-excerpt">{n.excerpt}</p>}
-              <a href={n.link} target="_blank" rel="noopener noreferrer nofollow" className="news-read">
-                Read on {n.source} →
+            </a>
+          )}
+
+          <div className="news-grid">
+            {rest.map((n) => (
+              <a
+                key={n.link}
+                href={n.link}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="news-card"
+              >
+                <Thumb item={n} kind="card" />
+                <div className="news-card-body">
+                  <div className="news-kick">
+                    <span className="news-src">{n.source}</span>
+                    {n.date && <span className="news-date">{when(n.date)}</span>}
+                  </div>
+                  <h3 className="news-card-title">{n.title}</h3>
+                </div>
               </a>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </>
       )}
 
-      <p className="hint" style={{ marginTop: 34, maxWidth: "62ch" }}>
+      <p className="hint" style={{ marginTop: 40, maxWidth: "62ch" }}>
         OOHsource aggregates public headlines from industry publishers and links
         to their full stories. Want your publication included?{" "}
         <Link href="/contact">Let us know.</Link>

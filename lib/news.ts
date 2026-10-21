@@ -13,6 +13,7 @@ export type NewsItem = {
   source: string;
   date: string; // ISO, or "" if unknown
   excerpt: string;
+  image: string; // thumbnail URL, or "" if none found
 };
 
 // Curated OOH / DOOH industry publishers. Edit this list to add/remove sources.
@@ -55,6 +56,19 @@ function atomLink(block: string): string {
   return any ? any[1] : "";
 }
 
+// A thumbnail URL for the item, from (in order) media:content / media:thumbnail,
+// an image <enclosure>, or the first <img> embedded in the content HTML.
+function imageFrom(block: string): string {
+  let m =
+    block.match(/<media:(?:content|thumbnail)[^>]*\burl=["']([^"']+)["']/i) ||
+    block.match(/<enclosure[^>]*\burl=["']([^"']+)["'][^>]*type=["']image\//i) ||
+    block.match(/<enclosure[^>]*type=["']image\/[^"']*["'][^>]*\burl=["']([^"']+)["']/i) ||
+    block.match(/<img[^>]*\bsrc=["']([^"']+)["']/i);
+  let url = m ? m[1].trim() : "";
+  if (url.startsWith("//")) url = "https:" + url;
+  return /^https?:\/\//i.test(url) ? url : "";
+}
+
 function parseFeed(xml: string, source: string): NewsItem[] {
   const out: NewsItem[] = [];
   const isAtom = /<feed[\s>]/i.test(xml) && !/<rss[\s>]/i.test(xml);
@@ -76,7 +90,8 @@ function parseFeed(xml: string, source: string): NewsItem[] {
     const descSrc =
       tag(b, "description") || tag(b, "summary") || tag(b, "content:encoded") || tag(b, "content");
     const excerpt = decode(descSrc).slice(0, 220).replace(/\s+\S*$/, "") + "…";
-    if (title && link) out.push({ title, link: link.trim(), source, date, excerpt });
+    const image = imageFrom(b);
+    if (title && link) out.push({ title, link: link.trim(), source, date, excerpt, image });
   }
   return out;
 }

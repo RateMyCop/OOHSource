@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     if (ua) a.ua = ua;
     if (path) a.paths.add(path);
   }
-  const top = [...byIp.values()]
+  const top = Array.from(byIp.values())
     .map((a) => {
       const mins = Math.max(1, (a.lastTs - a.firstTs) / 60000);
       return {
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         spanMin: Math.round(mins * 10) / 10,
         distinctPaths: a.paths.size,
         ua: a.ua,
-        samplePaths: [...a.paths].slice(0, 5),
+        samplePaths: Array.from(a.paths).slice(0, 5),
       };
     })
     .sort((x, y) => y.hits - x.hits)

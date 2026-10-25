@@ -48,11 +48,13 @@ async function getCidrs(): Promise<ParsedCidr[]> {
   return cidrCache.parsed;
 }
 
-async function hit(ip: string): Promise<number> {
+async function hit(ip: string, ua: string, path: string): Promise<number> {
   if (!KV_URL) return 0;
   // Fixed window: key carries the window bucket so a plain EXPIRE is enough.
   const bucket = Math.floor(Date.now() / (WINDOW * 1000));
   const key = `rl:${ip}:${bucket}`;
+  // Diagnostic log line (temporary): ts | ip | ua(80) | path — capped list.
+  const line = `${Date.now()}|${ip}|${ua.slice(0, 80).replace(/[|\n]/g, " ")}|${path}`;
   try {
     const r = await fetch(`${KV_URL}/pipeline`, {
       method: "POST",
@@ -60,6 +62,8 @@ async function hit(ip: string): Promise<number> {
       body: JSON.stringify([
         ["INCR", key],
         ["EXPIRE", key, String(WINDOW)],
+        ["LPUSH", "scrapelog", line],
+        ["LTRIM", "scrapelog", "0", "1500"],
       ]),
     });
     const d = (await r.json()) as Array<{ result?: number }>;
@@ -92,8 +96,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // 2) Rate-limit everyone else.
-  const count = await hit(ip);
+  // 2) Rate-limit everyone else (and log for diagnostics).
+  const count = await hit(ip, ua, req.nextUrl.pathname);
   if (count > LIMIT) {
     return new NextResponse("Too many requests — please slow down.", {
       status: 429,

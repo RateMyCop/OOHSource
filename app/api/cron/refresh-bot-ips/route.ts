@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchAllBotCidrs } from "@/lib/bot-ips";
+import { fetchAllBotCidrs, fetchDatacenterCidrs } from "@/lib/bot-ips";
 import { kv } from "@/lib/kv";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +20,22 @@ export async function GET(req: Request) {
   }
 
   try {
-    const cidrs = await fetchAllBotCidrs();
+    const [cidrs, dc] = await Promise.all([fetchAllBotCidrs(), fetchDatacenterCidrs()]);
     const r = kv();
     if (r && cidrs.length) {
       await r.set("botips:v1", JSON.stringify(cidrs));
       await r.set("botips:v1:at", new Date().toISOString());
     }
-    return NextResponse.json({ ok: true, count: cidrs.length, sample: cidrs.slice(0, 6) });
+    if (r && dc.length) {
+      await r.set("dcips:v1", JSON.stringify(dc));
+      await r.set("dcips:v1:at", new Date().toISOString());
+    }
+    return NextResponse.json({
+      ok: true,
+      botCount: cidrs.length,
+      dcCount: dc.length,
+      sample: cidrs.slice(0, 4),
+    });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e).slice(0, 300) }, { status: 500 });
   }

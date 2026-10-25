@@ -10,9 +10,48 @@
 export const VERIFIABLE_BOT_UA =
   /(googlebot|bingbot|gptbot|oai-searchbot|chatgpt-user|perplexitybot)/i;
 
-// Legit AI/search bots that don't publish clean IP lists — trusted by UA.
+// Legit AI/search bots that don't publish clean IP lists — trusted by UA
+// (even from cloud IPs, so they're never caught by datacenter filtering).
 export const UNVERIFIABLE_BOT_UA =
-  /(claudebot|claude-web|anthropic-ai|ccbot|amazonbot|applebot|cohere-ai|google-extended|duckduckbot|bingpreview)/i;
+  /(claudebot|claude-web|anthropic-ai|ccbot|amazonbot|applebot|cohere-ai|google-extended|duckduckbot|bingpreview|exasearchbot|exabot|mistralai-user|meta-externalfetcher|yandexbot|facebookexternalhit)/i;
+
+// Major cloud/hosting IP ranges — where scrapers run. Real humans and verified
+// AI crawlers don't browse from raw datacenter IPs, so content requests from
+// these get a strict limit (or block). Format-agnostic: we regex CIDRs out of
+// each response, so JSON/CSV all work.
+const DC_SOURCES = [
+  "https://ip-ranges.amazonaws.com/ip-ranges.json", // AWS
+  "https://www.gstatic.com/ipranges/cloud.json", // Google Cloud
+  "https://www.digitalocean.com/geo/google.csv", // DigitalOcean
+  "https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json", // Oracle Cloud
+];
+
+const CIDR_RE =
+  /\b\d{1,3}(?:\.\d{1,3}){3}\/\d{1,2}\b|\b(?:[0-9a-fA-F]{1,4}:){2,}[0-9a-fA-F:]*\/\d{1,3}\b/g;
+
+export async function fetchDatacenterCidrs(): Promise<string[]> {
+  const set = new Set<string>();
+  await Promise.all(
+    DC_SOURCES.map(async (u) => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 12000);
+        const r = await fetch(u, {
+          headers: { "User-Agent": "OOHsourceBot/1.0 (+https://oohsource.com)" },
+          signal: ctrl.signal,
+        });
+        clearTimeout(t);
+        if (!r.ok) return;
+        const text = await r.text();
+        const m = text.match(CIDR_RE) || [];
+        m.forEach((x) => set.add(x));
+      } catch {
+        /* skip a failed source */
+      }
+    })
+  );
+  return Array.from(set);
+}
 
 // Published IP-range endpoints (all use the {prefixes:[{ipv4Prefix|ipv6Prefix}]}
 // schema; parser also falls back to scraping CIDR-looking strings).

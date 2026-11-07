@@ -28,11 +28,11 @@ export const LISTS: RankedList[] = [
   },
   {
     slug: "best-large-format-printers",
-    title: "Top 10 Large-Format & Billboard Printers",
+    title: "Best Large-Format Printers for OOH & Billboards (2026)",
     badgeLabel: "Top Large-Format Printers",
     category: "printing-production",
     metaDescription:
-      "The best large-format and billboard printers for out-of-home advertising, ranked by verified ratings and coverage.",
+      "The top large-format print vendors for billboards, wallscapes and transit — compare formats, turnaround and coverage. Browse the OOHsource directory free.",
     intro:
       "The production houses that print the physical media — billboards, banners, wraps, wallscapes, and fabric. Ranked by a transparent blend of verified Google and Yelp ratings (weighted by review volume) and market coverage.",
     limit: 10,

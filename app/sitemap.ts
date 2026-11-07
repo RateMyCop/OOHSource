@@ -4,6 +4,7 @@ import { getAllVendors } from "@/lib/vendors";
 import { LISTS, SITE_URL } from "@/lib/lists";
 import { FORMAT_TYPES } from "@/lib/formats";
 import { PUBLICATIONS } from "@/lib/publications";
+import { CITIES } from "@/lib/cities";
 
 export const revalidate = 3600;
 
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/best",
     "/formats",
     "/publications",
+    "/outdoor-advertising",
     "/list-your-company",
     "/contact",
     "/how-verification-works",
@@ -62,12 +64,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  const cityPages = CITIES.map((c) => ({
+    url: `${SITE_URL}/outdoor-advertising/${c.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
   return [
     ...staticPages,
     ...categoryPages,
     ...listPages,
     ...formatPages,
     ...publicationPages,
+    ...cityPages,
     ...vendorPages,
   ];
 }

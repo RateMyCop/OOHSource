@@ -527,7 +527,7 @@ export async function fetchPendingVendors(max = 100): Promise<PendingVendor[]> {
   url.searchParams.set("pageSize", String(Math.min(max, 100)));
   url.searchParams.set(
     "filterByFormula",
-    `AND(NOT({Status}=''), NOT({Status}='Published'))`
+    `AND(NOT({Status}=''), NOT({Status}='Published'), NOT({Status}='Rejected'))`
   );
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${TOKEN}` },
@@ -558,6 +558,13 @@ export async function fetchPendingVendors(max = 100): Promise<PendingVendor[]> {
 
 export async function publishVendor(id: string): Promise<void> {
   await updateAirtableRecord(id, { Status: "Published" }, TABLE);
+}
+
+// Reject a submission (spam/off-topic/unwanted). "Rejected" is excluded from the
+// review queue (fetchPendingVendors) and from the live snapshot, so it leaves the
+// queue without being deleted (kept for audit).
+export async function rejectVendor(id: string): Promise<void> {
+  await updateAirtableRecord(id, { Status: "Rejected" }, TABLE);
 }
 
 export type ReportRow = {

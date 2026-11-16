@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchPendingVendors, publishVendor } from "@/lib/airtable";
+import { fetchPendingVendors, publishVendor, rejectVendor } from "@/lib/airtable";
 
 export const dynamic = "force-dynamic";
 
@@ -8,9 +8,10 @@ function authed(req: Request): boolean {
   return Boolean(process.env.ADMIN_KEY) && key === process.env.ADMIN_KEY!.trim();
 }
 
-// Publish a pending submission by record id (sets Status="Published").
-// Body: { id }. Auth: x-admin-key. (The /admin UI button is session-gated; this
-// is the headless equivalent.)
+// Act on a pending submission by record id. Body: { id, action? } where action
+// is "publish" (default, Status="Published") or "reject" (Status="Rejected",
+// which leaves the queue and stays hidden from the live site). Auth: x-admin-key.
+// (The /admin UI button is session-gated; this is the headless equivalent.)
 export async function POST(req: Request) {
   if (!authed(req)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
@@ -22,10 +23,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid body" }, { status: 400 });
   }
   const id = String(body.id ?? "").trim();
+  const action = String(body.action ?? "publish").trim().toLowerCase();
   if (!id) {
     return NextResponse.json({ ok: false, error: "id required" }, { status: 400 });
   }
+  if (action !== "publish" && action !== "reject") {
+    return NextResponse.json(
+      { ok: false, error: "action must be 'publish' or 'reject'" },
+      { status: 400 }
+    );
+  }
   try {
+    if (action === "reject") {
+      await rejectVendor(id);
+      return NextResponse.json({ ok: true, rejected: id });
+    }
     await publishVendor(id);
     return NextResponse.json({ ok: true, published: id });
   } catch (e) {

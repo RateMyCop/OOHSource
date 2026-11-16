@@ -681,3 +681,58 @@ export async function updateAirtableRecord(
     throw new Error(`Airtable update failed ${res.status}: ${await res.text()}`);
   }
 }
+
+export interface UnverifiedRecord {
+  id: string;
+  createdTime: string;
+  company: string;
+  email: string;
+  token: string;
+}
+
+// List every submission still awaiting email confirmation (Status =
+// "Unverified"). Used by the resend endpoint and the stale-escalation cron.
+// The set is small (only unconfirmed submissions), so callers filter in JS.
+export async function fetchUnverifiedRecords(): Promise<UnverifiedRecord[]> {
+  if (!TOKEN || !BASE_ID) throw new Error("Airtable is not configured");
+  const baseUrl = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(
+    TABLE
+  )}`;
+  const out: UnverifiedRecord[] = [];
+  let offset: string | undefined;
+  do {
+    const url = new URL(baseUrl);
+    url.searchParams.set("pageSize", "100");
+    url.searchParams.set("filterByFormula", "{Status}='Unverified'");
+    if (offset) url.searchParams.set("offset", offset);
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Airtable unverified list failed ${res.status}: ${await res.text()}`
+      );
+    }
+    const data = (await res.json()) as {
+      records?: {
+        id: string;
+        createdTime: string;
+        fields?: Record<string, unknown>;
+      }[];
+      offset?: string;
+    };
+    for (const r of data.records ?? []) {
+      const f = r.fields ?? {};
+      out.push({
+        id: r.id,
+        createdTime: r.createdTime,
+        company: String(f.Name ?? ""),
+        email: String(f["Submitter Email"] ?? ""),
+        token: String(f["Verify Token"] ?? ""),
+      });
+    }
+    offset = data.offset;
+  } while (offset);
+  return out;
+}

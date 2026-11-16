@@ -5,7 +5,11 @@ import {
   createAirtableRecord,
   updateAirtableRecord,
 } from "@/lib/airtable";
-import { emailConfigured, sendVerificationEmail } from "@/lib/email";
+import {
+  emailConfigured,
+  sendVerificationEmail,
+  sendSubmissionAdminAlert,
+} from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -137,6 +141,14 @@ export async function POST(req: Request) {
         );
         await createAirtableRecord(fields); // Status already "Pending Review"
         return NextResponse.json({ ok: true, verify: false });
+      }
+
+      // Team heads-up so an unconfirmed submission is visible even if the
+      // confirmation email is spam-filtered (best-effort, never blocks).
+      try {
+        await sendSubmissionAdminAlert(name, email);
+      } catch (alertErr) {
+        console.error("[oohsource] admin alert failed:", alertErr);
       }
 
       try {

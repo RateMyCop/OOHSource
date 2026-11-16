@@ -7,6 +7,7 @@
     { "path": "/api/cron/monthly-report", "schedule": "0 13 1 * *" },
     { "path": "/api/cron/claim-outreach", "schedule": "0 12 * * 1" },
     { "path": "/api/cron/behavioral-upsell", "schedule": "0 15 * * 4" },
-    { "path": "/api/cron/refresh-bot-ips", "schedule": "0 4 * * *" }
+    { "path": "/api/cron/refresh-bot-ips", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/escalate-unverified", "schedule": "*/15 * * * *" }
   ]
 }

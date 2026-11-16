@@ -27,6 +27,9 @@ export default function ListYourCompanyPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [verifyPending, setVerifyPending] = useState(false);
   const [category, setCategory] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
 
   const selectedCat = CATEGORIES.find((c) => c.slug === category);
   const roleSuggestions = selectedCat?.subcategories ?? [];
@@ -38,6 +41,7 @@ export default function ListYourCompanyPage() {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
+    setSubmittedEmail(String(fd.get("email") || ""));
 
     const rawCoverage = String(fd.get("coverage") || "");
     const coverage =
@@ -93,6 +97,27 @@ export default function ListYourCompanyPage() {
     }
   }
 
+  async function handleResend() {
+    if (!submittedEmail || resending) return;
+    setResending(true);
+    setResendMsg("");
+    try {
+      const res = await fetch("/api/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: submittedEmail }),
+      });
+      if (!res.ok) throw new Error();
+      setResendMsg("Sent again — check your inbox, and your spam/junk folder.");
+    } catch {
+      setResendMsg(
+        "Couldn't resend just now. Email hello@oohsource.com and we'll confirm it for you."
+      );
+    } finally {
+      setResending(false);
+    }
+  }
+
   const submitting = status === "submitting";
 
   return (
@@ -119,9 +144,44 @@ export default function ListYourCompanyPage() {
 
       <div className="form-wrap">
         <div className={`form-ok${status === "done" ? " show" : ""}`} role="status">
-          {verifyPending
-            ? "✓ Almost there — check your email and click the confirmation link to send your listing for review."
-            : "✓ Thanks — your listing has been submitted for review. We'll verify the details and publish it shortly."}
+          {verifyPending ? (
+            <>
+              <p style={{ margin: 0 }}>
+                ✓ Almost there — we emailed a confirmation link
+                {submittedEmail ? (
+                  <>
+                    {" "}to <strong>{submittedEmail}</strong>
+                  </>
+                ) : null}
+                . Click it to send your listing for review.
+              </p>
+              <p style={{ margin: "8px 0 0", fontSize: 14 }}>
+                Didn&rsquo;t get it? Check your spam or junk folder — it can take
+                a minute to arrive.{" "}
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "inherit",
+                    textDecoration: "underline",
+                    cursor: resending ? "default" : "pointer",
+                    font: "inherit",
+                  }}
+                >
+                  {resending ? "Resending…" : "Resend the email"}
+                </button>
+              </p>
+              {resendMsg ? (
+                <p style={{ margin: "8px 0 0", fontSize: 14 }}>{resendMsg}</p>
+              ) : null}
+            </>
+          ) : (
+            "✓ Thanks — your listing has been submitted for review. We'll verify the details and publish it shortly."
+          )}
         </div>
 
         {status !== "done" && (

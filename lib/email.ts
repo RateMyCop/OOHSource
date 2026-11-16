@@ -311,6 +311,24 @@ export async function sendVerificationEmail(
   await sendEmail(to, "Confirm your OOHsource listing", html);
 }
 
+const ADMIN_NOTIFY = process.env.ADMIN_NOTIFY_EMAIL || "hello@oohsource.com";
+
+// Internal heads-up when a new listing is submitted but still needs email
+// confirmation — so a stuck/unconfirmed submission is visible to the team even
+// if the confirmation email lands in the submitter's spam folder.
+export async function sendSubmissionAdminAlert(
+  company: string,
+  email: string
+): Promise<void> {
+  const safeCo = escapeHtml(company);
+  const safeEmail = escapeHtml(email);
+  const html = wrap(`
+    <p style="font-size:16px;line-height:1.55;">New listing submitted &mdash; <strong>awaiting email confirmation</strong>.</p>
+    <p style="font-size:16px;line-height:1.55;">Company: <strong>${safeCo}</strong><br />Submitter: ${safeEmail}</p>
+    <p style="font-size:13px;line-height:1.55;color:#71767E;">If they don&rsquo;t confirm within an hour, it auto-moves to Pending Review.</p>`);
+  await sendEmail(ADMIN_NOTIFY, `New submission (unconfirmed): ${company}`, html);
+}
+
 export async function sendLoginCode(to: string, code: string): Promise<void> {
   const html = wrap(`
     <p style="font-size: 16px; line-height: 1.55;">Your OOHsource sign-in code:</p>
